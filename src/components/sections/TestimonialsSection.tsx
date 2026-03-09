@@ -50,7 +50,10 @@ export function TestimonialsSection() {
       setCurrent(next);
       const card = scrollRef.current.children[next] as HTMLElement;
       if (card) {
-        card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        scrollRef.current.scrollTo({
+          left: card.offsetLeft - scrollRef.current.offsetLeft,
+          behavior: "smooth",
+        });
       }
     }, 4500);
     return () => clearInterval(interval);
@@ -89,7 +92,12 @@ export function TestimonialsSection() {
             onClick={() => {
               setCurrent(i);
               const card = scrollRef.current?.children[i] as HTMLElement;
-              card?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+              if (card && scrollRef.current) {
+                scrollRef.current.scrollTo({
+                  left: card.offsetLeft - scrollRef.current.offsetLeft,
+                  behavior: "smooth",
+                });
+              }
             }}
             className={`transition-all duration-300 rounded-full ${
               i === current
