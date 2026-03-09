@@ -19,8 +19,8 @@ import {
   Refrigerator,
   Zap,
 } from "lucide-react";
-import type { QuoteState, QuoteAction, ExtraItem, EquipmentItem } from "@/lib/quote-types";
-import { formatGBP, EQUIPMENT_PRICES } from "@/lib/quote-pricing";
+import type { QuoteState, QuoteAction, ExtraItem, EquipmentItem, DrinkUpgradeItem } from "@/lib/quote-types";
+import { formatGBP, EQUIPMENT_PRICES, DRINK_UPGRADE_PRICES } from "@/lib/quote-pricing";
 
 interface Step6Props {
   state: QuoteState;
@@ -193,11 +193,50 @@ interface ExtraDef {
   type: "toggle" | "lateNight" | "staffStepper";
 }
 
+interface DrinkUpgradeDef {
+  key: keyof DrinkUpgradeItem;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  perGuest: number;
+}
+
+const DRINK_UPGRADES: DrinkUpgradeDef[] = [
+  {
+    key: "champagneService",
+    label: "Champagne Service",
+    description: "Welcome champagne and top-ups throughout service",
+    icon: Sparkles,
+    perGuest: DRINK_UPGRADE_PRICES.champagneService,
+  },
+  {
+    key: "premiumSpirits",
+    label: "Premium Spirits Upgrade",
+    description: "Grey Goose, Hendricks and premium house pours",
+    icon: Wine,
+    perGuest: DRINK_UPGRADE_PRICES.premiumSpirits,
+  },
+  {
+    key: "craftBeerSelection",
+    label: "Craft Beer Selection",
+    description: "Expanded rotating craft beer and cider lineup",
+    icon: Coffee,
+    perGuest: DRINK_UPGRADE_PRICES.craftBeerSelection,
+  },
+  {
+    key: "premiumWineUpgrade",
+    label: "Premium Wine Upgrade",
+    description: "Enhanced red, white and rosé wine menu",
+    icon: GlassWater,
+    perGuest: DRINK_UPGRADE_PRICES.premiumWineUpgrade,
+  },
+];
+
 const EXTRAS: ExtraDef[] = [
   {
     key: "cocktailMenu",
-    label: "Cocktail Menu",
-    description: "Custom printed menus for every table",
+    label: "Signature Cocktail Menu",
+    description: "Custom signature cocktail list for your event",
     icon: Wine,
     price: (g) => 5 * g,
     priceLabel: (g) => `${formatGBP(5 * g)} (£5 × ${g} guests)`,
@@ -456,6 +495,61 @@ function ExtraCard({
   );
 }
 
+function DrinkUpgradeCard({
+  item,
+  state,
+  dispatch,
+  guestCount,
+}: {
+  item: DrinkUpgradeDef;
+  state: QuoteState;
+  dispatch: React.Dispatch<QuoteAction>;
+  guestCount: number;
+}) {
+  const isActive = state.drinks[item.key];
+  const Icon = item.icon;
+  const total = item.perGuest * guestCount;
+
+  return (
+    <motion.button
+      onClick={() => dispatch({ type: "SET_DRINK_UPGRADE", key: item.key, value: !isActive })}
+      className="relative text-left rounded-2xl p-4 w-full transition-all"
+      style={{
+        background: isActive ? "rgba(201,149,107,0.08)" : "rgba(255,255,255,0.03)",
+        border: `1px solid ${isActive ? "rgba(201,149,107,0.4)" : "rgba(255,255,255,0.08)"}`,
+      }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
+    >
+      {isActive && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ background: "#c9956b" }}
+        >
+          <Check className="w-3 h-3" style={{ color: "#0a0f1c" }} strokeWidth={3} />
+        </motion.div>
+      )}
+      <div className="flex items-start gap-3 pr-6">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: isActive ? "rgba(201,149,107,0.2)" : "rgba(255,255,255,0.05)" }}
+        >
+          <Icon className="w-4 h-4" style={{ color: isActive ? "#c9956b" : "#9ca3af" }} />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold" style={{ color: "#faf8f5" }}>{item.label}</p>
+          <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>{item.description}</p>
+          <p className="text-xs mt-0.5 font-medium" style={{ color: "#c9956b" }}>
+            {formatGBP(total)} ({formatGBP(item.perGuest)} × {guestCount} guests)
+          </p>
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
 export function Step6EquipmentExtras({ state, dispatch, onNext, onBack, guestCount, duration }: Step6Props) {
   const equipmentTotal =
     state.equipment.backBarFridge * EQUIPMENT_PRICES.backBarFridge +
@@ -474,7 +568,13 @@ export function Step6EquipmentExtras({ state, dispatch, onNext, onBack, guestCou
     (state.extras.mocktailPackage ? 3 * guestCount : 0) +
     state.extras.extraStaff * 25 * duration;
 
-  const sectionTotal = equipmentTotal + extrasTotal;
+  const drinksTotal =
+    (state.drinks.champagneService ? DRINK_UPGRADE_PRICES.champagneService * guestCount : 0) +
+    (state.drinks.premiumSpirits ? DRINK_UPGRADE_PRICES.premiumSpirits * guestCount : 0) +
+    (state.drinks.craftBeerSelection ? DRINK_UPGRADE_PRICES.craftBeerSelection * guestCount : 0) +
+    (state.drinks.premiumWineUpgrade ? DRINK_UPGRADE_PRICES.premiumWineUpgrade * guestCount : 0);
+
+  const sectionTotal = equipmentTotal + drinksTotal + extrasTotal;
 
   return (
     <div className="space-y-8 pb-20">
@@ -496,6 +596,27 @@ export function Step6EquipmentExtras({ state, dispatch, onNext, onBack, guestCou
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {EQUIPMENT_ITEMS.map((item) => (
             <EquipmentCard key={item.key} item={item} state={state} dispatch={dispatch} />
+          ))}
+        </div>
+      </div>
+
+      {/* Drinks upgrades section */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-[0.15em] mb-2" style={{ color: "#c9956b" }}>
+          Drinks Package Upgrades
+        </h3>
+        <p className="text-sm mb-4" style={{ color: "#9ca3af" }}>
+          Standard Package is included for All Inclusive. Add premium upgrades per guest below.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {DRINK_UPGRADES.map((item) => (
+            <DrinkUpgradeCard
+              key={item.key}
+              item={item}
+              state={state}
+              dispatch={dispatch}
+              guestCount={guestCount}
+            />
           ))}
         </div>
       </div>

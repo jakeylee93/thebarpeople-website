@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { X, ChevronRight } from "lucide-react";
-import { formatGBP, BAR_DETAILS, GLASS_DEFINITIONS, GLASS_TYPE_ORDER } from "@/lib/quote-pricing";
-import type { QuoteState, GlassType } from "@/lib/quote-types";
+import { formatGBP, BAR_DETAILS, GLASS_TYPE_ORDER } from "@/lib/quote-pricing";
+import type { QuoteState } from "@/lib/quote-types";
 import type { PricingBreakdown } from "@/lib/quote-pricing";
 
 interface QuoteSummaryProps {
@@ -213,9 +213,30 @@ function SummaryContent({
             )}
 
             {/* Staff */}
-            {pricing.staffCost > 0 && (
-              <LineItem label="Staff" sublabel="Mixologists, bartenders & bar backs" amount={pricing.staffCost} />
+            {pricing.staffBreakdown.map((line) => (
+              <LineItem
+                key={line.label}
+                label={`${line.qty} × ${line.label} (${line.hours}hrs)`}
+                sublabel={`${formatGBP(line.rate)}/hr each`}
+                amount={line.amount}
+                onEdit={onGoToStep ? () => onGoToStep(2) : undefined}
+              />
+            ))}
+
+            {/* Drinks package */}
+            {state.serviceType && (
+              <LineItem
+                label="Standard Package"
+                sublabel={state.serviceType === "all_inclusive" ? "Included" : "Available on consultation"}
+                amount={0}
+                valueLabel={state.serviceType === "all_inclusive" ? "Included" : "Consultation"}
+                onEdit={onGoToStep ? () => onGoToStep(3) : undefined}
+              />
             )}
+
+            {pricing.drinks.map((drink, i) => (
+              <LineItem key={drink.label + i} label={drink.label} amount={drink.amount} onEdit={onGoToStep ? () => onGoToStep(6) : undefined} />
+            ))}
 
             {/* Glassware */}
             {pricing.glasswareCost > 0 && (
@@ -238,7 +259,7 @@ function SummaryContent({
 
             {/* Extras */}
             {pricing.extras.map((extra, i) => (
-              <LineItem key={i} label={extra.label} amount={extra.amount} />
+              <LineItem key={i} label={extra.label} amount={extra.amount} onEdit={onGoToStep ? () => onGoToStep(6) : undefined} />
             ))}
           </div>
 
@@ -287,11 +308,13 @@ function LineItem({
   label,
   sublabel,
   amount,
+  valueLabel,
   onEdit,
 }: {
   label: string;
   sublabel?: string;
   amount: number;
+  valueLabel?: string;
   onEdit?: () => void;
 }) {
   return (
@@ -318,7 +341,7 @@ function LineItem({
         )}
       </div>
       <span className="text-sm font-semibold shrink-0" style={{ color: "#e0b48a" }}>
-        <AnimatedPrice value={amount} />
+        {valueLabel ?? <AnimatedPrice value={amount} />}
       </span>
     </div>
   );

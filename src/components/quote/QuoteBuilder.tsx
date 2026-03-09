@@ -2,6 +2,7 @@
 
 import { useReducer, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Users } from "lucide-react";
 import { ProgressBar } from "./ProgressBar";
 import { QuoteSummary } from "./QuoteSummary";
 import { Step1EventBasics } from "./steps/Step1EventBasics";
@@ -13,7 +14,7 @@ import { Step6EquipmentExtras } from "./steps/Step6EquipmentExtras";
 import { Step7ContactDetails } from "./steps/Step7ContactDetails";
 import { Step8ReviewConfirm } from "./steps/Step8ReviewConfirm";
 import { calculatePricing } from "@/lib/quote-pricing";
-import type { QuoteState, QuoteAction, ExtraItem, EquipmentItem, GlassType } from "@/lib/quote-types";
+import type { QuoteState, QuoteAction, ExtraItem, EquipmentItem, DrinkUpgradeItem } from "@/lib/quote-types";
 
 // ─── Initial State ──────────────────────────────────────────────────────────
 
@@ -36,6 +37,13 @@ const DEFAULT_EQUIPMENT: EquipmentItem = {
   circularLedHalf: false,
 };
 
+const DEFAULT_DRINK_UPGRADES: DrinkUpgradeItem = {
+  champagneService: false,
+  premiumSpirits: false,
+  craftBeerSelection: false,
+  premiumWineUpgrade: false,
+};
+
 const INITIAL_STATE: QuoteState = {
   currentStep: 1,
   completedSteps: new Set<number>(),
@@ -49,6 +57,7 @@ const INITIAL_STATE: QuoteState = {
   barSelection: null,
   glassware: {},
   equipment: DEFAULT_EQUIPMENT,
+  drinks: DEFAULT_DRINK_UPGRADES,
   extras: DEFAULT_EXTRAS,
   contactName: "",
   contactEmail: "",
@@ -116,6 +125,15 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
         } as EquipmentItem,
       };
 
+    case "SET_DRINK_UPGRADE":
+      return {
+        ...state,
+        drinks: {
+          ...state.drinks,
+          [action.key]: action.value,
+        },
+      };
+
     case "SET_EXTRA":
       return {
         ...state,
@@ -153,6 +171,8 @@ const TOTAL_STEPS = 8;
 export function QuoteBuilder() {
   const [state, dispatch] = useReducer(quoteReducer, INITIAL_STATE);
   const [direction, setDirection] = useState(1);
+  const [editingGuests, setEditingGuests] = useState(false);
+  const [guestDraft, setGuestDraft] = useState(String(INITIAL_STATE.guestCount));
 
   const pricing = calculatePricing(state);
 
@@ -178,6 +198,13 @@ export function QuoteBuilder() {
   );
 
   const completedStepsArray = Array.from(state.completedSteps);
+  const commitGuestCount = useCallback(() => {
+    const parsed = Number.parseInt(guestDraft, 10);
+    const nextValue = Number.isFinite(parsed) ? parsed : state.guestCount;
+    dispatch({ type: "SET_GUEST_COUNT", value: nextValue });
+    setGuestDraft(String(Math.min(500, Math.max(10, nextValue))));
+    setEditingGuests(false);
+  }, [guestDraft, state.guestCount]);
 
   // Staff only: skip bar selection (step 4), render step 5 content at step 4 slot
   const isStaffOnly = state.serviceType === "staff_only";
@@ -263,7 +290,6 @@ export function QuoteBuilder() {
       return (
         <Step8ReviewConfirm
           state={state}
-          dispatch={dispatch}
           onBack={goBack}
           onGoToStep={goToStep}
         />
@@ -320,6 +346,58 @@ export function QuoteBuilder() {
             onStepClick={goToStep}
             totalSteps={TOTAL_STEPS}
           />
+          <div
+            className="mt-3 rounded-xl px-4 py-2.5 flex items-center justify-between"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" style={{ color: "#c9956b" }} />
+              <p className="text-sm font-semibold" style={{ color: "#faf8f5" }}>
+                {editingGuests ? "Set guests" : `👥 ${state.guestCount} guests`}
+              </p>
+            </div>
+            {editingGuests ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={10}
+                  max={500}
+                  step={10}
+                  value={guestDraft}
+                  onChange={(e) => setGuestDraft(e.target.value)}
+                  onBlur={commitGuestCount}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitGuestCount();
+                    if (e.key === "Escape") {
+                      setGuestDraft(String(state.guestCount));
+                      setEditingGuests(false);
+                    }
+                  }}
+                  autoFocus
+                  className="w-20 px-2 py-1 rounded-md text-sm"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#faf8f5" }}
+                />
+                <button
+                  onClick={commitGuestCount}
+                  className="text-xs px-2.5 py-1 rounded-md"
+                  style={{ background: "rgba(201,149,107,0.2)", color: "#e0b48a", border: "1px solid rgba(201,149,107,0.4)" }}
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setGuestDraft(String(state.guestCount));
+                  setEditingGuests(true);
+                }}
+                className="text-xs px-2.5 py-1 rounded-md"
+                style={{ background: "rgba(255,255,255,0.06)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)" }}
+              >
+                Edit
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

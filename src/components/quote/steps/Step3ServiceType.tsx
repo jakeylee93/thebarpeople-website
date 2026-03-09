@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Check, ArrowRight, ArrowLeft, Users, DollarSign, Package, UserCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { QuoteState, QuoteAction, ServiceType } from "@/lib/quote-types";
 import { formatGBP, getServiceStartingPrice } from "@/lib/quote-pricing";
 
@@ -59,6 +58,21 @@ const SERVICE_OPTIONS: ServiceOption[] = [
     icon: UserCheck,
     showPrice: false,
   },
+];
+
+const STANDARD_PACKAGE_ITEMS = [
+  "House spirits (vodka, gin, rum, whisky)",
+  "Standard mixers & soft drinks",
+  "Beer & cider selection",
+  "House wine (red, white, rosé)",
+];
+
+const PREMIUM_UPGRADE_ITEMS = [
+  "Champagne Service — £8/guest",
+  "Premium Spirits Upgrade — £4/guest",
+  "Craft Beer Selection — £3/guest",
+  "Premium Wine Upgrade — £5/guest",
+  "Signature Cocktail Menu — £5/guest",
 ];
 
 export function Step3ServiceType({ state, dispatch, onNext, onBack, guestCount }: Step3Props) {
@@ -166,6 +180,45 @@ export function Step3ServiceType({ state, dispatch, onNext, onBack, guestCount }
           );
         })}
       </div>
+
+      {state.serviceType && (
+        <div
+          className="rounded-2xl p-5 space-y-4"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.15em] mb-2" style={{ color: "#c9956b" }}>
+              What&apos;s Included
+            </p>
+            <p className="text-sm" style={{ color: "#9ca3af" }}>
+              Standard Package
+              {state.serviceType === "all_inclusive" ? " (included in your All Inclusive base price)" : " (available on consultation)"}
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {STANDARD_PACKAGE_ITEMS.map((item) => (
+                <li key={item} className="text-sm" style={{ color: "#faf8f5" }}>
+                  • {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.15em] mb-2" style={{ color: "#c9956b" }}>
+              Premium Upgrades
+            </p>
+            <ul className="space-y-1.5">
+              {PREMIUM_UPGRADE_ITEMS.map((item) => (
+                <li key={item} className="text-sm" style={{ color: "#9ca3af" }}>
+                  • {item}
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs mt-2" style={{ color: "#9ca3af" }}>
+              Select these in Step 6: Equipment & Extras.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Nav buttons */}
       <div className="flex gap-3">

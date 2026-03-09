@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -11,7 +11,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
-import type { QuoteState, QuoteAction, GlassType } from "@/lib/quote-types";
+import type { QuoteState, GlassType } from "@/lib/quote-types";
 import {
   calculatePricing,
   formatGBP,
@@ -23,7 +23,6 @@ import {
 
 interface Step8Props {
   state: QuoteState;
-  dispatch: React.Dispatch<QuoteAction>;
   onBack: () => void;
   onGoToStep: (step: number) => void;
 }
@@ -41,17 +40,30 @@ function Row({
   qty,
   unitPrice,
   total,
+  onEdit,
 }: {
   item: string;
   description?: string;
   qty?: string;
   unitPrice?: string;
   total: string | React.ReactNode;
+  onEdit?: () => void;
 }) {
   return (
     <tr className="border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
       <td className="py-3 pr-4">
-        <p className="text-sm font-medium" style={{ color: "#faf8f5" }}>{item}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium" style={{ color: "#faf8f5" }}>{item}</p>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="text-[11px] px-1.5 py-0.5 rounded-md"
+              style={{ color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              edit
+            </button>
+          )}
+        </div>
         {description && <p className="text-xs" style={{ color: "#9ca3af" }}>{description}</p>}
       </td>
       <td className="py-3 pr-4 text-right text-xs" style={{ color: "#9ca3af" }}>{qty ?? "—"}</td>
@@ -61,7 +73,7 @@ function Row({
   );
 }
 
-export function Step8ReviewConfirm({ state, dispatch, onBack, onGoToStep }: Step8Props) {
+export function Step8ReviewConfirm({ state, onBack, onGoToStep }: Step8Props) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -218,6 +230,7 @@ export function Step8ReviewConfirm({ state, dispatch, onBack, onGoToStep }: Step
                   qty="1"
                   unitPrice={pricing.serviceBase > 0 ? formatGBP(pricing.serviceBase) : "POA"}
                   total={pricing.serviceBase > 0 ? formatGBP(pricing.serviceBase) : "POA"}
+                  onEdit={() => onGoToStep(3)}
                 />
               )}
 
@@ -229,19 +242,37 @@ export function Step8ReviewConfirm({ state, dispatch, onBack, onGoToStep }: Step
                   qty="1"
                   unitPrice={formatGBP(pricing.barCost)}
                   total={formatGBP(pricing.barCost)}
+                  onEdit={() => onGoToStep(4)}
                 />
               )}
 
               {/* Staff */}
-              {pricing.staffCost > 0 && (
+              {pricing.staffBreakdown.map((line) => (
                 <Row
-                  item="Staff"
-                  description={`${Math.ceil(state.guestCount / 50)} mixologist${Math.ceil(state.guestCount / 50) > 1 ? "s" : ""} + bartenders & bar backs`}
-                  qty={`${state.duration}hrs`}
-                  unitPrice="—"
-                  total={formatGBP(pricing.staffCost)}
+                  key={line.label}
+                  item={`${line.qty} × ${line.label} (${line.hours}hrs)`}
+                  description={`${formatGBP(line.rate)}/hr each`}
+                  qty={`${line.qty}`}
+                  unitPrice={formatGBP(line.rate)}
+                  total={formatGBP(line.amount)}
+                  onEdit={() => onGoToStep(2)}
+                />
+              ))}
+
+              {/* Drinks package */}
+              {state.serviceType && (
+                <Row
+                  item="Standard Package"
+                  description={state.serviceType === "all_inclusive" ? "Included in All Inclusive base price" : "Available on consultation"}
+                  qty="—"
+                  unitPrice="Included"
+                  total={state.serviceType === "all_inclusive" ? "Included" : "Consultation"}
+                  onEdit={() => onGoToStep(3)}
                 />
               )}
+              {pricing.drinks.map((drink) => (
+                <Row key={drink.label} item={drink.label} total={formatGBP(drink.amount)} onEdit={() => onGoToStep(6)} />
+              ))}
 
               {/* Glassware */}
               {GLASS_TYPE_ORDER.filter((gt) => ((state.glassware[gt] as number) ?? 0) > 0).map((gt) => {
@@ -256,6 +287,7 @@ export function Step8ReviewConfirm({ state, dispatch, onBack, onGoToStep }: Step
                     qty={`${crates * def.crateSize}`}
                     unitPrice={formatGBP(def.pricePerGlass)}
                     total={formatGBP(cost)}
+                    onEdit={() => onGoToStep(5)}
                   />
                 );
               })}
@@ -267,6 +299,7 @@ export function Step8ReviewConfirm({ state, dispatch, onBack, onGoToStep }: Step
                   qty={`${state.equipment.backBarFridge}`}
                   unitPrice={formatGBP(EQUIPMENT_PRICES.backBarFridge)}
                   total={formatGBP(state.equipment.backBarFridge * EQUIPMENT_PRICES.backBarFridge)}
+                  onEdit={() => onGoToStep(6)}
                 />
               )}
               {state.equipment.tallWineFridge > 0 && (
@@ -275,18 +308,19 @@ export function Step8ReviewConfirm({ state, dispatch, onBack, onGoToStep }: Step
                   qty={`${state.equipment.tallWineFridge}`}
                   unitPrice={formatGBP(EQUIPMENT_PRICES.tallWineFridge)}
                   total={formatGBP(state.equipment.tallWineFridge * EQUIPMENT_PRICES.tallWineFridge)}
+                  onEdit={() => onGoToStep(6)}
                 />
               )}
               {state.equipment.circularLedFull && (
-                <Row item="Circular LED Bar (Full Circle)" qty="1" unitPrice={formatGBP(EQUIPMENT_PRICES.circularLedFull)} total={formatGBP(EQUIPMENT_PRICES.circularLedFull)} />
+                <Row item="Circular LED Bar (Full Circle)" qty="1" unitPrice={formatGBP(EQUIPMENT_PRICES.circularLedFull)} total={formatGBP(EQUIPMENT_PRICES.circularLedFull)} onEdit={() => onGoToStep(6)} />
               )}
               {state.equipment.circularLedHalf && (
-                <Row item="Circular LED Bar (Half Circle)" qty="1" unitPrice={formatGBP(EQUIPMENT_PRICES.circularLedHalf)} total={formatGBP(EQUIPMENT_PRICES.circularLedHalf)} />
+                <Row item="Circular LED Bar (Half Circle)" qty="1" unitPrice={formatGBP(EQUIPMENT_PRICES.circularLedHalf)} total={formatGBP(EQUIPMENT_PRICES.circularLedHalf)} onEdit={() => onGoToStep(6)} />
               )}
 
               {/* Extras */}
               {pricing.extras.map((extra, i) => (
-                <Row key={i} item={extra.label} total={formatGBP(extra.amount)} />
+                <Row key={i} item={extra.label} total={formatGBP(extra.amount)} onEdit={() => onGoToStep(6)} />
               ))}
             </tbody>
           </table>
