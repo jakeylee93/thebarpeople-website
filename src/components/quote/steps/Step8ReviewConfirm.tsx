@@ -250,10 +250,10 @@ export function Step8ReviewConfirm({ state, onBack, onGoToStep }: Step8Props) {
               {pricing.staffBreakdown.map((line) => (
                 <Row
                   key={line.label}
-                  item={`${line.qty} × ${line.label} (${line.hours}hrs)`}
+                  item={`${line.qty} × ${line.label} (${line.hours}hrs) = ${formatGBP(line.amount)}`}
                   description={`${formatGBP(line.rate)}/hr each`}
-                  qty={`${line.qty}`}
-                  unitPrice={formatGBP(line.rate)}
+                  qty="—"
+                  unitPrice="—"
                   total={formatGBP(line.amount)}
                   onEdit={() => onGoToStep(2)}
                 />
@@ -262,7 +262,7 @@ export function Step8ReviewConfirm({ state, onBack, onGoToStep }: Step8Props) {
               {/* Drinks package */}
               {state.serviceType && (
                 <Row
-                  item="Standard Package"
+                  item={`Standard Package — ${state.serviceType === "all_inclusive" ? "Included" : "Consultation"}`}
                   description={state.serviceType === "all_inclusive" ? "Included in All Inclusive base price" : "Available on consultation"}
                   qty="—"
                   unitPrice="Included"

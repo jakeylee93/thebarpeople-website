@@ -352,9 +352,16 @@ export function QuoteBuilder() {
           >
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" style={{ color: "#c9956b" }} />
-              <p className="text-sm font-semibold" style={{ color: "#faf8f5" }}>
+              <button
+                onClick={() => {
+                  setGuestDraft(String(state.guestCount));
+                  setEditingGuests(true);
+                }}
+                className="text-sm font-semibold text-left"
+                style={{ color: "#faf8f5" }}
+              >
                 {editingGuests ? "Set guests" : `👥 ${state.guestCount} guests`}
-              </p>
+              </button>
             </div>
             {editingGuests ? (
               <div className="flex items-center gap-2">

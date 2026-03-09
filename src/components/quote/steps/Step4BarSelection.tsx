@@ -130,7 +130,7 @@ export function Step4BarSelection({ state, dispatch, onNext, onBack, serviceType
                       <div className="flex items-center gap-1.5">
                         <Users className="w-3.5 h-3.5" style={{ color: "#9ca3af" }} />
                         <span className="text-sm" style={{ color: "#9ca3af" }}>
-                          Up to {details.capacity >= 999 ? "500+" : details.capacity} guests
+                          {barKey === "island_40ft" ? "250+ guests" : `Up to ${details.capacity} guests`}
                         </span>
                       </div>
 

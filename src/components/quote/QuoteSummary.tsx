@@ -216,7 +216,7 @@ function SummaryContent({
             {pricing.staffBreakdown.map((line) => (
               <LineItem
                 key={line.label}
-                label={`${line.qty} × ${line.label} (${line.hours}hrs)`}
+                label={`${line.qty} × ${line.label} (${line.hours}hrs) = ${formatGBP(line.amount)}`}
                 sublabel={`${formatGBP(line.rate)}/hr each`}
                 amount={line.amount}
                 onEdit={onGoToStep ? () => onGoToStep(2) : undefined}
@@ -226,7 +226,7 @@ function SummaryContent({
             {/* Drinks package */}
             {state.serviceType && (
               <LineItem
-                label="Standard Package"
+                label={`Standard Package — ${state.serviceType === "all_inclusive" ? "Included" : "Consultation"}`}
                 sublabel={state.serviceType === "all_inclusive" ? "Included" : "Available on consultation"}
                 amount={0}
                 valueLabel={state.serviceType === "all_inclusive" ? "Included" : "Consultation"}
