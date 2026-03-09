@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/utils";
@@ -40,18 +41,15 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-8 h-8 rounded-lg bg-[#c9956b] flex items-center justify-center flex-shrink-0">
-                <span className="text-[#0a0f1c] font-bold text-sm">B</span>
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[#faf8f5] font-bold text-sm tracking-[0.12em] uppercase">
-                  The Bar People
-                </span>
-                <span className="text-[#c9956b] text-[10px] tracking-[0.2em] uppercase">
-                  Est. 2014
-                </span>
-              </div>
+            <Link href="/" className="flex items-center group">
+              <Image
+                src="/logo-header.png"
+                alt="The Bar People"
+                width={200}
+                height={48}
+                className="h-10 md:h-12 w-auto drop-shadow-[0_0_8px_rgba(201,149,107,0.3)]"
+                priority
+              />
             </Link>
 
             {/* Desktop Nav */}

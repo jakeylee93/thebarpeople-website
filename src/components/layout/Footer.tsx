@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { NewsletterForm } from "./NewsletterForm";
 
 const serviceLinks = [
@@ -32,21 +33,27 @@ export function Footer() {
   return (
     <footer className="bg-[#060b16] border-t border-white/[0.06]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Main logo centred above footer content */}
+        <div className="flex justify-center mb-12">
+          <Image
+            src="/logo-main.png"
+            alt="The Bar People"
+            width={120}
+            height={120}
+            className="w-24 h-24 opacity-90 drop-shadow-[0_0_16px_rgba(201,149,107,0.25)] ring-1 ring-[#c9956b]/20 rounded-full"
+          />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#c9956b] flex items-center justify-center flex-shrink-0">
-                <span className="text-[#0a0f1c] font-bold text-sm">B</span>
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[#faf8f5] font-bold text-sm tracking-[0.12em] uppercase">
-                  The Bar People
-                </span>
-                <span className="text-[#c9956b] text-[10px] tracking-[0.2em] uppercase">
-                  Est. 2014
-                </span>
-              </div>
+            <div className="mb-4">
+              <Image
+                src="/logo-header.png"
+                alt="The Bar People"
+                width={160}
+                height={40}
+                className="h-9 w-auto"
+              />
             </div>
             <p className="text-[#9ca3af] text-sm leading-relaxed max-w-xs mb-6">
               London&apos;s premium mobile bar hire specialists. Pop-up bars, professional bartenders, and unforgettable experiences since 2014.
