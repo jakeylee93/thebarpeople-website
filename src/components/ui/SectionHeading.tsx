@@ -6,6 +6,7 @@ interface SectionHeadingProps {
   subtitle?: string;
   center?: boolean;
   className?: string;
+  onLight?: boolean;
 }
 
 export function SectionHeading({
@@ -14,6 +15,7 @@ export function SectionHeading({
   subtitle,
   center = false,
   className,
+  onLight = false,
 }: SectionHeadingProps) {
   return (
     <div
@@ -30,14 +32,19 @@ export function SectionHeading({
       )}
       <h2
         className={cn(
-          "font-[family-name:var(--font-playfair)] text-3xl sm:text-4xl lg:text-5xl font-bold text-[#faf8f5] leading-tight",
+          "font-[family-name:var(--font-young-serif)] text-3xl sm:text-4xl lg:text-5xl leading-tight",
+          onLight ? "text-[#0a0f1c]" : "text-[#faf8f5]",
           center && "mx-auto"
         )}
       >
         {heading}
       </h2>
       {subtitle && (
-        <p className={cn("mt-4 text-[#9ca3af] text-lg max-w-2xl leading-relaxed", center && "mx-auto")}>
+        <p className={cn(
+          "mt-4 text-lg max-w-2xl leading-relaxed",
+          onLight ? "text-[#4b5563]" : "text-[#9ca3af]",
+          center && "mx-auto"
+        )}>
           {subtitle}
         </p>
       )}

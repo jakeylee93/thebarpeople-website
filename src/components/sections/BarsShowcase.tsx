@@ -108,7 +108,7 @@ export function BarsShowcase() {
 
                 {/* Info */}
                 <div className="p-5">
-                  <h3 className="font-[family-name:var(--font-playfair)] text-lg font-bold text-[#faf8f5] mb-1">
+                  <h3 className="font-[family-name:var(--font-young-serif)] text-lg font-bold text-[#faf8f5] mb-1">
                     {bar.name}
                   </h3>
                   <p className="text-[#9ca3af] text-sm mb-3">{bar.description}</p>

@@ -8,19 +8,21 @@ interface ProgressBarProps {
   currentStep: number;
   completedSteps: number[];
   onStepClick: (step: number) => void;
+  totalSteps?: number;
 }
 
-const STEP_LABELS = ["Event", "Guests", "Service", "Bar", "Extras", "Contact"];
-const TOTAL_STEPS = 6;
+const STEP_LABELS = ["Event", "Guests", "Service", "Bar", "Glasses", "Extras", "Contact", "Review"];
 
-export function ProgressBar({ currentStep, completedSteps, onStepClick }: ProgressBarProps) {
+export function ProgressBar({ currentStep, completedSteps, onStepClick, totalSteps = 8 }: ProgressBarProps) {
+  const labels = STEP_LABELS.slice(0, totalSteps);
+
   return (
     <>
       {/* Mobile: simple progress bar */}
       <div className="flex flex-col items-center gap-2 md:hidden">
         <p className="text-sm font-medium" style={{ color: "#9ca3af" }}>
-          Step <span style={{ color: "#c9956b" }}>{currentStep}</span> of {TOTAL_STEPS} —{" "}
-          <span style={{ color: "#faf8f5" }}>{STEP_LABELS[currentStep - 1]}</span>
+          Step <span style={{ color: "#c9956b" }}>{currentStep}</span> of {totalSteps} —{" "}
+          <span style={{ color: "#faf8f5" }}>{labels[currentStep - 1]}</span>
         </p>
         <div
           className="w-full h-1.5 rounded-full overflow-hidden"
@@ -30,7 +32,7 @@ export function ProgressBar({ currentStep, completedSteps, onStepClick }: Progre
             className="h-full rounded-full"
             style={{ background: "linear-gradient(90deg, #a97a52, #c9956b, #e0b48a)" }}
             initial={false}
-            animate={{ width: `${(currentStep / TOTAL_STEPS) * 100}%` }}
+            animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           />
         </div>
@@ -38,8 +40,8 @@ export function ProgressBar({ currentStep, completedSteps, onStepClick }: Progre
 
       {/* Desktop: step dots */}
       <div className="hidden md:flex items-center justify-center w-full">
-        <div className="flex items-center w-full max-w-2xl">
-          {Array.from({ length: TOTAL_STEPS }, (_, i) => {
+        <div className="flex items-center w-full max-w-3xl">
+          {Array.from({ length: totalSteps }, (_, i) => {
             const stepNumber = i + 1;
             const isCompleted = completedSteps.includes(stepNumber);
             const isCurrent = currentStep === stepNumber;
@@ -53,7 +55,7 @@ export function ProgressBar({ currentStep, completedSteps, onStepClick }: Progre
                     onClick={() => isClickable && onStepClick(stepNumber)}
                     disabled={!isClickable}
                     className={cn(
-                      "relative w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all",
+                      "relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all",
                       isClickable ? "cursor-pointer" : "cursor-default"
                     )}
                     style={{
@@ -86,7 +88,7 @@ export function ProgressBar({ currentStep, completedSteps, onStepClick }: Progre
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 400, damping: 20 }}
                       >
-                        <Check className="w-4 h-4" strokeWidth={3} />
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
                       </motion.span>
                     ) : (
                       <span>{stepNumber}</span>
@@ -104,15 +106,15 @@ export function ProgressBar({ currentStep, completedSteps, onStepClick }: Progre
                   </motion.button>
 
                   <span
-                    className="text-xs font-medium whitespace-nowrap"
+                    className="text-[10px] font-medium whitespace-nowrap"
                     style={{ color: isCurrent ? "#c9956b" : isCompleted ? "#e0b48a" : "#9ca3af" }}
                   >
-                    {STEP_LABELS[i]}
+                    {labels[i]}
                   </span>
                 </div>
 
                 {/* Connector line */}
-                {stepNumber < TOTAL_STEPS && (
+                {stepNumber < totalSteps && (
                   <div
                     className="flex-1 h-px mx-1 mb-5 overflow-hidden"
                     style={{ backgroundColor: "rgba(255,255,255,0.08)" }}

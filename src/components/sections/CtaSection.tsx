@@ -25,7 +25,7 @@ export function CtaSection() {
           <p className="text-[#c9956b] text-sm font-semibold uppercase tracking-[0.2em] mb-4">
             Get Started Today
           </p>
-          <h2 className="font-[family-name:var(--font-playfair)] text-4xl sm:text-5xl lg:text-6xl font-bold text-[#faf8f5] mb-6 leading-tight">
+          <h2 className="font-[family-name:var(--font-young-serif)] text-4xl sm:text-5xl lg:text-6xl font-bold text-[#faf8f5] mb-6 leading-tight">
             Ready to Build Your{" "}
             <span className="text-[#c9956b] italic">Perfect Bar?</span>
           </h2>

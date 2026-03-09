@@ -7,14 +7,19 @@ import { Button } from "@/components/ui/Button";
 import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
+const navLinksLeft = [
   { label: "Services", href: "/services" },
   { label: "Our Bars", href: "/our-bars" },
   { label: "Events", href: "/events" },
+];
+
+const navLinksRight = [
   { label: "Gallery", href: "/gallery" },
   { label: "About", href: "/about" },
   { label: "Reviews", href: "/reviews" },
 ];
+
+const navLinks = [...navLinksLeft, ...navLinksRight];
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -22,7 +27,7 @@ export function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 40);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -32,29 +37,18 @@ export function Header() {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
           scrolled
             ? "bg-[#0a0f1c]/95 backdrop-blur-md border-b border-white/[0.06] shadow-lg"
             : "bg-transparent"
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center group">
-              <Image
-                src="/logo-header.png"
-                alt="The Bar People"
-                width={200}
-                height={48}
-                className="h-10 md:h-12 w-auto drop-shadow-[0_0_8px_rgba(201,149,107,0.3)]"
-                priority
-              />
-            </Link>
-
-            {/* Desktop Nav */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => (
+          {/* Desktop: 3-column centred layout */}
+          <div className="hidden lg:flex items-center justify-between h-20">
+            {/* Left nav */}
+            <nav className="flex items-center gap-1 flex-1">
+              {navLinksLeft.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -65,13 +59,57 @@ export function Header() {
               ))}
             </nav>
 
-            {/* CTA + Mobile Toggle */}
-            <div className="flex items-center gap-3">
-              <Link href="/contact" className="hidden md:block">
-                <Button variant="ghost" size="sm">
-                  Contact
-                </Button>
-              </Link>
+            {/* Centred logo */}
+            <Link href="/" className="flex items-center justify-center flex-shrink-0 mx-6">
+              <Image
+                src="/logo-header.png"
+                alt="The Bar People"
+                width={220}
+                height={52}
+                className="h-14 w-auto brightness-0 invert drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.35)] transition-all duration-300"
+                priority
+              />
+            </Link>
+
+            {/* Right nav + CTA */}
+            <nav className="flex items-center gap-1 flex-1 justify-end">
+              {navLinksRight.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="px-4 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-sm font-medium rounded-lg hover:bg-white/5 transition-all duration-200"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="flex items-center gap-2 ml-2">
+                <Link href="/contact">
+                  <Button variant="ghost" size="sm">
+                    Contact
+                  </Button>
+                </Link>
+                <Link href="/quote">
+                  <Button size="sm">
+                    Build Your Quote
+                  </Button>
+                </Link>
+              </div>
+            </nav>
+          </div>
+
+          {/* Mobile/Tablet: logo left, CTA + burger right */}
+          <div className="flex lg:hidden items-center justify-between h-16">
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/logo-header.png"
+                alt="The Bar People"
+                width={160}
+                height={38}
+                className="h-9 w-auto brightness-0 invert"
+                priority
+              />
+            </Link>
+            <div className="flex items-center gap-2">
               <Link href="/quote">
                 <Button size="sm" className="hidden sm:flex">
                   Build Your Quote
@@ -82,7 +120,7 @@ export function Header() {
               </Link>
               <button
                 onClick={() => setMobileOpen(true)}
-                className="lg:hidden p-2 text-[#faf8f5]/70 hover:text-[#faf8f5] hover:bg-white/5 rounded-lg transition-colors"
+                className="p-2 text-[#faf8f5]/70 hover:text-[#faf8f5] hover:bg-white/5 rounded-lg transition-colors"
                 aria-label="Open menu"
               >
                 <svg

@@ -11,8 +11,10 @@
   --color-text-muted: #9ca3af;
   --color-border: rgba(255,255,255,0.08);
   --color-border-hover: rgba(255,255,255,0.15);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
+  --color-cream: #faf8f5;
+  --color-cream-dark: #f0ede8;
+  --font-sans: var(--font-dm-sans);
+  --font-serif: var(--font-young-serif);
 }
 
 * {
@@ -26,7 +28,7 @@ html {
 body {
   background: #0a0f1c;
   color: #faf8f5;
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
