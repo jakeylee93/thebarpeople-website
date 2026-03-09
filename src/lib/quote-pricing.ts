@@ -4,8 +4,10 @@ export interface PricingBreakdown {
   serviceBase: number;
   barCost: number;
   staffCost: number;
+  staffBreakdown: { label: string; qty: number; rate: number; hours: number; amount: number }[];
   glasswareCost: number;
   equipmentCost: number;
+  drinks: { label: string; amount: number }[];
   extras: { label: string; amount: number }[];
   subtotal: number;
   vat: number;
@@ -84,6 +86,13 @@ export const EQUIPMENT_PRICES = {
   circularLedHalf: 500,    // flat
 };
 
+export const DRINK_UPGRADE_PRICES = {
+  champagneService: 8,
+  premiumSpirits: 4,
+  craftBeerSelection: 3,
+  premiumWineUpgrade: 5,
+} as const;
+
 // Get guest tier (0-indexed)
 function getGuestTier(guestCount: number): 0 | 1 | 2 | 3 {
   if (guestCount <= 50) return 0;
@@ -123,22 +132,28 @@ export function getServiceStartingPrice(serviceType: ServiceType, guestCount: nu
 }
 
 export function getStaffCost(serviceType: ServiceType, guestCount: number, duration: number): number {
-  // All inclusive already includes staff. Staff only and cash bar add staff separately.
-  if (serviceType === "all_inclusive") return 0;
-  if (serviceType === "dry_hire") return 0;
+  const breakdown = getStaffBreakdown(serviceType, guestCount, duration);
+  return breakdown.reduce((sum, line) => sum + line.amount, 0);
+}
 
-  const mixologists = Math.ceil(guestCount / 50);
-  const bartenders = Math.ceil(guestCount / 60);
-  const barbacks = Math.ceil(guestCount / 100);
-  const eventManager = guestCount >= 100 ? 1 : 0;
+export function getStaffBreakdown(serviceType: ServiceType, guestCount: number, duration: number) {
+  // All inclusive already includes staff. Dry hire has no staffing.
+  if (serviceType === "all_inclusive" || serviceType === "dry_hire") return [];
 
-  const staffCost =
-    mixologists * 30 * duration +
-    bartenders * 25 * duration +
-    barbacks * 18 * duration +
-    eventManager * 35 * duration;
+  const roles = [
+    { label: "Mixologist", qty: Math.ceil(guestCount / 50), rate: 30 },
+    { label: "Bartender", qty: Math.ceil(guestCount / 60), rate: 25 },
+    { label: "Bar Back", qty: Math.ceil(guestCount / 100), rate: 18 },
+    { label: "Event Manager", qty: guestCount >= 100 ? 1 : 0, rate: 35 },
+  ];
 
-  return staffCost;
+  return roles
+    .filter((role) => role.qty > 0)
+    .map((role) => ({
+      ...role,
+      hours: duration,
+      amount: role.qty * role.rate * duration,
+    }));
 }
 
 export function getRecommendedBar(guestCount: number): BarType {
@@ -168,21 +183,44 @@ export function calculateEquipmentCost(equipment: QuoteState["equipment"]): numb
 }
 
 export function calculatePricing(state: QuoteState): PricingBreakdown {
-  const { serviceType, barSelection, guestCount, duration, extras, glassware, equipment } = state;
+  const { serviceType, barSelection, guestCount, duration, extras, glassware, equipment, drinks } = state;
 
   if (!serviceType) {
-    return { serviceBase: 0, barCost: 0, staffCost: 0, glasswareCost: 0, equipmentCost: 0, extras: [], subtotal: 0, vat: 0, total: 0 };
+    return {
+      serviceBase: 0,
+      barCost: 0,
+      staffCost: 0,
+      staffBreakdown: [],
+      glasswareCost: 0,
+      equipmentCost: 0,
+      drinks: [],
+      extras: [],
+      subtotal: 0,
+      vat: 0,
+      total: 0,
+    };
   }
 
   const serviceBase = getServiceBasePrice(serviceType, guestCount, duration);
   const barCost = barSelection && serviceType !== "staff_only" ? BAR_PRICES[barSelection] : 0;
-  const staffCost = getStaffCost(serviceType, guestCount, duration);
+  const staffBreakdown = getStaffBreakdown(serviceType, guestCount, duration);
+  const staffCost = staffBreakdown.reduce((sum, line) => sum + line.amount, 0);
   const glasswareCost = calculateGlasswareCost(glassware);
   const equipmentCost = calculateEquipmentCost(equipment);
+  const drinksBreakdown: { label: string; amount: number }[] = [];
 
   const extrasBreakdown: { label: string; amount: number }[] = [];
 
-  if (extras.cocktailMenu) extrasBreakdown.push({ label: "Cocktail Menu", amount: 5 * guestCount });
+  if (drinks.champagneService)
+    drinksBreakdown.push({ label: `Champagne Service (${guestCount} guests)`, amount: DRINK_UPGRADE_PRICES.champagneService * guestCount });
+  if (drinks.premiumSpirits)
+    drinksBreakdown.push({ label: `Premium Spirits Upgrade (${guestCount} guests)`, amount: DRINK_UPGRADE_PRICES.premiumSpirits * guestCount });
+  if (drinks.craftBeerSelection)
+    drinksBreakdown.push({ label: `Craft Beer Selection (${guestCount} guests)`, amount: DRINK_UPGRADE_PRICES.craftBeerSelection * guestCount });
+  if (drinks.premiumWineUpgrade)
+    drinksBreakdown.push({ label: `Premium Wine Upgrade (${guestCount} guests)`, amount: DRINK_UPGRADE_PRICES.premiumWineUpgrade * guestCount });
+
+  if (extras.cocktailMenu) extrasBreakdown.push({ label: `Signature Cocktail Menu (${guestCount} guests)`, amount: 5 * guestCount });
   if (extras.glasswareUpgrade) extrasBreakdown.push({ label: "Glassware Upgrade (Premium Crystal)", amount: 150 });
   if (extras.ledLighting) extrasBreakdown.push({ label: "LED Bar Lighting", amount: 200 });
   if (extras.barBranding) extrasBreakdown.push({ label: "Bar Branding (Custom Panels)", amount: 350 });
@@ -194,12 +232,25 @@ export function calculatePricing(state: QuoteState): PricingBreakdown {
   if (extras.extraStaff > 0)
     extrasBreakdown.push({ label: `Extra Staff (${extras.extraStaff}x)`, amount: 25 * duration * extras.extraStaff });
 
+  const drinksTotal = drinksBreakdown.reduce((sum, e) => sum + e.amount, 0);
   const extrasTotal = extrasBreakdown.reduce((sum, e) => sum + e.amount, 0);
-  const subtotal = serviceBase + barCost + staffCost + glasswareCost + equipmentCost + extrasTotal;
+  const subtotal = serviceBase + barCost + staffCost + glasswareCost + equipmentCost + drinksTotal + extrasTotal;
   const vat = Math.round(subtotal * 0.2);
   const total = subtotal + vat;
 
-  return { serviceBase, barCost, staffCost, glasswareCost, equipmentCost, extras: extrasBreakdown, subtotal, vat, total };
+  return {
+    serviceBase,
+    barCost,
+    staffCost,
+    staffBreakdown,
+    glasswareCost,
+    equipmentCost,
+    drinks: drinksBreakdown,
+    extras: extrasBreakdown,
+    subtotal,
+    vat,
+    total,
+  };
 }
 
 export function formatGBP(amount: number): string {

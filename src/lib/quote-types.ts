@@ -42,6 +42,13 @@ export interface ExtraItem {
   extraStaff: number;
 }
 
+export interface DrinkUpgradeItem {
+  champagneService: boolean;
+  premiumSpirits: boolean;
+  craftBeerSelection: boolean;
+  premiumWineUpgrade: boolean;
+}
+
 export interface QuoteState {
   currentStep: number;
   completedSteps: Set<number>;
@@ -61,6 +68,7 @@ export interface QuoteState {
   glassware: GlasswareSelection;
   // Step 6
   equipment: EquipmentItem;
+  drinks: DrinkUpgradeItem;
   extras: ExtraItem;
   // Step 7
   contactName: string;
@@ -85,6 +93,7 @@ export type QuoteAction =
   | { type: "SET_BAR_SELECTION"; value: BarType | null }
   | { type: "SET_GLASSWARE"; glassType: GlassType; crates: number }
   | { type: "SET_EQUIPMENT"; key: keyof EquipmentItem; value: boolean | number }
+  | { type: "SET_DRINK_UPGRADE"; key: keyof DrinkUpgradeItem; value: boolean }
   | { type: "SET_EXTRA"; key: keyof ExtraItem; value: boolean | number }
   | { type: "SET_CONTACT"; key: keyof Pick<QuoteState, "contactName" | "contactEmail" | "contactPhone" | "contactCompany" | "eventNotes">; value: string }
   | { type: "SET_TERMS"; value: boolean };
