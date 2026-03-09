@@ -37,7 +37,7 @@ export function ComingSoonShell({ title, subtitle, breadcrumb }: ComingSoonShell
             </svg>
           </div>
 
-          <h1 className="font-[family-name:var(--font-playfair)] text-3xl sm:text-4xl font-bold text-[#faf8f5] mb-3">
+          <h1 className="font-[family-name:var(--font-young-serif)] text-3xl sm:text-4xl font-bold text-[#faf8f5] mb-3">
             {title}
           </h1>
 

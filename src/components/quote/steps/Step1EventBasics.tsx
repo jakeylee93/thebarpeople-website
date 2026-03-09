@@ -64,7 +64,7 @@ export function Step1EventBasics({ state, dispatch, onNext }: Step1Props) {
       {/* Heading */}
       <div>
         <h2
-          className="text-3xl md:text-4xl font-bold font-[family-name:var(--font-playfair)] mb-2"
+          className="text-3xl md:text-4xl font-bold font-[family-name:var(--font-young-serif)] mb-2"
           style={{ color: "#faf8f5" }}
         >
           Tell us about your event

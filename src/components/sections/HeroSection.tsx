@@ -1,30 +1,53 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1920&q=80&fit=crop",
+  "https://images.unsplash.com/photo-1574096079513-d8259312b785?w=1920&q=80&fit=crop",
+  "https://images.unsplash.com/photo-1530267981375-f0de937f5f13?w=1920&q=80&fit=crop",
+  "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1920&q=80&fit=crop",
+];
+
+const CROSSFADE_INTERVAL = 6000;
+
 export function HeroSection() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, CROSSFADE_INTERVAL);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1920&q=80&fit=crop')",
-        }}
-      />
+      {/* Crossfade background images */}
+      <AnimatePresence mode="sync">
+        <motion.div
+          key={currentIndex}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('${HERO_IMAGES[currentIndex]}')` }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        />
+      </AnimatePresence>
 
       {/* Dark overlay — layered for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1c]/70 via-[#0a0f1c]/60 to-[#0a0f1c]" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1c]/60 via-transparent to-[#0a0f1c]/40" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1c]/80 via-[#0a0f1c]/55 to-[#0a0f1c]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0a0f1c]/50 via-transparent to-[#0a0f1c]/30" />
 
       {/* Ambient glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#c9956b]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#c9956b]/8 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -39,7 +62,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
-          className="font-[family-name:var(--font-playfair)] text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-[#faf8f5] leading-[1.1] mb-6"
+          className="font-[family-name:var(--font-young-serif)] text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-[#faf8f5] leading-[1.05] mb-6"
         >
           Build Your{" "}
           <span className="text-[#c9956b] italic">Perfect Bar</span>
@@ -51,7 +74,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="text-[#faf8f5]/70 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
+          className="text-[#faf8f5]/75 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
         >
           Pop-up bars, professional bartenders, and unforgettable experiences for
           any event. Get an instant quote with no commitment.
@@ -93,7 +116,7 @@ export function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="flex items-center justify-center gap-6 mt-14 flex-wrap"
+          className="flex items-center justify-center gap-8 mt-14 flex-wrap"
         >
           {[
             { label: "10+ Years", sub: "of events" },
@@ -109,6 +132,23 @@ export function HeroSection() {
             </div>
           ))}
         </motion.div>
+      </div>
+
+      {/* Crossfade dots indicator */}
+      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+        {HERO_IMAGES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentIndex(i)}
+            className="transition-all duration-300 rounded-full"
+            style={{
+              width: i === currentIndex ? "1.5rem" : "0.5rem",
+              height: "0.5rem",
+              background: i === currentIndex ? "#c9956b" : "rgba(255,255,255,0.3)",
+            }}
+            aria-label={`Show image ${i + 1}`}
+          />
+        ))}
       </div>
 
       {/* Scroll indicator */}

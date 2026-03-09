@@ -8,10 +8,12 @@ import { Step1EventBasics } from "./steps/Step1EventBasics";
 import { Step2GuestCount } from "./steps/Step2GuestCount";
 import { Step3ServiceType } from "./steps/Step3ServiceType";
 import { Step4BarSelection } from "./steps/Step4BarSelection";
-import { Step5Extras } from "./steps/Step5Extras";
-import { Step6ContactDetails } from "./steps/Step6ContactDetails";
+import { Step5Glassware } from "./steps/Step5Glassware";
+import { Step6EquipmentExtras } from "./steps/Step6EquipmentExtras";
+import { Step7ContactDetails } from "./steps/Step7ContactDetails";
+import { Step8ReviewConfirm } from "./steps/Step8ReviewConfirm";
 import { calculatePricing } from "@/lib/quote-pricing";
-import type { QuoteState, QuoteAction, ExtraItem } from "@/lib/quote-types";
+import type { QuoteState, QuoteAction, ExtraItem, EquipmentItem, GlassType } from "@/lib/quote-types";
 
 // ─── Initial State ──────────────────────────────────────────────────────────
 
@@ -27,6 +29,13 @@ const DEFAULT_EXTRAS: ExtraItem = {
   extraStaff: 0,
 };
 
+const DEFAULT_EQUIPMENT: EquipmentItem = {
+  backBarFridge: 0,
+  tallWineFridge: 0,
+  circularLedFull: false,
+  circularLedHalf: false,
+};
+
 const INITIAL_STATE: QuoteState = {
   currentStep: 1,
   completedSteps: new Set<number>(),
@@ -38,6 +47,8 @@ const INITIAL_STATE: QuoteState = {
   duration: 4,
   serviceType: null,
   barSelection: null,
+  glassware: {},
+  equipment: DEFAULT_EQUIPMENT,
   extras: DEFAULT_EXTRAS,
   contactName: "",
   contactEmail: "",
@@ -87,6 +98,24 @@ function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState {
     case "SET_BAR_SELECTION":
       return { ...state, barSelection: action.value };
 
+    case "SET_GLASSWARE":
+      return {
+        ...state,
+        glassware: {
+          ...state.glassware,
+          [action.glassType]: Math.max(0, action.crates),
+        },
+      };
+
+    case "SET_EQUIPMENT":
+      return {
+        ...state,
+        equipment: {
+          ...state.equipment,
+          [action.key]: action.value,
+        } as EquipmentItem,
+      };
+
     case "SET_EXTRA":
       return {
         ...state,
@@ -116,6 +145,8 @@ const variants = {
 };
 
 const transition = { type: "tween" as const, duration: 0.3, ease: "easeInOut" as const };
+
+const TOTAL_STEPS = 8;
 
 // ─── QuoteBuilder ─────────────────────────────────────────────────────────────
 
@@ -148,20 +179,97 @@ export function QuoteBuilder() {
 
   const completedStepsArray = Array.from(state.completedSteps);
 
-  // If step 3 is staff_only, skip step 4
-  const effectiveNextFromStep3 = () => {
-    if (state.serviceType === "staff_only") {
-      setDirection(1);
-      const completed = new Set(state.completedSteps);
-      completed.add(3);
-      completed.add(4); // mark step 4 as completed (skipped)
-      dispatch({ type: "SET_STEP", step: 5 });
-      // We need to update completedSteps separately — use NEXT_STEP twice
-      dispatch({ type: "NEXT_STEP" });
-      // Actually let's just go next twice via setTimeout
-    } else {
-      goNext();
+  // Staff only: skip bar selection (step 4), render step 5 content at step 4 slot
+  const isStaffOnly = state.serviceType === "staff_only";
+
+  const renderStep = () => {
+    const { currentStep } = state;
+
+    if (currentStep === 1) {
+      return <Step1EventBasics state={state} dispatch={dispatch} onNext={goNext} />;
     }
+    if (currentStep === 2) {
+      return <Step2GuestCount state={state} dispatch={dispatch} onNext={goNext} onBack={goBack} />;
+    }
+    if (currentStep === 3) {
+      return (
+        <Step3ServiceType
+          state={state}
+          dispatch={dispatch}
+          onNext={goNext}
+          onBack={goBack}
+          guestCount={state.guestCount}
+          duration={state.duration}
+        />
+      );
+    }
+    if (currentStep === 4) {
+      if (isStaffOnly) {
+        return (
+          <Step5Glassware
+            state={state}
+            dispatch={dispatch}
+            onNext={goNext}
+            onBack={goBack}
+            guestCount={state.guestCount}
+          />
+        );
+      }
+      return (
+        <Step4BarSelection
+          state={state}
+          dispatch={dispatch}
+          onNext={goNext}
+          onBack={goBack}
+          serviceType={state.serviceType ?? "all_inclusive"}
+          guestCount={state.guestCount}
+        />
+      );
+    }
+    if (currentStep === 5) {
+      return (
+        <Step5Glassware
+          state={state}
+          dispatch={dispatch}
+          onNext={goNext}
+          onBack={goBack}
+          guestCount={state.guestCount}
+        />
+      );
+    }
+    if (currentStep === 6) {
+      return (
+        <Step6EquipmentExtras
+          state={state}
+          dispatch={dispatch}
+          onNext={goNext}
+          onBack={goBack}
+          guestCount={state.guestCount}
+          duration={state.duration}
+        />
+      );
+    }
+    if (currentStep === 7) {
+      return (
+        <Step7ContactDetails
+          state={state}
+          dispatch={dispatch}
+          onBack={goBack}
+          onSubmit={goNext}
+        />
+      );
+    }
+    if (currentStep === 8) {
+      return (
+        <Step8ReviewConfirm
+          state={state}
+          dispatch={dispatch}
+          onBack={goBack}
+          onGoToStep={goToStep}
+        />
+      );
+    }
+    return null;
   };
 
   return (
@@ -180,14 +288,11 @@ export function QuoteBuilder() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <p
-              className="text-xs font-bold tracking-[0.2em] uppercase mb-3"
-              style={{ color: "#c9956b" }}
-            >
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: "#c9956b" }}>
               Instant Estimate
             </p>
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold font-[family-name:var(--font-playfair)] mb-4"
+              className="text-4xl md:text-5xl lg:text-6xl font-[family-name:var(--font-young-serif)] mb-4"
               style={{ color: "#faf8f5" }}
             >
               Build Your Perfect Bar
@@ -203,7 +308,7 @@ export function QuoteBuilder() {
       <div
         className="sticky top-0 z-30 py-4 px-4 sm:px-6"
         style={{
-          background: "rgba(10,15,28,0.9)",
+          background: "rgba(10,15,28,0.95)",
           backdropFilter: "blur(12px)",
           borderBottom: "1px solid rgba(255,255,255,0.05)",
         }}
@@ -213,6 +318,7 @@ export function QuoteBuilder() {
             currentStep={state.currentStep}
             completedSteps={completedStepsArray}
             onStepClick={goToStep}
+            totalSteps={TOTAL_STEPS}
           />
         </div>
       </div>
@@ -233,69 +339,7 @@ export function QuoteBuilder() {
                   exit="exit"
                   transition={transition}
                 >
-                  {state.currentStep === 1 && (
-                    <Step1EventBasics state={state} dispatch={dispatch} onNext={goNext} />
-                  )}
-                  {state.currentStep === 2 && (
-                    <Step2GuestCount state={state} dispatch={dispatch} onNext={goNext} onBack={goBack} />
-                  )}
-                  {state.currentStep === 3 && (
-                    <Step3ServiceType
-                      state={state}
-                      dispatch={dispatch}
-                      onNext={goNext}
-                      onBack={goBack}
-                      guestCount={state.guestCount}
-                      duration={state.duration}
-                    />
-                  )}
-                  {state.currentStep === 4 && state.serviceType !== "staff_only" && (
-                    <Step4BarSelection
-                      state={state}
-                      dispatch={dispatch}
-                      onNext={goNext}
-                      onBack={goBack}
-                      serviceType={state.serviceType ?? "all_inclusive"}
-                      guestCount={state.guestCount}
-                    />
-                  )}
-                  {state.currentStep === 4 && state.serviceType === "staff_only" && (
-                    // Staff only: skip bar, go to extras
-                    <Step5Extras
-                      state={state}
-                      dispatch={dispatch}
-                      onNext={goNext}
-                      onBack={goBack}
-                      guestCount={state.guestCount}
-                      duration={state.duration}
-                    />
-                  )}
-                  {state.currentStep === 5 && state.serviceType !== "staff_only" && (
-                    <Step5Extras
-                      state={state}
-                      dispatch={dispatch}
-                      onNext={goNext}
-                      onBack={goBack}
-                      guestCount={state.guestCount}
-                      duration={state.duration}
-                    />
-                  )}
-                  {state.currentStep === 5 && state.serviceType === "staff_only" && (
-                    <Step6ContactDetails
-                      state={state}
-                      dispatch={dispatch}
-                      onBack={goBack}
-                      onSubmit={() => dispatch({ type: "NEXT_STEP" })}
-                    />
-                  )}
-                  {state.currentStep === 6 && (
-                    <Step6ContactDetails
-                      state={state}
-                      dispatch={dispatch}
-                      onBack={goBack}
-                      onSubmit={() => dispatch({ type: "NEXT_STEP" })}
-                    />
-                  )}
+                  {renderStep()}
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -304,15 +348,15 @@ export function QuoteBuilder() {
           {/* Quote summary — 1/3 width on desktop, sticky */}
           <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-28">
-              <QuoteSummary state={state} pricing={pricing} />
+              <QuoteSummary state={state} pricing={pricing} onGoToStep={goToStep} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile summary (rendered inside QuoteSummary component as fixed bottom panel) */}
+      {/* Mobile summary */}
       <div className="lg:hidden">
-        <QuoteSummary state={state} pricing={pricing} />
+        <QuoteSummary state={state} pricing={pricing} onGoToStep={goToStep} />
       </div>
     </div>
   );

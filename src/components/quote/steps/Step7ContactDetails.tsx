@@ -4,9 +4,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Mail, Phone } from "lucide-react";
 import type { QuoteState, QuoteAction } from "@/lib/quote-types";
-import { step6Schema } from "@/lib/quote-types";
+import { step7Schema } from "@/lib/quote-types";
 
-interface Step6Props {
+interface Step7Props {
   state: QuoteState;
   dispatch: React.Dispatch<QuoteAction>;
   onBack: () => void;
@@ -15,14 +15,14 @@ interface Step6Props {
 
 type FieldErrors = Partial<Record<"contactName" | "contactEmail" | "contactPhone" | "termsAccepted", string>>;
 
-export function Step6ContactDetails({ state, dispatch, onBack, onSubmit }: Step6Props) {
+export function Step7ContactDetails({ state, dispatch, onBack, onSubmit }: Step7Props) {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof FieldErrors, boolean>>>({});
 
   const validateField = (field: keyof FieldErrors, value: string | boolean) => {
-    const schema = step6Schema.shape[field];
+    const schema = step7Schema.shape[field];
     if (!schema) return;
     const result = schema.safeParse(value);
     setErrors((prev) => ({
@@ -33,7 +33,7 @@ export function Step6ContactDetails({ state, dispatch, onBack, onSubmit }: Step6
 
   const handleSubmit = async () => {
     // Validate all
-    const result = step6Schema.safeParse({
+    const result = step7Schema.safeParse({
       contactName: state.contactName,
       contactEmail: state.contactEmail,
       contactPhone: state.contactPhone,

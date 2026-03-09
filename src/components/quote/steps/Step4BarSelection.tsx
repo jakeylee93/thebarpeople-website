@@ -42,7 +42,7 @@ export function Step4BarSelection({ state, dispatch, onNext, onBack, serviceType
       {/* Heading */}
       <div>
         <h2
-          className="text-3xl md:text-4xl font-bold font-[family-name:var(--font-playfair)] mb-2"
+          className="text-3xl md:text-4xl font-bold font-[family-name:var(--font-young-serif)] mb-2"
           style={{ color: "#faf8f5" }}
         >
           Choose your bar

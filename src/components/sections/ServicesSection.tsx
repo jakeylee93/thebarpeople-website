@@ -70,12 +70,13 @@ const services = [
 
 export function ServicesSection() {
   return (
-    <Section id="services">
+    <Section id="services" bright>
       <SectionHeading
         eyebrow="What We Do"
         heading="Tailored Bar Solutions for Every Event"
         subtitle="From intimate gatherings to 500-guest galas — we have a package that's right for you."
         center
+        onLight
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -88,7 +89,7 @@ export function ServicesSection() {
             transition={{ duration: 0.5, delay: i * 0.08 }}
           >
             <Link href={`/services/${service.slug}`}>
-              <div className="group relative h-full bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 transition-all duration-300 hover:bg-white/[0.06] hover:border-[#c9956b]/30 hover:shadow-xl hover:shadow-[#c9956b]/5 cursor-pointer">
+              <div className="group relative h-full bg-[#0a0f1c] border border-[#0a0f1c]/10 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-[#c9956b]/15 hover:border-[#c9956b]/40 cursor-pointer">
                 {service.badge && (
                   <span className="absolute top-4 right-4 text-xs font-semibold text-[#c9956b] bg-[#c9956b]/10 border border-[#c9956b]/20 px-2 py-0.5 rounded-full uppercase tracking-wide">
                     {service.badge}
@@ -97,7 +98,7 @@ export function ServicesSection() {
                 <div className="w-12 h-12 rounded-xl bg-[#c9956b]/10 flex items-center justify-center text-[#c9956b] mb-4 group-hover:bg-[#c9956b]/20 transition-colors">
                   {service.icon}
                 </div>
-                <h3 className="font-[family-name:var(--font-playfair)] text-xl font-bold text-[#faf8f5] mb-2">
+                <h3 className="font-[family-name:var(--font-young-serif)] text-xl text-[#faf8f5] mb-2">
                   {service.title}
                 </h3>
                 <p className="text-[#9ca3af] text-sm leading-relaxed mb-4 flex-1">

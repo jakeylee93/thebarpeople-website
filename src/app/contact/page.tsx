@@ -22,7 +22,7 @@ export default function ContactPage() {
 
         <div className="mb-12">
           <p className="text-[#c9956b] text-sm font-semibold uppercase tracking-[0.15em] mb-3">Get In Touch</p>
-          <h1 className="font-[family-name:var(--font-playfair)] text-4xl sm:text-5xl font-bold text-[#faf8f5] mb-4">
+          <h1 className="font-[family-name:var(--font-young-serif)] text-4xl sm:text-5xl font-bold text-[#faf8f5] mb-4">
             Let&apos;s Talk About Your Event
           </h1>
           <p className="text-[#9ca3af] text-lg max-w-xl">

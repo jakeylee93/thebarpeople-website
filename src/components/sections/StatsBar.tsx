@@ -32,15 +32,12 @@ const stats = [
 
 export function StatsBar() {
   return (
-    <div className="bg-[#c9956b]/[0.06] border-y border-[#c9956b]/20">
+    <div className="bg-[#0d1220] border-y border-[#c9956b]/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat, i) => (
-            <div
-              key={i}
-              className="text-center group"
-            >
-              <div className="text-4xl sm:text-5xl font-bold text-[#c9956b] mb-1 font-[family-name:var(--font-playfair)]">
+            <div key={i} className="text-center group">
+              <div className="text-4xl sm:text-5xl text-[#c9956b] mb-1 font-[family-name:var(--font-young-serif)]">
                 {stat.isNationwide ? (
                   <span>Nationwide</span>
                 ) : (

@@ -30,7 +30,7 @@ export function Step2GuestCount({ state, dispatch, onNext, onBack }: Step2Props)
       {/* Heading */}
       <div>
         <h2
-          className="text-3xl md:text-4xl font-bold font-[family-name:var(--font-playfair)] mb-2"
+          className="text-3xl md:text-4xl font-bold font-[family-name:var(--font-young-serif)] mb-2"
           style={{ color: "#faf8f5" }}
         >
           How many guests &amp; how long?
@@ -75,7 +75,7 @@ export function Step2GuestCount({ state, dispatch, onNext, onBack }: Step2Props)
               <AnimatePresence mode="wait">
                 <motion.span
                   key={guestCount}
-                  className="block text-6xl font-bold font-[family-name:var(--font-playfair)]"
+                  className="block text-6xl font-bold font-[family-name:var(--font-young-serif)]"
                   style={{ color: "#faf8f5" }}
                   initial={{ y: -12, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
