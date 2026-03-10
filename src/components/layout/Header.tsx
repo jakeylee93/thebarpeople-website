@@ -67,13 +67,13 @@ export function Header() {
               ))}
             </nav>
 
-            {/* CTA — right aligned, same as hero button */}
+            {/* CTA — right aligned, same styling as hero button but smaller */}
             <div className="w-[240px] flex justify-end">
               <Link href="/quote">
-                <Button size="lg" className="flex items-center gap-2">
+                <Button size="md" className="flex items-center gap-2">
                   Build Your Quote
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
