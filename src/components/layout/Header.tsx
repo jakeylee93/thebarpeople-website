@@ -40,9 +40,9 @@ export function Header() {
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Desktop: logo left, nav center, CTA right */}
-          <div className="hidden lg:flex items-center h-20">
-            {/* Logo — left aligned, slightly bigger */}
+          {/* Desktop: 3-column — logo left, nav centred, CTA right */}
+          <div className="hidden lg:grid grid-cols-[auto_1fr_auto] items-center h-20 gap-4">
+            {/* Logo — left */}
             <Link href="/" className="flex items-center flex-shrink-0">
               <Image
                 src="/logo-header.png"
@@ -54,22 +54,22 @@ export function Header() {
               />
             </Link>
 
-            {/* Nav items — centered in remaining space */}
-            <nav className="flex items-center justify-center gap-2 flex-1 px-4">
+            {/* Nav items — centred */}
+            <nav className="flex items-center justify-center gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-3 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-base font-medium rounded-lg hover:bg-white/5 transition-all duration-200 whitespace-nowrap"
+                  className="px-3 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-sm font-medium rounded-lg hover:bg-white/5 transition-all duration-200 whitespace-nowrap"
                 >
                   {link.label}
                 </Link>
               ))}
             </nav>
 
-            {/* CTA — right aligned, same styling as hero button but smaller */}
+            {/* CTA — right */}
             <Link href="/quote" className="flex-shrink-0">
-              <Button size="md" className="flex items-center gap-2 whitespace-nowrap">
+              <Button size="sm" className="px-5 py-2.5 flex items-center gap-2 whitespace-nowrap">
                 Build Your Quote
                 <svg
                   className="w-4 h-4 flex-shrink-0"
