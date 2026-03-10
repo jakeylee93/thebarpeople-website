@@ -12,6 +12,7 @@ const HERO_IMAGES = [
   "/hero-rooftop.jpg",
   "/hero-party.jpg",
   "/hero-outdoor.jpg",
+  "/hero-cocktails.jpg",
 ];
 
 const CROSSFADE_INTERVAL = 6000;
