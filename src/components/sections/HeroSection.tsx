@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 
 const HERO_IMAGES = [
@@ -30,19 +30,20 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Crossfade background images */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={currentIndex}
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('${HERO_IMAGES[currentIndex]}')` }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+      {/* Crossfade background images — using <img> with object-cover for bulletproof full-screen fill */}
+      {HERO_IMAGES.map((src, i) => (
+        <motion.img
+          key={src}
+          src={src}
+          alt=""
+          aria-hidden="true"
+          animate={{ opacity: i === currentIndex ? 1 : 0 }}
           transition={{ duration: 1.5, ease: "easeInOut" }}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          loading={i === 0 ? "eager" : "lazy"}
         />
-      </AnimatePresence>
+      ))}
 
       {/* Dark overlay — layered for depth */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0a0f1c]/80 via-[#0a0f1c]/55 to-[#0a0f1c]" />
