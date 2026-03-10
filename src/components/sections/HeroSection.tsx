@@ -57,7 +57,7 @@ export function HeroSection() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <p className="text-[#c9956b] text-sm font-semibold uppercase tracking-[0.2em] mb-6">
-            London&apos;s Premium Mobile Bar Hire
+            Creating Unforgettable Moments Since 2014
           </p>
         </motion.div>
 
@@ -67,10 +67,8 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
           className="font-[family-name:var(--font-young-serif)] text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-[#faf8f5] leading-[1.05] mb-6"
         >
-          Build Your{" "}
-          <span className="text-[#c9956b] italic">Perfect Bar</span>
-          <br />
-          in 60 Seconds
+          The Team Your Event{" "}
+          <span className="text-[#c9956b] italic">Deserves</span>
         </motion.h1>
 
         <motion.p
@@ -79,8 +77,7 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="text-[#faf8f5]/75 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
         >
-          Pop-up bars, professional bartenders, and unforgettable experiences for
-          any event. Get an instant quote with no commitment.
+          We bring the bar, the staff, the drinks, and the vibe. You just bring the guests. Instant pricing online.
         </motion.p>
 
         <motion.div
@@ -91,7 +88,7 @@ export function HeroSection() {
         >
           <Link href="/quote">
             <Button size="lg">
-              Build Your Quote
+              Price My Event
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -107,9 +104,9 @@ export function HeroSection() {
               </svg>
             </Button>
           </Link>
-          <Link href="/gallery">
+          <Link href="/contact">
             <Button variant="secondary" size="lg">
-              View Our Work
+              Contact
             </Button>
           </Link>
         </motion.div>

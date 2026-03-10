@@ -70,7 +70,7 @@ export function Header() {
             {/* CTA — right */}
             <Link href="/quote" className="flex-shrink-0">
               <Button size="sm" className="px-5 py-2.5 flex items-center gap-2 whitespace-nowrap">
-                Build Your Quote
+                Price My Event
                 <svg
                   className="w-4 h-4 flex-shrink-0"
                   fill="none"
@@ -103,7 +103,7 @@ export function Header() {
             <div className="flex items-center gap-2">
               <Link href="/quote">
                 <Button size="sm" className="hidden sm:flex">
-                  Build Your Quote
+                  Price My Event
                 </Button>
                 <Button size="sm" className="sm:hidden px-3">
                   Quote
