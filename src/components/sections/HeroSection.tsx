@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 
 const HERO_IMAGES = [
+  "/hero-team-cropped.jpg",
   "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1920&q=80&fit=crop",
   "https://images.unsplash.com/photo-1574096079513-d8259312b785?w=1920&q=80&fit=crop",
   "https://images.unsplash.com/photo-1530267981375-f0de937f5f13?w=1920&q=80&fit=crop",
-  "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1920&q=80&fit=crop",
 ];
 
 const CROSSFADE_INTERVAL = 6000;
