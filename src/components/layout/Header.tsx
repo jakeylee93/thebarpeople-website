@@ -43,7 +43,7 @@ export function Header() {
           {/* Desktop: logo left, nav center, CTA right */}
           <div className="hidden lg:flex items-center h-20">
             {/* Logo — left aligned, slightly bigger */}
-            <Link href="/" className="flex items-center flex-shrink-0 w-[240px]">
+            <Link href="/" className="flex items-center flex-shrink-0">
               <Image
                 src="/logo-header.png"
                 alt="The Bar People"
@@ -55,7 +55,7 @@ export function Header() {
             </Link>
 
             {/* Nav items — centered in remaining space */}
-            <nav className="flex items-center justify-center gap-2 flex-1">
+            <nav className="flex items-center justify-center gap-2 flex-1 px-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -68,26 +68,24 @@ export function Header() {
             </nav>
 
             {/* CTA — right aligned, same styling as hero button but smaller */}
-            <div className="w-[240px] flex justify-end">
-              <Link href="/quote">
-                <Button size="md" className="flex items-center gap-2">
-                  Build Your Quote
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </Button>
-              </Link>
-            </div>
+            <Link href="/quote" className="flex-shrink-0">
+              <Button size="md" className="flex items-center gap-2 whitespace-nowrap">
+                Build Your Quote
+                <svg
+                  className="w-4 h-4 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile/Tablet: logo left, CTA + burger right */}
