@@ -41,9 +41,9 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Desktop: logo left, nav center, CTA right */}
-          <div className="hidden lg:flex items-center justify-between h-20">
+          <div className="hidden lg:flex items-center h-20">
             {/* Logo — left aligned, slightly bigger */}
-            <Link href="/" className="flex items-center flex-shrink-0">
+            <Link href="/" className="flex items-center flex-shrink-0 w-[240px]">
               <Image
                 src="/logo-header.png"
                 alt="The Bar People"
@@ -54,8 +54,8 @@ export function Header() {
               />
             </Link>
 
-            {/* Nav items — centered */}
-            <nav className="flex items-center justify-center gap-2 absolute left-1/2 -translate-x-1/2">
+            {/* Nav items — centered in remaining space */}
+            <nav className="flex items-center justify-center gap-2 flex-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -68,24 +68,26 @@ export function Header() {
             </nav>
 
             {/* CTA — right aligned, same as hero button */}
-            <Link href="/quote">
-              <Button size="lg" className="flex items-center gap-2">
-                Build Your Quote
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  />
-                </svg>
-              </Button>
-            </Link>
+            <div className="w-[240px] flex justify-end">
+              <Link href="/quote">
+                <Button size="lg" className="flex items-center gap-2">
+                  Build Your Quote
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Mobile/Tablet: logo left, CTA + burger right */}
