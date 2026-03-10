@@ -6,13 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 
 const HERO_IMAGES = [
-  "/hero-team-cropped.jpg",
-  "/hero-festival.jpg",
-  "/hero-champagne.jpg",
-  "/hero-rooftop.jpg",
-  "/hero-party.jpg",
-  "/hero-outdoor.jpg",
-  "/hero-cocktails.jpg",
+  "/hero-01.jpg",
+  "/hero-02.jpg",
+  "/hero-03.jpg",
+  "/hero-04.jpg",
+  "/hero-05.jpg",
+  "/hero-06.jpg",
+  "/hero-07.jpg",
+  "/hero-08.jpg",
+  "/hero-09.jpg",
 ];
 
 const CROSSFADE_INTERVAL = 6000;
