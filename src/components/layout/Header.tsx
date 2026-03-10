@@ -7,19 +7,15 @@ import { Button } from "@/components/ui/Button";
 import { MobileNav } from "./MobileNav";
 import { cn } from "@/lib/utils";
 
-const navLinksLeft = [
+const navLinks = [
   { label: "Services", href: "/services" },
   { label: "Our Bars", href: "/our-bars" },
   { label: "Events", href: "/events" },
-];
-
-const navLinksRight = [
   { label: "Gallery", href: "/gallery" },
   { label: "About", href: "/about" },
   { label: "Reviews", href: "/reviews" },
+  { label: "Contact", href: "/contact" },
 ];
-
-const navLinks = [...navLinksLeft, ...navLinksRight];
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -44,56 +40,49 @@ export function Header() {
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Desktop: 3-column centred layout */}
+          {/* Desktop: logo left, nav + CTA right */}
           <div className="hidden lg:flex items-center justify-between h-20">
-            {/* Left nav */}
-            <nav className="flex items-center gap-1 flex-1">
-              {navLinksLeft.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="px-4 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-sm font-medium rounded-lg hover:bg-white/5 transition-all duration-200"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-
-            {/* Centred logo */}
-            <Link href="/" className="flex items-center justify-center flex-shrink-0 mx-6">
+            {/* Logo — left aligned, slightly bigger */}
+            <Link href="/" className="flex items-center flex-shrink-0">
               <Image
                 src="/logo-header.png"
                 alt="The Bar People"
-                width={220}
-                height={52}
-                className="h-14 w-auto brightness-0 invert drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.35)] transition-all duration-300"
+                width={240}
+                height={57}
+                className="h-[3.75rem] w-auto brightness-0 invert drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.35)] transition-all duration-300"
                 priority
               />
             </Link>
 
-            {/* Right nav + CTA */}
-            <nav className="flex items-center gap-1 flex-1 justify-end">
-              {navLinksRight.map((link) => (
+            {/* Nav items + CTA — all in one row */}
+            <nav className="flex items-center gap-1">
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-4 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-sm font-medium rounded-lg hover:bg-white/5 transition-all duration-200"
+                  className="px-3 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-sm font-medium rounded-lg hover:bg-white/5 transition-all duration-200 whitespace-nowrap"
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="flex items-center gap-2 ml-2">
-                <Link href="/contact">
-                  <Button variant="ghost" size="sm">
-                    Contact
-                  </Button>
-                </Link>
-                <Link href="/quote">
-                  <Button size="sm">
-                    Build Your Quote
-                  </Button>
-                </Link>
-              </div>
+              <Link href="/quote" className="ml-3">
+                <Button size="sm" className="px-5 py-2.5 flex items-center gap-2">
+                  Build Your Quote
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Button>
+              </Link>
             </nav>
           </div>
 
@@ -103,9 +92,9 @@ export function Header() {
               <Image
                 src="/logo-header.png"
                 alt="The Bar People"
-                width={160}
-                height={38}
-                className="h-9 w-auto brightness-0 invert"
+                width={180}
+                height={42}
+                className="h-10 w-auto brightness-0 invert"
                 priority
               />
             </Link>
