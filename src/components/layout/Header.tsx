@@ -40,7 +40,7 @@ export function Header() {
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Desktop: logo left, nav + CTA right */}
+          {/* Desktop: logo left, nav center, CTA right */}
           <div className="hidden lg:flex items-center justify-between h-20">
             {/* Logo — left aligned, slightly bigger */}
             <Link href="/" className="flex items-center flex-shrink-0">
@@ -54,36 +54,38 @@ export function Header() {
               />
             </Link>
 
-            {/* Nav items + CTA — all in one row */}
-            <nav className="flex items-center gap-1">
+            {/* Nav items — centered */}
+            <nav className="flex items-center justify-center gap-2 absolute left-1/2 -translate-x-1/2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-3 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-sm font-medium rounded-lg hover:bg-white/5 transition-all duration-200 whitespace-nowrap"
+                  className="px-3 py-2 text-[#faf8f5]/70 hover:text-[#faf8f5] text-base font-medium rounded-lg hover:bg-white/5 transition-all duration-200 whitespace-nowrap"
                 >
                   {link.label}
                 </Link>
               ))}
-              <Link href="/quote" className="ml-3">
-                <Button size="sm" className="px-5 py-2.5 flex items-center gap-2">
-                  Build Your Quote
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </Button>
-              </Link>
             </nav>
+
+            {/* CTA — right aligned, same as hero button */}
+            <Link href="/quote">
+              <Button size="lg" className="flex items-center gap-2">
+                Build Your Quote
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile/Tablet: logo left, CTA + burger right */}
