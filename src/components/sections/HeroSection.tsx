@@ -11,10 +11,6 @@ const HERO_IMAGES = [
   "/hero-03.jpg",
   "/hero-04.jpg",
   "/hero-05.jpg",
-  "/hero-06.jpg",
-  "/hero-07.jpg",
-  "/hero-08.jpg",
-  "/hero-09.jpg",
 ];
 
 const CROSSFADE_INTERVAL = 6000;
