@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Young_Serif, DM_Sans } from "next/font/google";
+import { Libre_Baskerville, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
-const youngSerif = Young_Serif({
+const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "700"],
   variable: "--font-young-serif",
   display: "swap",
 });
@@ -71,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${youngSerif.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${libreBaskerville.variable} ${dmSans.variable}`}>
       <body className="antialiased">
         <Header />
         <main>{children}</main>
