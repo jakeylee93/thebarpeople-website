@@ -175,7 +175,7 @@ export const glasswareTypes = [
   { id: 'margarita', name: 'Margarita glass' },
 ];
 
-export const glassPrice = 0.75; // per glass
+export const glassPrice = 0.60; // per glass
 
 // Service base prices (non all-inclusive)
 export const serviceBasePrices: Record<string, number> = {

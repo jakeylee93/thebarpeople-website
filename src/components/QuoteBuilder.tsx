@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   perHeadByHours,
   barPrices,
@@ -24,657 +24,427 @@ interface QuoteState {
   service: ServiceType | '';
   barSize: BarSize | '';
   hours: number;
-  equipment: Record<string, number>; // id → quantity
-  glassware: Record<string, number>; // id → quantity (0 = removed)
+  equipment: Record<string, number>;
+  glassware: Record<string, number>;
   name: string;
   email: string;
   phone: string;
   notes: string;
 }
 
-const initialState: QuoteState = {
-  eventType: '',
-  date: '',
-  postcode: '',
-  venueType: '',
-  guests: 80,
-  service: '',
-  barSize: '',
-  hours: 5,
-  equipment: {},
-  glassware: {},
-  name: '',
-  email: '',
-  phone: '',
-  notes: '',
+const initial: QuoteState = {
+  eventType: '', date: '', postcode: '', venueType: '',
+  guests: 80, service: '', barSize: '', hours: 5,
+  equipment: {}, glassware: {}, name: '', email: '', phone: '', notes: '',
 };
 
-const eventOptions = [
-  'Wedding', 'Corporate', 'Birthday', 'Garden Party', 'Christmas', 'Festival', 'Other',
+const events = ['Wedding', 'Corporate', 'Birthday', 'Garden Party', 'Christmas', 'Festival', 'Other'];
+const venues = [
+  { id: 'indoor', label: 'Indoor' },
+  { id: 'outdoor', label: 'Outdoor' },
+  { id: 'both', label: 'Both' },
 ];
-
-const venueOptions = [
-  { id: 'indoor', label: 'Indoor', desc: 'Venue, hall, marquee' },
-  { id: 'outdoor', label: 'Outdoor', desc: 'Garden, field, terrace' },
-  { id: 'both', label: 'Both', desc: 'Indoor & outdoor areas' },
+const svcOptions: { id: ServiceType; label: string }[] = [
+  { id: 'all-inclusive', label: 'All Inclusive' },
+  { id: 'cash-bar', label: 'Cash Bar' },
+  { id: 'dry-hire', label: 'Dry Hire' },
+  { id: 'staff-only', label: 'Staff Only' },
 ];
-
-const serviceOptions: { id: ServiceType; label: string; desc: string }[] = [
-  { id: 'all-inclusive', label: 'All Inclusive', desc: 'Drinks, staff, bar, glassware — the full package' },
-  { id: 'cash-bar', label: 'Cash Bar', desc: 'Guests buy their own drinks, you cover setup & staff' },
-  { id: 'dry-hire', label: 'Dry Hire', desc: 'We supply the bar & glassware, you supply the drinks' },
-  { id: 'staff-only', label: 'Staff Only', desc: 'Professional bartenders for your own bar setup' },
-];
-
-const barOptions: { id: BarSize; label: string; size: string; guests: string }[] = [
-  { id: '5ft', label: 'Shimmer Bar', size: '5FT', guests: 'Up to 50' },
-  { id: '10ft', label: 'Classic Cocktail', size: '10FT', guests: 'Up to 100' },
-  { id: '15ft', label: 'Horseshoe', size: '15FT', guests: 'Up to 150' },
-  { id: '35ft', label: 'Large Horseshoe', size: '35FT', guests: 'Up to 250' },
-  { id: '40ft', label: 'Island Bar', size: '40FT', guests: '250+' },
+const barOpts: { id: BarSize; label: string; size: string; cap: string }[] = [
+  { id: '5ft', label: 'Shimmer', size: '5FT', cap: '≤50' },
+  { id: '10ft', label: 'Classic', size: '10FT', cap: '≤100' },
+  { id: '15ft', label: 'Horseshoe', size: '15FT', cap: '≤150' },
+  { id: '35ft', label: 'Large', size: '35FT', cap: '≤250' },
+  { id: '40ft', label: 'Island', size: '40FT', cap: '250+' },
 ];
 
 export default function QuoteBuilder() {
-  const [state, setState] = useState<QuoteState>(initialState);
-  const [submitted, setSubmitted] = useState(false);
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [s, setS] = useState<QuoteState>(initial);
+  const [showQuote, setShowQuote] = useState(false);
+  const [sent, setSent] = useState(false);
+  const refs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const update = useCallback((patch: Partial<QuoteState>) => {
-    setState((s) => ({ ...s, ...patch }));
+  const up = useCallback((p: Partial<QuoteState>) => setS((v) => ({ ...v, ...p })), []);
+  const scrollTo = useCallback((id: string) => {
+    setTimeout(() => refs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
   }, []);
 
-  const scrollTo = useCallback((id: string, delay = 350) => {
-    setTimeout(() => {
-      sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, delay);
-  }, []);
+  const gw = useMemo(() => {
+    const r: Record<string, number> = {};
+    glasswareTypes.forEach((g) => { r[g.id] = s.glassware[g.id] ?? s.guests; });
+    return r;
+  }, [s.guests, s.glassware]);
 
-  // Auto-suggest glassware when guests change (1 per person per type)
-  // Only set defaults if user hasn't touched glassware yet
-  const effectiveGlassware = useMemo(() => {
-    const gw: Record<string, number> = {};
-    glasswareTypes.forEach((g) => {
-      gw[g.id] = state.glassware[g.id] ?? state.guests;
-    });
-    return gw;
-  }, [state.guests, state.glassware]);
+  const setGw = (id: string, n: number) => setS((v) => ({ ...v, glassware: { ...v.glassware, [id]: Math.max(0, n) } }));
+  const setEq = (id: string, n: number) => setS((v) => ({ ...v, equipment: { ...v.equipment, [id]: Math.max(0, n) } }));
 
-  const setGlassQty = (id: string, qty: number) => {
-    setState((s) => ({
-      ...s,
-      glassware: { ...s.glassware, [id]: Math.max(0, qty) },
-    }));
-  };
-
-  const removeGlass = (id: string) => {
-    setState((s) => ({
-      ...s,
-      glassware: { ...s.glassware, [id]: 0 },
-    }));
-  };
-
-  const setEquipQty = (id: string, qty: number) => {
-    setState((s) => ({
-      ...s,
-      equipment: { ...s.equipment, [id]: Math.max(0, qty) },
-    }));
-  };
-
-  // ─── Price calculation ───
+  // Pricing
   const pricing = useMemo(() => {
-    const breakdown: { label: string; amount: number }[] = [];
+    const lines: { label: string; amount: number }[] = [];
     let total = 0;
-
-    // Service
-    if (state.service === 'all-inclusive') {
-      const rate = perHeadByHours[state.hours] ?? 30;
-      const amt = rate * state.guests;
-      breakdown.push({ label: `${state.guests} guests × £${rate}/head (${state.hours}h)`, amount: amt });
+    if (s.service === 'all-inclusive') {
+      const rate = perHeadByHours[s.hours] ?? 30;
+      const amt = rate * s.guests;
+      lines.push({ label: `${s.guests} guests × £${rate}/hd (${s.hours}h)`, amount: amt });
       total += amt;
-    } else if (state.service) {
-      const base = serviceBasePrices[state.service] || 0;
-      breakdown.push({ label: `${serviceOptions.find((s) => s.id === state.service)?.label} base`, amount: base });
+    } else if (s.service) {
+      const base = serviceBasePrices[s.service] || 0;
+      lines.push({ label: svcOptions.find((x) => x.id === s.service)!.label, amount: base });
       total += base;
     }
-
-    // Bar
-    if (state.barSize) {
-      const amt = barPrices[state.barSize] || 0;
-      const bar = barOptions.find((b) => b.id === state.barSize);
-      breakdown.push({ label: `${bar?.label} (${bar?.size})`, amount: amt });
+    if (s.barSize) {
+      const amt = barPrices[s.barSize];
+      lines.push({ label: `${barOpts.find((b) => b.id === s.barSize)!.size} Bar`, amount: amt });
       total += amt;
     }
-
-    // Equipment
     equipmentOptions.forEach((eq) => {
-      const qty = state.equipment[eq.id] || 0;
+      const qty = s.equipment[eq.id] || 0;
       if (qty > 0) {
         const amt = eq.price * qty;
-        breakdown.push({ label: `${eq.name}${qty > 1 ? ` ×${qty}` : ''}`, amount: amt });
+        lines.push({ label: `${eq.name}${qty > 1 ? ` ×${qty}` : ''}`, amount: amt });
         total += amt;
       }
     });
+    let gt = 0;
+    glasswareTypes.forEach((g) => { gt += (gw[g.id] || 0) * glassPrice; });
+    if (gt > 0) { lines.push({ label: 'Glassware', amount: Math.round(gt * 100) / 100 }); total += gt; }
+    return { lines, total: Math.round(total * 100) / 100 };
+  }, [s, gw]);
 
-    // Glassware
-    let glassTotal = 0;
-    glasswareTypes.forEach((g) => {
-      const qty = effectiveGlassware[g.id] || 0;
-      glassTotal += qty * glassPrice;
-    });
-    if (glassTotal > 0) {
-      breakdown.push({ label: 'Glassware', amount: Math.round(glassTotal * 100) / 100 });
-      total += glassTotal;
-    }
+  const canSend = !!s.name && !!s.email && !!s.phone && !!s.service;
 
-    return { breakdown, total: Math.round(total * 100) / 100 };
-  }, [state, effectiveGlassware]);
+  const handleSend = async () => {
+    try {
+      await fetch('/api/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...s, glassware: gw, estimate: pricing.total, breakdown: pricing.lines }),
+      });
+    } catch {}
+    setSent(true);
+  };
 
-  // ─── Submitted state ───
-  if (submitted) {
+  // ─── SENT ───
+  if (sent) {
     return (
-      <div className="mx-auto max-w-2xl px-4 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="border border-pale bg-white p-12"
-        >
-          <h2 className="font-heading text-3xl font-bold">Quote Request Sent</h2>
-          <p className="mt-4 text-mid">
-            We&apos;ll get back to you within a few hours at <strong className="text-black">{state.email}</strong>
-          </p>
-          <p className="mt-6 font-heading text-4xl font-bold">£{pricing.total.toLocaleString()}</p>
-          <p className="mt-1 text-sm text-light">Estimated — final price confirmed by email</p>
-        </motion.div>
+      <div className="mx-auto max-w-md px-4 py-12 text-center">
+        <h2 className="font-heading text-2xl font-bold">Quote Sent</h2>
+        <p className="mt-3 text-sm text-mid">We&apos;ll be in touch at <strong>{s.email}</strong></p>
+        <p className="mt-4 font-heading text-3xl font-bold">£{pricing.total.toLocaleString()}</p>
       </div>
     );
   }
 
-  return (
-    <div className="mx-auto max-w-2xl px-4 sm:px-6">
-      {/* Header */}
-      <div className="mb-12 text-center">
-        <h1 className="font-heading text-4xl font-bold md:text-5xl">Price Your Event</h1>
-        <p className="mt-3 text-mid">Choose your options. Watch your price build.</p>
-      </div>
-
-      <div className="space-y-8">
-
-        {/* ─── EVENT TYPE ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['event'] = el; }}
-          title="What type of event?"
-          done={!!state.eventType}
-        >
-          <div className="flex flex-wrap gap-2">
-            {eventOptions.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => { update({ eventType: opt }); scrollTo('venue'); }}
-                className={`border px-4 py-2 text-sm font-medium transition-all ${
-                  state.eventType === opt
-                    ? 'border-black bg-black text-white'
-                    : 'border-pale bg-white text-dark hover:border-black'
-                }`}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        {/* ─── VENUE ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['venue'] = el; }}
-          title="Indoor or outdoor?"
-          done={!!state.venueType}
-          dimmed={!state.eventType}
-        >
-          <div className="grid grid-cols-3 gap-3">
-            {venueOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => { update({ venueType: opt.id }); scrollTo('date'); }}
-                className={`border p-4 text-center transition-all ${
-                  state.venueType === opt.id
-                    ? 'border-black bg-black text-white'
-                    : 'border-pale hover:border-black'
-                }`}
-              >
-                <p className="text-sm font-semibold">{opt.label}</p>
-                <p className={`mt-1 text-xs ${state.venueType === opt.id ? 'text-white/70' : 'text-light'}`}>
-                  {opt.desc}
-                </p>
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        {/* ─── DATE & POSTCODE ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['date'] = el; }}
-          title="When and where?"
-          subtitle="Optional — helps us check availability"
-          done={!!state.date || !!state.postcode}
-          dimmed={!state.venueType}
-        >
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">
-                Event Date
-              </label>
-              <input
-                type="date"
-                value={state.date}
-                onChange={(e) => update({ date: e.target.value })}
-                className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">
-                Event Postcode
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. E11 1AA"
-                value={state.postcode}
-                onChange={(e) => update({ postcode: e.target.value })}
-                className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
-              />
-            </div>
-          </div>
-        </Section>
-
-        {/* ─── GUESTS ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['guests'] = el; }}
-          title="How many guests?"
-          done={true}
-          dimmed={!state.venueType}
-        >
-          <div className="flex items-center gap-6">
-            <input
-              type="range"
-              min={20}
-              max={500}
-              step={10}
-              value={state.guests}
-              onChange={(e) => update({ guests: Number(e.target.value) })}
-              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-pale"
-            />
-            <div className="flex h-14 w-20 items-center justify-center border border-pale bg-faint font-heading text-2xl font-bold">
-              {state.guests}
-            </div>
-          </div>
-          <div className="mt-1 flex justify-between text-xs text-light">
-            <span>20</span><span>250</span><span>500</span>
-          </div>
-        </Section>
-
-        {/* ─── SERVICE ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['service'] = el; }}
-          title="What type of service?"
-          done={!!state.service}
-          dimmed={!state.venueType}
-        >
-          <div className="space-y-2">
-            {serviceOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => { update({ service: opt.id }); scrollTo('hours'); }}
-                className={`flex w-full items-center justify-between border p-4 text-left transition-all ${
-                  state.service === opt.id
-                    ? 'border-black bg-black text-white'
-                    : 'border-pale hover:border-black'
-                }`}
-              >
-                <div>
-                  <p className="text-sm font-semibold">{opt.label}</p>
-                  <p className={`mt-0.5 text-xs ${state.service === opt.id ? 'text-white/70' : 'text-light'}`}>
-                    {opt.desc}
-                  </p>
-                </div>
-                {state.service === opt.id && (
-                  <span className="text-xs font-medium text-white/80">Selected</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        {/* ─── HOURS ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['hours'] = el; }}
-          title="How many hours?"
-          done={true}
-          dimmed={!state.service}
-        >
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-5">
-              <button
-                onClick={() => state.hours > 3 && update({ hours: state.hours - 1 })}
-                disabled={state.hours <= 3}
-                className="flex h-10 w-10 items-center justify-center border border-pale text-lg font-medium transition-all hover:border-black disabled:opacity-20"
-              >
-                −
-              </button>
-              <div className="text-center">
-                <span className="font-heading text-4xl font-bold">{state.hours}</span>
-                <span className="ml-1 text-sm text-light">hours</span>
-              </div>
-              <button
-                onClick={() => state.hours < 12 && update({ hours: state.hours + 1 })}
-                disabled={state.hours >= 12}
-                className="flex h-10 w-10 items-center justify-center border border-pale text-lg font-medium transition-all hover:border-black disabled:opacity-20"
-              >
-                +
-              </button>
-            </div>
-            {state.service === 'all-inclusive' && (
-              <p className="text-sm text-mid">
-                £{perHeadByHours[state.hours] ?? 30} per head for {state.hours} hours
-              </p>
-            )}
-          </div>
-        </Section>
-
-        {/* ─── BAR ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['bar'] = el; }}
-          title="Choose your bar"
-          subtitle="Optional — skip if you have your own"
-          done={!!state.barSize}
-          dimmed={!state.service}
-        >
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {barOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => { update({ barSize: state.barSize === opt.id ? '' as BarSize : opt.id }); if (state.barSize !== opt.id) scrollTo('equipment'); }}
-                className={`border p-4 text-center transition-all ${
-                  state.barSize === opt.id
-                    ? 'border-black bg-black text-white'
-                    : 'border-pale hover:border-black'
-                }`}
-              >
-                <p className="font-heading text-lg font-bold">{opt.size}</p>
-                <p className="text-xs font-medium">{opt.label}</p>
-                <p className={`mt-1 text-xs ${state.barSize === opt.id ? 'text-white/60' : 'text-light'}`}>{opt.guests}</p>
-                <p className={`mt-1 text-xs font-semibold ${state.barSize === opt.id ? 'text-white' : 'text-dark'}`}>
-                  £{barPrices[opt.id].toLocaleString()}
-                </p>
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        {/* ─── EQUIPMENT ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['equipment'] = el; }}
-          title="Equipment"
-          subtitle="Add what you need — adjust quantities"
-          done={Object.values(state.equipment).some((v) => v > 0)}
-          dimmed={!state.service}
-        >
-          <div className="space-y-2">
-            {equipmentOptions.map((eq) => {
-              const qty = state.equipment[eq.id] || 0;
-              return (
-                <div
-                  key={eq.id}
-                  className={`flex items-center justify-between border p-3 transition-all ${
-                    qty > 0 ? 'border-black' : 'border-pale'
-                  }`}
-                >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{eq.name}</p>
-                    <p className="text-xs text-light">£{eq.price} {eq.unit}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {qty > 0 && (
-                      <span className="text-xs font-semibold">£{eq.price * qty}</span>
-                    )}
-                    <button
-                      onClick={() => setEquipQty(eq.id, qty - 1)}
-                      disabled={qty === 0}
-                      className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black disabled:opacity-20"
-                    >
-                      −
-                    </button>
-                    <span className="w-5 text-center text-sm font-medium">{qty}</span>
-                    <button
-                      onClick={() => setEquipQty(eq.id, qty + 1)}
-                      className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Section>
-
-        {/* ─── GLASSWARE ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['glassware'] = el; }}
-          title="Glassware"
-          subtitle={`We suggest 1 of each type per guest (${state.guests} guests) — adjust or remove as needed`}
-          done={true}
-          dimmed={!state.service}
-        >
-          <div className="space-y-2">
-            {glasswareTypes.map((g) => {
-              const qty = effectiveGlassware[g.id] || 0;
-              const isRemoved = qty === 0;
-              return (
-                <div
-                  key={g.id}
-                  className={`flex items-center justify-between border p-3 transition-all ${
-                    isRemoved ? 'border-pale opacity-40' : 'border-pale'
-                  }`}
-                >
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${isRemoved ? 'line-through' : ''}`}>{g.name}</p>
-                    <p className="text-xs text-light">£{glassPrice} each</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!isRemoved && (
-                      <span className="text-xs font-semibold">£{(qty * glassPrice).toFixed(2)}</span>
-                    )}
-                    {!isRemoved ? (
-                      <>
-                        <button
-                          onClick={() => setGlassQty(g.id, qty - 10)}
-                          className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black"
-                        >
-                          −
-                        </button>
-                        <input
-                          type="number"
-                          value={qty}
-                          onChange={(e) => setGlassQty(g.id, Number(e.target.value))}
-                          className="w-14 border border-pale bg-faint px-1 py-0.5 text-center text-sm outline-none focus:border-black"
-                        />
-                        <button
-                          onClick={() => setGlassQty(g.id, qty + 10)}
-                          className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black"
-                        >
-                          +
-                        </button>
-                        <button
-                          onClick={() => removeGlass(g.id)}
-                          className="ml-1 flex h-7 w-7 items-center justify-center border border-pale text-xs text-light transition-all hover:border-black hover:text-black"
-                          title="Remove"
-                        >
-                          ✕
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => setGlassQty(g.id, state.guests)}
-                        className="border border-pale px-3 py-1 text-xs font-medium transition-all hover:border-black"
-                      >
-                        Add back
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <p className="mt-3 text-xs text-light">
-            Total glassware: {glasswareTypes.reduce((sum, g) => sum + (effectiveGlassware[g.id] || 0), 0)} pieces
-          </p>
-        </Section>
-
-        {/* ─── CONTACT ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['contact'] = el; }}
-          title="Your details"
-          done={!!state.name && !!state.email && !!state.phone}
-          dimmed={!state.service}
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Name</label>
-              <input
-                type="text"
-                placeholder="Your name"
-                value={state.name}
-                onChange={(e) => update({ name: e.target.value })}
-                className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  // ─── QUOTE PREVIEW OVERLAY ───
+  if (showQuote) {
+    return (
+      <div className="mx-auto max-w-xl px-4">
+        <div className="border border-black">
+          {/* Quote Header */}
+          <div className="border-b border-pale bg-faint px-6 py-5">
+            <div className="flex items-start justify-between">
               <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Email</label>
-                <input
-                  type="email"
-                  placeholder="you@email.com"
-                  value={state.email}
-                  onChange={(e) => update({ email: e.target.value })}
-                  className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
-                />
+                <p className="font-heading text-lg font-bold">The Bar People</p>
+                <p className="text-xs text-light">Premium Mobile Bar Hire</p>
               </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Phone</label>
-                <input
-                  type="tel"
-                  placeholder="07xxx xxxxxx"
-                  value={state.phone}
-                  onChange={(e) => update({ phone: e.target.value })}
-                  className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
-                />
+              <div className="text-right">
+                <p className="text-xs font-medium uppercase tracking-wider text-light">Quote</p>
+                <p className="text-xs text-light">{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
               </div>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Notes <span className="normal-case">(optional)</span></label>
-              <textarea
-                rows={3}
-                placeholder="Anything else we should know..."
-                value={state.notes}
-                onChange={(e) => update({ notes: e.target.value })}
-                className="w-full resize-none border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
-              />
             </div>
           </div>
-        </Section>
 
-        {/* ─── PRICE SUMMARY + SUBMIT ─── */}
-        {state.service && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="border border-black bg-white"
-          >
-            <div className="border-b border-pale p-6">
-              <h2 className="font-heading text-xl font-bold">Your Quote</h2>
+          {/* Client Details */}
+          {(s.name || s.email) && (
+            <div className="border-b border-pale px-6 py-3">
+              <p className="text-xs font-medium uppercase tracking-wider text-light">Prepared for</p>
+              <p className="mt-1 text-sm font-medium">{s.name}</p>
+              {s.email && <p className="text-xs text-mid">{s.email}</p>}
+              {s.phone && <p className="text-xs text-mid">{s.phone}</p>}
             </div>
+          )}
 
-            <div className="p-6">
-              <div className="space-y-2">
-                {pricing.breakdown.map((item, i) => (
-                  <div key={i} className="flex items-start justify-between text-sm">
-                    <span className="text-mid">{item.label}</span>
-                    <span className="font-medium">£{item.amount.toLocaleString()}</span>
-                  </div>
+          {/* Event Details */}
+          <div className="border-b border-pale px-6 py-3">
+            <p className="text-xs font-medium uppercase tracking-wider text-light">Event Details</p>
+            <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+              {s.eventType && <><span className="text-mid">Type</span><span className="text-right font-medium">{s.eventType}</span></>}
+              {s.venueType && <><span className="text-mid">Venue</span><span className="text-right font-medium capitalize">{s.venueType}</span></>}
+              {s.date && <><span className="text-mid">Date</span><span className="text-right font-medium">{new Date(s.date).toLocaleDateString('en-GB')}</span></>}
+              {s.postcode && <><span className="text-mid">Location</span><span className="text-right font-medium uppercase">{s.postcode}</span></>}
+              <span className="text-mid">Guests</span><span className="text-right font-medium">{s.guests}</span>
+              <span className="text-mid">Duration</span><span className="text-right font-medium">{s.hours} hours</span>
+            </div>
+          </div>
+
+          {/* Line Items */}
+          <div className="px-6 py-3">
+            <div className="flex border-b border-pale pb-1 text-xs font-medium uppercase tracking-wider text-light">
+              <span className="flex-1">Item</span>
+              <span className="w-20 text-right">Amount</span>
+            </div>
+            <div className="divide-y divide-faint">
+              {pricing.lines.map((line, i) => (
+                <div key={i} className="flex py-1.5 text-xs">
+                  <span className="flex-1 text-mid">{line.label}</span>
+                  <span className="w-20 text-right font-medium">£{line.amount.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Glassware breakdown */}
+          {glasswareTypes.some((g) => gw[g.id] > 0) && (
+            <div className="border-t border-pale px-6 py-3">
+              <p className="text-xs font-medium uppercase tracking-wider text-light">Glassware Breakdown</p>
+              <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
+                {glasswareTypes.filter((g) => gw[g.id] > 0).map((g) => (
+                  <React.Fragment key={g.id}>
+                    <span className="text-mid">{g.name}</span>
+                    <span className="text-right">{gw[g.id]} × £{glassPrice.toFixed(2)}</span>
+                  </React.Fragment>
                 ))}
               </div>
-
-              <div className="mt-4 flex items-end justify-between border-t border-pale pt-4">
-                <span className="text-sm font-medium uppercase tracking-wider text-light">Estimated Total</span>
-                <span className="font-heading text-3xl font-bold">£{pricing.total.toLocaleString()}</span>
-              </div>
-              <p className="mt-1 text-right text-xs text-light">Final price confirmed by email</p>
             </div>
+          )}
 
-            <div className="border-t border-pale p-6">
-              <button
-                onClick={() => setSubmitted(true)}
-                disabled={!state.name || !state.email || !state.phone}
-                className="w-full bg-black py-4 text-sm font-semibold uppercase tracking-wider text-white transition-all hover:bg-dark disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                Send Quote Request
+          {/* Total */}
+          <div className="border-t border-black bg-faint px-6 py-4">
+            <div className="flex items-end justify-between">
+              <span className="text-xs font-medium uppercase tracking-wider text-light">Estimated Total</span>
+              <span className="font-heading text-2xl font-bold">£{pricing.total.toLocaleString()}</span>
+            </div>
+            <p className="mt-0.5 text-right text-[10px] text-light">Final price confirmed by email</p>
+          </div>
+
+          {/* Notes */}
+          {s.notes && (
+            <div className="border-t border-pale px-6 py-3">
+              <p className="text-xs font-medium uppercase tracking-wider text-light">Notes</p>
+              <p className="mt-1 text-xs text-mid">{s.notes}</p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex border-t border-pale">
+            <button
+              onClick={() => setShowQuote(false)}
+              className="flex-1 border-r border-pale py-3 text-xs font-medium text-mid transition-colors hover:bg-faint hover:text-black"
+            >
+              ← Edit
+            </button>
+            <button
+              onClick={handleSend}
+              disabled={!canSend}
+              className="flex-1 bg-black py-3 text-xs font-semibold uppercase tracking-wider text-white transition-all hover:bg-dark disabled:opacity-30"
+            >
+              Send Quote Request
+            </button>
+          </div>
+        </div>
+
+        {!canSend && (
+          <p className="mt-3 text-center text-xs text-light">Add your name, email and phone to send</p>
+        )}
+      </div>
+    );
+  }
+
+  // ─── BUILDER ───
+  return (
+    <div className="mx-auto max-w-xl px-4 sm:px-6">
+      <div className="mb-8 text-center">
+        <h1 className="font-heading text-3xl font-bold">Price Your Event</h1>
+        <p className="mt-1 text-xs text-light">Choose options — price builds live</p>
+      </div>
+
+      <div className="space-y-3">
+
+        {/* EVENT TYPE */}
+        <Sec ref={(el) => { refs.current['ev'] = el; }} label="Event">
+          <div className="flex flex-wrap gap-1.5">
+            {events.map((e) => (
+              <Chip key={e} active={s.eventType === e} onClick={() => { up({ eventType: e }); scrollTo('venue'); }}>{e}</Chip>
+            ))}
+          </div>
+        </Sec>
+
+        {/* VENUE */}
+        <Sec ref={(el) => { refs.current['venue'] = el; }} label="Venue" dim={!s.eventType}>
+          <div className="flex gap-1.5">
+            {venues.map((v) => (
+              <Chip key={v.id} active={s.venueType === v.id} onClick={() => { up({ venueType: v.id }); scrollTo('guests'); }} className="flex-1 text-center">{v.label}</Chip>
+            ))}
+          </div>
+        </Sec>
+
+        {/* DATE / POSTCODE */}
+        <Sec label="Date & Location" dim={!s.venueType}>
+          <div className="grid grid-cols-2 gap-2">
+            <input type="date" value={s.date} onChange={(e) => up({ date: e.target.value })}
+              className="border border-pale bg-faint px-3 py-2 text-xs outline-none focus:border-black" />
+            <input type="text" placeholder="Postcode" value={s.postcode} onChange={(e) => up({ postcode: e.target.value })}
+              className="border border-pale bg-faint px-3 py-2 text-xs outline-none focus:border-black" />
+          </div>
+        </Sec>
+
+        {/* GUESTS */}
+        <Sec ref={(el) => { refs.current['guests'] = el; }} label="Guests" dim={!s.venueType}>
+          <div className="flex items-center gap-3">
+            <input type="range" min={20} max={500} step={10} value={s.guests}
+              onChange={(e) => up({ guests: Number(e.target.value) })}
+              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-pale" />
+            <span className="w-12 border border-pale bg-faint py-1 text-center text-sm font-bold">{s.guests}</span>
+          </div>
+        </Sec>
+
+        {/* SERVICE */}
+        <Sec label="Service" dim={!s.venueType}>
+          <div className="grid grid-cols-2 gap-1.5">
+            {svcOptions.map((o) => (
+              <Chip key={o.id} active={s.service === o.id} onClick={() => { up({ service: o.id }); scrollTo('hours'); }} className="text-center">{o.label}</Chip>
+            ))}
+          </div>
+        </Sec>
+
+        {/* HOURS */}
+        <Sec ref={(el) => { refs.current['hours'] = el; }} label="Hours" dim={!s.service}>
+          <div className="flex items-center justify-center gap-4">
+            <button onClick={() => s.hours > 3 && up({ hours: s.hours - 1 })} disabled={s.hours <= 3}
+              className="h-8 w-8 border border-pale text-sm hover:border-black disabled:opacity-20">−</button>
+            <div className="text-center">
+              <span className="font-heading text-2xl font-bold">{s.hours}</span>
+              <span className="ml-1 text-xs text-light">hrs</span>
+            </div>
+            <button onClick={() => s.hours < 12 && up({ hours: s.hours + 1 })} disabled={s.hours >= 12}
+              className="h-8 w-8 border border-pale text-sm hover:border-black disabled:opacity-20">+</button>
+          </div>
+          {s.service === 'all-inclusive' && (
+            <p className="mt-1 text-center text-xs text-mid">£{perHeadByHours[s.hours] ?? 30}/head</p>
+          )}
+        </Sec>
+
+        {/* BAR */}
+        <Sec label="Bar" dim={!s.service}>
+          <div className="grid grid-cols-5 gap-1.5">
+            {barOpts.map((b) => (
+              <button key={b.id}
+                onClick={() => up({ barSize: s.barSize === b.id ? '' as BarSize : b.id })}
+                className={`border p-2 text-center transition-all ${s.barSize === b.id ? 'border-black bg-black text-white' : 'border-pale hover:border-black'}`}>
+                <p className="text-xs font-bold">{b.size}</p>
+                <p className="text-[10px] text-inherit opacity-60">{b.cap}</p>
+                <p className="text-[10px] font-medium">£{barPrices[b.id]}</p>
               </button>
-              {(!state.name || !state.email || !state.phone) && (
-                <p className="mt-3 text-center text-xs text-light">Fill in your name, email and phone to submit</p>
-              )}
+            ))}
+          </div>
+        </Sec>
+
+        {/* EQUIPMENT */}
+        <Sec label="Equipment" dim={!s.service}>
+          <div className="space-y-0.5">
+            {equipmentOptions.map((eq) => {
+              const qty = s.equipment[eq.id] || 0;
+              return (
+                <div key={eq.id} className={`flex items-center justify-between px-2 py-1.5 text-xs ${qty > 0 ? 'bg-faint' : ''}`}>
+                  <span className="flex-1">{eq.name} <span className="text-light">£{eq.price}</span></span>
+                  <div className="flex items-center gap-1">
+                    {qty > 0 && <span className="mr-1 text-[10px] font-medium">£{eq.price * qty}</span>}
+                    <button onClick={() => setEq(eq.id, qty - 1)} disabled={qty === 0}
+                      className="h-5 w-5 border border-pale text-[10px] hover:border-black disabled:opacity-20">−</button>
+                    <span className="w-4 text-center text-[10px]">{qty}</span>
+                    <button onClick={() => setEq(eq.id, qty + 1)}
+                      className="h-5 w-5 border border-pale text-[10px] hover:border-black">+</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Sec>
+
+        {/* GLASSWARE */}
+        <Sec label={`Glassware — ${s.guests}/guest suggested`} dim={!s.service}>
+          <div className="space-y-0.5">
+            {glasswareTypes.map((g) => {
+              const qty = gw[g.id] || 0;
+              const removed = qty === 0;
+              return (
+                <div key={g.id} className={`flex items-center justify-between px-2 py-1.5 text-xs ${removed ? 'opacity-30' : ''}`}>
+                  <span className={`flex-1 ${removed ? 'line-through' : ''}`}>{g.name} <span className="text-light">£{glassPrice.toFixed(2)}</span></span>
+                  <div className="flex items-center gap-1">
+                    {!removed ? (
+                      <>
+                        <span className="mr-1 text-[10px] font-medium">£{(qty * glassPrice).toFixed(2)}</span>
+                        <button onClick={() => setGw(g.id, qty - 10)} className="h-5 w-5 border border-pale text-[10px] hover:border-black">−</button>
+                        <input type="number" value={qty} onChange={(e) => setGw(g.id, Number(e.target.value))}
+                          className="w-10 border border-pale bg-faint px-0.5 text-center text-[10px] outline-none focus:border-black" />
+                        <button onClick={() => setGw(g.id, qty + 10)} className="h-5 w-5 border border-pale text-[10px] hover:border-black">+</button>
+                        <button onClick={() => setGw(g.id, 0)} className="ml-0.5 h-5 w-5 border border-pale text-[10px] text-light hover:border-black hover:text-black">✕</button>
+                      </>
+                    ) : (
+                      <button onClick={() => setGw(g.id, s.guests)} className="border border-pale px-2 py-0.5 text-[10px] hover:border-black">Add</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Sec>
+
+        {/* CONTACT */}
+        <Sec label="Your Details" dim={!s.service}>
+          <div className="space-y-2">
+            <input type="text" placeholder="Name" value={s.name} onChange={(e) => up({ name: e.target.value })}
+              className="w-full border border-pale bg-faint px-3 py-2 text-xs outline-none focus:border-black" />
+            <div className="grid grid-cols-2 gap-2">
+              <input type="email" placeholder="Email" value={s.email} onChange={(e) => up({ email: e.target.value })}
+                className="border border-pale bg-faint px-3 py-2 text-xs outline-none focus:border-black" />
+              <input type="tel" placeholder="Phone" value={s.phone} onChange={(e) => up({ phone: e.target.value })}
+                className="border border-pale bg-faint px-3 py-2 text-xs outline-none focus:border-black" />
             </div>
-          </motion.div>
+            <textarea rows={2} placeholder="Notes (optional)" value={s.notes} onChange={(e) => up({ notes: e.target.value })}
+              className="w-full resize-none border border-pale bg-faint px-3 py-2 text-xs outline-none focus:border-black" />
+          </div>
+        </Sec>
+
+        {/* VIEW QUOTE BUTTON */}
+        {s.service && (
+          <button
+            onClick={() => setShowQuote(true)}
+            className="w-full border border-black bg-black py-3 text-xs font-semibold uppercase tracking-wider text-white transition-all hover:bg-dark"
+          >
+            View Quote — £{pricing.total.toLocaleString()}
+          </button>
         )}
       </div>
 
-      {/* ─── FLOATING PRICE ─── */}
+      {/* FLOATING PRICE */}
       {pricing.total > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 border border-black bg-black px-6 py-3 shadow-2xl"
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-medium uppercase tracking-wider text-white/60">Estimate</span>
-            <span className="font-heading text-xl font-bold text-white">£{pricing.total.toLocaleString()}</span>
-          </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 border border-black bg-black px-5 py-2 shadow-xl">
+          <span className="text-xs text-white/50">Estimate </span>
+          <span className="font-heading text-base font-bold text-white">£{pricing.total.toLocaleString()}</span>
         </motion.div>
       )}
     </div>
   );
 }
 
-/* ─── Section wrapper ─── */
-interface SectionProps {
-  title: string;
-  subtitle?: string;
-  done: boolean;
-  dimmed?: boolean;
-  children: React.ReactNode;
-}
+// ─── Tiny Section ───
+interface SecProps { label: string; dim?: boolean; children: React.ReactNode }
+const Sec = React.forwardRef<HTMLDivElement, SecProps>(({ label, dim, children }, ref) => (
+  <div ref={ref} className={`border border-pale px-4 py-3 transition-all ${dim ? 'opacity-30 pointer-events-none' : ''}`}>
+    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-light">{label}</p>
+    {children}
+  </div>
+));
+Sec.displayName = 'Sec';
 
-const Section = React.forwardRef<HTMLDivElement, SectionProps>(
-  ({ title, subtitle, done, dimmed, children }, ref) => (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      viewport={{ once: true, margin: '-30px' }}
-      className={`border bg-white p-6 transition-all md:p-8 ${
-        dimmed ? 'border-pale/50 opacity-40 pointer-events-none' : 'border-pale'
-      }`}
-    >
-      <div className="mb-4">
-        <div className="flex items-center gap-3">
-          <h2 className="font-heading text-lg font-semibold">{title}</h2>
-          {done && !dimmed && (
-            <span className="flex h-5 w-5 items-center justify-center bg-black text-xs text-white">✓</span>
-          )}
-        </div>
-        {subtitle && <p className="mt-1 text-xs text-light">{subtitle}</p>}
-      </div>
+// ─── Chip ───
+function Chip({ active, onClick, children, className = '' }: { active: boolean; onClick: () => void; children: React.ReactNode; className?: string }) {
+  return (
+    <button onClick={onClick}
+      className={`border px-3 py-1.5 text-xs font-medium transition-all ${active ? 'border-black bg-black text-white' : 'border-pale hover:border-black'} ${className}`}>
       {children}
-    </motion.div>
-  ),
-);
-
-Section.displayName = 'Section';
+    </button>
+  );
+}
