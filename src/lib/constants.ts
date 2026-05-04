@@ -165,14 +165,16 @@ export const equipmentOptions = [
   { id: 'branded-panels', name: 'Branded bar panels', price: 350, unit: 'flat' },
 ];
 
-// Glassware types — 1 per person default
+// Glassware types — pack quantities
 export const glasswareTypes = [
-  { id: 'wine', name: 'Wine glass' },
-  { id: 'martini', name: 'Martini glass' },
-  { id: 'whisky', name: 'Whisky tumbler' },
-  { id: 'champagne', name: 'Champagne flute' },
-  { id: 'highball', name: '12oz highball' },
-  { id: 'margarita', name: 'Margarita glass' },
+  { id: 'wine', name: 'Wine glass', pack: 24 },
+  { id: 'whisky', name: 'Whisky tumbler', pack: 24 },
+  { id: 'champagne', name: 'Champagne flute', pack: 35 },
+  { id: 'premium-champagne', name: 'Premium champagne flute', pack: 20 },
+  { id: 'premium-wine', name: 'Premium wine glass', pack: 20 },
+  { id: 'martini', name: 'Martini glass', pack: 8 },
+  { id: 'margarita', name: 'Margarita glass', pack: 8 },
+  { id: 'highball', name: '12oz highball', pack: 35 },
 ];
 
 export const glassPrice = 0.60; // per glass
