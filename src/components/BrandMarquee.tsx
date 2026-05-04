@@ -6,17 +6,14 @@ export default function BrandMarquee() {
   const allBrands = [...brands, ...brands, ...brands];
 
   return (
-    <section className="overflow-hidden border-y border-warm-border bg-cream-dark py-8">
-      <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-muted">
-        Trusted by leading brands &amp; organisations
+    <section className="overflow-hidden border-y border-pale bg-white py-8">
+      <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.2em] text-light">
+        Trusted by leading brands
       </p>
       <div className="relative">
         <div className="animate-marquee flex items-center gap-12 whitespace-nowrap">
           {allBrands.map((brand, i) => (
-            <span
-              key={`${brand}-${i}`}
-              className="text-sm font-semibold text-charcoal/30 md:text-base"
-            >
+            <span key={`${brand}-${i}`} className="text-sm font-semibold text-pale">
               {brand}
             </span>
           ))}

@@ -1,18 +1,16 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Check,
-  Users,
-  Calendar,
-  MapPin,
-  Send,
-  Clock,
-  Plus,
-  Minus,
-} from 'lucide-react';
-import { quoteConfig } from '@/lib/constants';
+  perHeadByHours,
+  barPrices,
+  equipmentOptions,
+  glasswareTypes,
+  glassPrice,
+  serviceBasePrices,
+} from '@/lib/constants';
+import React from 'react';
 
 type ServiceType = 'all-inclusive' | 'cash-bar' | 'dry-hire' | 'staff-only';
 type BarSize = '5ft' | '10ft' | '15ft' | '35ft' | '40ft';
@@ -26,7 +24,8 @@ interface QuoteState {
   service: ServiceType | '';
   barSize: BarSize | '';
   hours: number;
-  extras: string[];
+  equipment: Record<string, number>; // id → quantity
+  glassware: Record<string, number>; // id → quantity (0 = removed)
   name: string;
   email: string;
   phone: string;
@@ -42,7 +41,8 @@ const initialState: QuoteState = {
   service: '',
   barSize: '',
   hours: 5,
-  extras: [],
+  equipment: {},
+  glassware: {},
   name: '',
   email: '',
   phone: '',
@@ -50,26 +50,20 @@ const initialState: QuoteState = {
 };
 
 const eventOptions = [
-  { id: 'wedding', label: 'Wedding', icon: '💍' },
-  { id: 'corporate', label: 'Corporate', icon: '🏢' },
-  { id: 'birthday', label: 'Birthday', icon: '🎂' },
-  { id: 'garden-party', label: 'Garden Party', icon: '🌿' },
-  { id: 'christmas', label: 'Christmas', icon: '🎄' },
-  { id: 'festival', label: 'Festival', icon: '🎵' },
-  { id: 'other', label: 'Other', icon: '✨' },
+  'Wedding', 'Corporate', 'Birthday', 'Garden Party', 'Christmas', 'Festival', 'Other',
 ];
 
 const venueOptions = [
-  { id: 'indoor', label: 'Indoor', desc: 'Venue, hall, marquee', icon: '🏛️' },
-  { id: 'outdoor', label: 'Outdoor', desc: 'Garden, field, terrace', icon: '🌳' },
-  { id: 'both', label: 'Both', desc: 'Indoor & outdoor', icon: '🏡' },
+  { id: 'indoor', label: 'Indoor', desc: 'Venue, hall, marquee' },
+  { id: 'outdoor', label: 'Outdoor', desc: 'Garden, field, terrace' },
+  { id: 'both', label: 'Both', desc: 'Indoor & outdoor areas' },
 ];
 
-const serviceOptions: { id: ServiceType; label: string; desc: string; price: string; icon: string }[] = [
-  { id: 'all-inclusive', label: 'All Inclusive', desc: 'Drinks, staff, bar, glassware — everything', price: 'From £29.90/head', icon: '🥂' },
-  { id: 'cash-bar', label: 'Cash Bar', desc: 'Guests buy drinks, you cover setup', price: 'From £395', icon: '💳' },
-  { id: 'dry-hire', label: 'Dry Hire', desc: 'We supply the bar, you supply the drinks', price: 'From £295', icon: '🍸' },
-  { id: 'staff-only', label: 'Staff Only', desc: 'Our bartenders for your bar', price: 'From £200', icon: '👨‍🍳' },
+const serviceOptions: { id: ServiceType; label: string; desc: string }[] = [
+  { id: 'all-inclusive', label: 'All Inclusive', desc: 'Drinks, staff, bar, glassware — the full package' },
+  { id: 'cash-bar', label: 'Cash Bar', desc: 'Guests buy their own drinks, you cover setup & staff' },
+  { id: 'dry-hire', label: 'Dry Hire', desc: 'We supply the bar & glassware, you supply the drinks' },
+  { id: 'staff-only', label: 'Staff Only', desc: 'Professional bartenders for your own bar setup' },
 ];
 
 const barOptions: { id: BarSize; label: string; size: string; guests: string }[] = [
@@ -80,11 +74,6 @@ const barOptions: { id: BarSize; label: string; size: string; guests: string }[]
   { id: '40ft', label: 'Island Bar', size: '40FT', guests: '250+' },
 ];
 
-const HOUR_RATE = 50; // £50 per extra hour beyond base 5
-
-// Section refs for auto-scroll
-const sectionIds = ['event-type', 'venue', 'date-location', 'guests', 'service', 'bar', 'hours', 'extras', 'contact'] as const;
-
 export default function QuoteBuilder() {
   const [state, setState] = useState<QuoteState>(initialState);
   const [submitted, setSubmitted] = useState(false);
@@ -94,97 +83,107 @@ export default function QuoteBuilder() {
     setState((s) => ({ ...s, ...patch }));
   }, []);
 
-  const toggleExtra = (id: string) => {
-    setState((s) => ({
-      ...s,
-      extras: s.extras.includes(id) ? s.extras.filter((e) => e !== id) : [...s.extras, id],
-    }));
-  };
-
-  // Auto-scroll to next section
-  const scrollTo = useCallback((sectionId: string, delay = 400) => {
+  const scrollTo = useCallback((id: string, delay = 350) => {
     setTimeout(() => {
-      const el = sectionRefs.current[sectionId];
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, delay);
   }, []);
 
-  // Auto-advance on single-choice selections
-  const selectEventType = useCallback((id: string) => {
-    update({ eventType: id });
-    scrollTo('venue');
-  }, [update, scrollTo]);
-
-  const selectVenue = useCallback((id: string) => {
-    update({ venueType: id });
-    scrollTo('date-location');
-  }, [update, scrollTo]);
-
-  const selectService = useCallback((id: ServiceType) => {
-    update({ service: id });
-    scrollTo('bar');
-  }, [update, scrollTo]);
-
-  const selectBar = useCallback((id: BarSize) => {
-    update({ barSize: state.barSize === id ? '' : id });
-    if (state.barSize !== id) scrollTo('hours');
-  }, [update, scrollTo, state.barSize]);
-
-  // Calculate estimated price
-  const estimate = useMemo(() => {
-    let total = 0;
-    if (state.service) {
-      const svc = quoteConfig.serviceMultipliers[state.service];
-      total += svc.base + svc.perHead * state.guests;
-    }
-    if (state.barSize) {
-      total += quoteConfig.barPrices[state.barSize];
-    }
-    // Extra hours beyond base 5
-    if (state.hours > 5) {
-      total += (state.hours - 5) * HOUR_RATE;
-    }
-    state.extras.forEach((ext) => {
-      const extra = quoteConfig.extras.find((e) => e.id === ext);
-      if (extra) total += extra.price;
+  // Auto-suggest glassware when guests change (1 per person per type)
+  // Only set defaults if user hasn't touched glassware yet
+  const effectiveGlassware = useMemo(() => {
+    const gw: Record<string, number> = {};
+    glasswareTypes.forEach((g) => {
+      gw[g.id] = state.glassware[g.id] ?? state.guests;
     });
-    return total;
-  }, [state]);
+    return gw;
+  }, [state.guests, state.glassware]);
 
-  // Track which sections are "complete" for visual feedback
-  const sectionComplete = useMemo(() => ({
-    'event-type': !!state.eventType,
-    venue: !!state.venueType,
-    'date-location': !!state.date || !!state.postcode,
-    guests: true, // always has a default
-    service: !!state.service,
-    bar: !!state.barSize,
-    hours: true,
-    extras: true, // optional
-    contact: !!state.name && !!state.email && !!state.phone,
-  }), [state]);
+  const setGlassQty = (id: string, qty: number) => {
+    setState((s) => ({
+      ...s,
+      glassware: { ...s.glassware, [id]: Math.max(0, qty) },
+    }));
+  };
 
+  const removeGlass = (id: string) => {
+    setState((s) => ({
+      ...s,
+      glassware: { ...s.glassware, [id]: 0 },
+    }));
+  };
+
+  const setEquipQty = (id: string, qty: number) => {
+    setState((s) => ({
+      ...s,
+      equipment: { ...s.equipment, [id]: Math.max(0, qty) },
+    }));
+  };
+
+  // ─── Price calculation ───
+  const pricing = useMemo(() => {
+    const breakdown: { label: string; amount: number }[] = [];
+    let total = 0;
+
+    // Service
+    if (state.service === 'all-inclusive') {
+      const rate = perHeadByHours[state.hours] ?? 30;
+      const amt = rate * state.guests;
+      breakdown.push({ label: `${state.guests} guests × £${rate}/head (${state.hours}h)`, amount: amt });
+      total += amt;
+    } else if (state.service) {
+      const base = serviceBasePrices[state.service] || 0;
+      breakdown.push({ label: `${serviceOptions.find((s) => s.id === state.service)?.label} base`, amount: base });
+      total += base;
+    }
+
+    // Bar
+    if (state.barSize) {
+      const amt = barPrices[state.barSize] || 0;
+      const bar = barOptions.find((b) => b.id === state.barSize);
+      breakdown.push({ label: `${bar?.label} (${bar?.size})`, amount: amt });
+      total += amt;
+    }
+
+    // Equipment
+    equipmentOptions.forEach((eq) => {
+      const qty = state.equipment[eq.id] || 0;
+      if (qty > 0) {
+        const amt = eq.price * qty;
+        breakdown.push({ label: `${eq.name}${qty > 1 ? ` ×${qty}` : ''}`, amount: amt });
+        total += amt;
+      }
+    });
+
+    // Glassware
+    let glassTotal = 0;
+    glasswareTypes.forEach((g) => {
+      const qty = effectiveGlassware[g.id] || 0;
+      glassTotal += qty * glassPrice;
+    });
+    if (glassTotal > 0) {
+      breakdown.push({ label: 'Glassware', amount: Math.round(glassTotal * 100) / 100 });
+      total += glassTotal;
+    }
+
+    return { breakdown, total: Math.round(total * 100) / 100 };
+  }, [state, effectiveGlassware]);
+
+  // ─── Submitted state ───
   if (submitted) {
     return (
       <div className="mx-auto max-w-2xl px-4 text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-3xl border border-warm-border bg-white p-12"
+          className="border border-pale bg-white p-12"
         >
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <Check className="text-green-600" size={32} />
-          </div>
-          <h2 className="font-heading text-2xl font-bold text-charcoal">Quote Request Sent!</h2>
-          <p className="mt-3 text-muted">
-            We&apos;ll get back to you within a few hours with a detailed quote. Check your email at{' '}
-            <strong>{state.email}</strong>.
+          <h2 className="font-heading text-3xl font-bold">Quote Request Sent</h2>
+          <p className="mt-4 text-mid">
+            We&apos;ll get back to you within a few hours at <strong className="text-black">{state.email}</strong>
           </p>
-          <p className="mt-2 text-sm text-muted">
-            Your estimated total: <span className="font-semibold text-gold">£{estimate.toLocaleString()}</span>
-          </p>
+          <p className="mt-6 font-heading text-4xl font-bold">£{pricing.total.toLocaleString()}</p>
+          <p className="mt-1 text-sm text-light">Estimated — final price confirmed by email</p>
         </motion.div>
       </div>
     );
@@ -193,100 +192,93 @@ export default function QuoteBuilder() {
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6">
       {/* Header */}
-      <div className="mb-10 text-center">
-        <p className="text-sm font-semibold uppercase tracking-widest text-gold">Instant Estimate</p>
-        <h1 className="mt-2 font-heading text-3xl font-bold text-charcoal md:text-4xl">
-          Build Your Perfect Bar
-        </h1>
-        <p className="mt-2 text-muted">Pick your options — watch your price build live</p>
+      <div className="mb-12 text-center">
+        <h1 className="font-heading text-4xl font-bold md:text-5xl">Price Your Event</h1>
+        <p className="mt-3 text-mid">Choose your options. Watch your price build.</p>
       </div>
 
-      {/* All sections stacked */}
-      <div className="space-y-6">
+      <div className="space-y-8">
 
         {/* ─── EVENT TYPE ─── */}
         <Section
-          ref={(el) => { sectionRefs.current['event-type'] = el; }}
-          title="What's the occasion?"
-          num={1}
-          done={sectionComplete['event-type']}
+          ref={(el) => { sectionRefs.current['event'] = el; }}
+          title="What type of event?"
+          done={!!state.eventType}
         >
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-7">
+          <div className="flex flex-wrap gap-2">
             {eventOptions.map((opt) => (
               <button
-                key={opt.id}
-                onClick={() => selectEventType(opt.id)}
-                className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 transition-all ${
-                  state.eventType === opt.id
-                    ? 'border-gold bg-gold/5 shadow-sm'
-                    : 'border-warm-border hover:border-gold/30'
+                key={opt}
+                onClick={() => { update({ eventType: opt }); scrollTo('venue'); }}
+                className={`border px-4 py-2 text-sm font-medium transition-all ${
+                  state.eventType === opt
+                    ? 'border-black bg-black text-white'
+                    : 'border-pale bg-white text-dark hover:border-black'
                 }`}
               >
-                <span className="text-xl">{opt.icon}</span>
-                <span className="text-xs font-medium">{opt.label}</span>
+                {opt}
               </button>
             ))}
           </div>
         </Section>
 
-        {/* ─── VENUE TYPE ─── */}
+        {/* ─── VENUE ─── */}
         <Section
           ref={(el) => { sectionRefs.current['venue'] = el; }}
           title="Indoor or outdoor?"
-          num={2}
-          done={sectionComplete.venue}
+          done={!!state.venueType}
           dimmed={!state.eventType}
         >
           <div className="grid grid-cols-3 gap-3">
             {venueOptions.map((opt) => (
               <button
                 key={opt.id}
-                onClick={() => selectVenue(opt.id)}
-                className={`flex flex-col items-center gap-1 rounded-xl border-2 p-4 transition-all ${
+                onClick={() => { update({ venueType: opt.id }); scrollTo('date'); }}
+                className={`border p-4 text-center transition-all ${
                   state.venueType === opt.id
-                    ? 'border-gold bg-gold/5 shadow-sm'
-                    : 'border-warm-border hover:border-gold/30'
+                    ? 'border-black bg-black text-white'
+                    : 'border-pale hover:border-black'
                 }`}
               >
-                <span className="text-2xl">{opt.icon}</span>
-                <span className="text-sm font-medium">{opt.label}</span>
-                <span className="text-xs text-muted">{opt.desc}</span>
+                <p className="text-sm font-semibold">{opt.label}</p>
+                <p className={`mt-1 text-xs ${state.venueType === opt.id ? 'text-white/70' : 'text-light'}`}>
+                  {opt.desc}
+                </p>
               </button>
             ))}
           </div>
         </Section>
 
-        {/* ─── DATE & LOCATION ─── */}
+        {/* ─── DATE & POSTCODE ─── */}
         <Section
-          ref={(el) => { sectionRefs.current['date-location'] = el; }}
+          ref={(el) => { sectionRefs.current['date'] = el; }}
           title="When and where?"
-          num={3}
-          done={sectionComplete['date-location']}
+          subtitle="Optional — helps us check availability"
+          done={!!state.date || !!state.postcode}
           dimmed={!state.venueType}
-          optional
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-charcoal">
-                <Calendar size={14} className="text-gold" /> Event Date
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">
+                Event Date
               </label>
               <input
                 type="date"
                 value={state.date}
                 onChange={(e) => update({ date: e.target.value })}
-                className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
               />
             </div>
             <div>
-              <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-charcoal">
-                <MapPin size={14} className="text-gold" /> Event Postcode
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">
+                Event Postcode
               </label>
               <input
                 type="text"
                 placeholder="e.g. E11 1AA"
                 value={state.postcode}
                 onChange={(e) => update({ postcode: e.target.value })}
-                className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
               />
             </div>
           </div>
@@ -296,28 +288,25 @@ export default function QuoteBuilder() {
         <Section
           ref={(el) => { sectionRefs.current['guests'] = el; }}
           title="How many guests?"
-          num={4}
-          done={sectionComplete.guests}
+          done={true}
           dimmed={!state.venueType}
         >
-          <div>
-            <div className="flex items-center gap-4">
-              <input
-                type="range"
-                min={20}
-                max={500}
-                step={10}
-                value={state.guests}
-                onChange={(e) => update({ guests: Number(e.target.value) })}
-                className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-cream-dark accent-gold"
-              />
-              <span className="flex h-12 w-16 items-center justify-center rounded-xl border border-warm-border bg-cream text-center font-heading text-lg font-bold text-charcoal">
-                {state.guests}
-              </span>
+          <div className="flex items-center gap-6">
+            <input
+              type="range"
+              min={20}
+              max={500}
+              step={10}
+              value={state.guests}
+              onChange={(e) => update({ guests: Number(e.target.value) })}
+              className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-pale"
+            />
+            <div className="flex h-14 w-20 items-center justify-center border border-pale bg-faint font-heading text-2xl font-bold">
+              {state.guests}
             </div>
-            <div className="mt-1 flex justify-between text-xs text-muted">
-              <span>20</span><span>250</span><span>500</span>
-            </div>
+          </div>
+          <div className="mt-1 flex justify-between text-xs text-light">
+            <span>20</span><span>250</span><span>500</span>
           </div>
         </Section>
 
@@ -325,63 +314,29 @@ export default function QuoteBuilder() {
         <Section
           ref={(el) => { sectionRefs.current['service'] = el; }}
           title="What type of service?"
-          num={5}
-          done={sectionComplete.service}
+          done={!!state.service}
           dimmed={!state.venueType}
         >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-2">
             {serviceOptions.map((opt) => (
               <button
                 key={opt.id}
-                onClick={() => selectService(opt.id)}
-                className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
+                onClick={() => { update({ service: opt.id }); scrollTo('hours'); }}
+                className={`flex w-full items-center justify-between border p-4 text-left transition-all ${
                   state.service === opt.id
-                    ? 'border-gold bg-gold/5 shadow-sm'
-                    : 'border-warm-border hover:border-gold/30'
+                    ? 'border-black bg-black text-white'
+                    : 'border-pale hover:border-black'
                 }`}
               >
-                <span className="text-2xl">{opt.icon}</span>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-charcoal">{opt.label}</p>
-                  <p className="mt-0.5 text-xs text-muted">{opt.desc}</p>
-                  <p className="mt-1 text-xs font-semibold text-gold">{opt.price}</p>
+                <div>
+                  <p className="text-sm font-semibold">{opt.label}</p>
+                  <p className={`mt-0.5 text-xs ${state.service === opt.id ? 'text-white/70' : 'text-light'}`}>
+                    {opt.desc}
+                  </p>
                 </div>
                 {state.service === opt.id && (
-                  <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gold">
-                    <Check size={12} className="text-white" />
-                  </div>
+                  <span className="text-xs font-medium text-white/80">Selected</span>
                 )}
-              </button>
-            ))}
-          </div>
-        </Section>
-
-        {/* ─── BAR SIZE ─── */}
-        <Section
-          ref={(el) => { sectionRefs.current['bar'] = el; }}
-          title="Choose your bar"
-          num={6}
-          done={sectionComplete.bar}
-          dimmed={!state.service}
-          optional
-        >
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {barOptions.map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => selectBar(opt.id)}
-                className={`flex flex-col items-center gap-1 rounded-xl border-2 p-4 transition-all ${
-                  state.barSize === opt.id
-                    ? 'border-gold bg-gold/5 shadow-sm'
-                    : 'border-warm-border hover:border-gold/30'
-                }`}
-              >
-                <span className="font-heading text-lg font-bold text-gold">{opt.size}</span>
-                <span className="text-xs font-medium text-charcoal">{opt.label}</span>
-                <span className="text-xs text-muted">{opt.guests}</span>
-                <span className="mt-1 text-xs font-semibold text-gold">
-                  £{quoteConfig.barPrices[opt.id].toLocaleString()}
-                </span>
               </button>
             ))}
           </div>
@@ -391,193 +346,295 @@ export default function QuoteBuilder() {
         <Section
           ref={(el) => { sectionRefs.current['hours'] = el; }}
           title="How many hours?"
-          num={7}
-          done={sectionComplete.hours}
+          done={true}
           dimmed={!state.service}
         >
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-5">
               <button
                 onClick={() => state.hours > 3 && update({ hours: state.hours - 1 })}
                 disabled={state.hours <= 3}
-                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-warm-border transition-all hover:border-gold hover:text-gold disabled:opacity-30"
+                className="flex h-10 w-10 items-center justify-center border border-pale text-lg font-medium transition-all hover:border-black disabled:opacity-20"
               >
-                <Minus size={18} />
+                −
               </button>
-              <div className="flex items-baseline gap-1">
-                <span className="font-heading text-4xl font-bold text-charcoal">{state.hours}</span>
-                <span className="text-sm text-muted">hours</span>
+              <div className="text-center">
+                <span className="font-heading text-4xl font-bold">{state.hours}</span>
+                <span className="ml-1 text-sm text-light">hours</span>
               </div>
               <button
                 onClick={() => state.hours < 12 && update({ hours: state.hours + 1 })}
                 disabled={state.hours >= 12}
-                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-warm-border transition-all hover:border-gold hover:text-gold disabled:opacity-30"
+                className="flex h-10 w-10 items-center justify-center border border-pale text-lg font-medium transition-all hover:border-black disabled:opacity-20"
               >
-                <Plus size={18} />
+                +
               </button>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-muted">
-              <Clock size={12} className="text-gold" />
-              {state.hours <= 5
-                ? 'Base rate — included in service price'
-                : `+£${(state.hours - 5) * HOUR_RATE} for ${state.hours - 5} extra hour${state.hours - 5 > 1 ? 's' : ''} (£${HOUR_RATE}/hr)`}
-            </div>
+            {state.service === 'all-inclusive' && (
+              <p className="text-sm text-mid">
+                £{perHeadByHours[state.hours] ?? 30} per head for {state.hours} hours
+              </p>
+            )}
           </div>
         </Section>
 
-        {/* ─── EXTRAS ─── */}
+        {/* ─── BAR ─── */}
         <Section
-          ref={(el) => { sectionRefs.current['extras'] = el; }}
-          title="Any extras?"
-          num={8}
-          done={state.extras.length > 0}
+          ref={(el) => { sectionRefs.current['bar'] = el; }}
+          title="Choose your bar"
+          subtitle="Optional — skip if you have your own"
+          done={!!state.barSize}
           dimmed={!state.service}
-          optional
         >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {quoteConfig.extras.map((ext) => (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {barOptions.map((opt) => (
               <button
-                key={ext.id}
-                onClick={() => toggleExtra(ext.id)}
-                className={`flex items-center justify-between rounded-xl border-2 p-4 transition-all ${
-                  state.extras.includes(ext.id)
-                    ? 'border-gold bg-gold/5 shadow-sm'
-                    : 'border-warm-border hover:border-gold/30'
+                key={opt.id}
+                onClick={() => { update({ barSize: state.barSize === opt.id ? '' as BarSize : opt.id }); if (state.barSize !== opt.id) scrollTo('equipment'); }}
+                className={`border p-4 text-center transition-all ${
+                  state.barSize === opt.id
+                    ? 'border-black bg-black text-white'
+                    : 'border-pale hover:border-black'
                 }`}
               >
-                <div className="text-left">
-                  <p className="text-sm font-medium text-charcoal">{ext.name}</p>
-                  <p className="text-xs text-gold">+£{ext.price}</p>
-                </div>
-                <div
-                  className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all ${
-                    state.extras.includes(ext.id) ? 'border-gold bg-gold' : 'border-warm-border'
-                  }`}
-                >
-                  {state.extras.includes(ext.id) && <Check size={12} className="text-white" />}
-                </div>
+                <p className="font-heading text-lg font-bold">{opt.size}</p>
+                <p className="text-xs font-medium">{opt.label}</p>
+                <p className={`mt-1 text-xs ${state.barSize === opt.id ? 'text-white/60' : 'text-light'}`}>{opt.guests}</p>
+                <p className={`mt-1 text-xs font-semibold ${state.barSize === opt.id ? 'text-white' : 'text-dark'}`}>
+                  £{barPrices[opt.id].toLocaleString()}
+                </p>
               </button>
             ))}
           </div>
+        </Section>
+
+        {/* ─── EQUIPMENT ─── */}
+        <Section
+          ref={(el) => { sectionRefs.current['equipment'] = el; }}
+          title="Equipment"
+          subtitle="Add what you need — adjust quantities"
+          done={Object.values(state.equipment).some((v) => v > 0)}
+          dimmed={!state.service}
+        >
+          <div className="space-y-2">
+            {equipmentOptions.map((eq) => {
+              const qty = state.equipment[eq.id] || 0;
+              return (
+                <div
+                  key={eq.id}
+                  className={`flex items-center justify-between border p-3 transition-all ${
+                    qty > 0 ? 'border-black' : 'border-pale'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{eq.name}</p>
+                    <p className="text-xs text-light">£{eq.price} {eq.unit}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {qty > 0 && (
+                      <span className="text-xs font-semibold">£{eq.price * qty}</span>
+                    )}
+                    <button
+                      onClick={() => setEquipQty(eq.id, qty - 1)}
+                      disabled={qty === 0}
+                      className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black disabled:opacity-20"
+                    >
+                      −
+                    </button>
+                    <span className="w-5 text-center text-sm font-medium">{qty}</span>
+                    <button
+                      onClick={() => setEquipQty(eq.id, qty + 1)}
+                      className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* ─── GLASSWARE ─── */}
+        <Section
+          ref={(el) => { sectionRefs.current['glassware'] = el; }}
+          title="Glassware"
+          subtitle={`We suggest 1 of each type per guest (${state.guests} guests) — adjust or remove as needed`}
+          done={true}
+          dimmed={!state.service}
+        >
+          <div className="space-y-2">
+            {glasswareTypes.map((g) => {
+              const qty = effectiveGlassware[g.id] || 0;
+              const isRemoved = qty === 0;
+              return (
+                <div
+                  key={g.id}
+                  className={`flex items-center justify-between border p-3 transition-all ${
+                    isRemoved ? 'border-pale opacity-40' : 'border-pale'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <p className={`text-sm font-medium ${isRemoved ? 'line-through' : ''}`}>{g.name}</p>
+                    <p className="text-xs text-light">£{glassPrice} each</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!isRemoved && (
+                      <span className="text-xs font-semibold">£{(qty * glassPrice).toFixed(2)}</span>
+                    )}
+                    {!isRemoved ? (
+                      <>
+                        <button
+                          onClick={() => setGlassQty(g.id, qty - 10)}
+                          className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          value={qty}
+                          onChange={(e) => setGlassQty(g.id, Number(e.target.value))}
+                          className="w-14 border border-pale bg-faint px-1 py-0.5 text-center text-sm outline-none focus:border-black"
+                        />
+                        <button
+                          onClick={() => setGlassQty(g.id, qty + 10)}
+                          className="flex h-7 w-7 items-center justify-center border border-pale text-xs transition-all hover:border-black"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => removeGlass(g.id)}
+                          className="ml-1 flex h-7 w-7 items-center justify-center border border-pale text-xs text-light transition-all hover:border-black hover:text-black"
+                          title="Remove"
+                        >
+                          ✕
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setGlassQty(g.id, state.guests)}
+                        className="border border-pale px-3 py-1 text-xs font-medium transition-all hover:border-black"
+                      >
+                        Add back
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-xs text-light">
+            Total glassware: {glasswareTypes.reduce((sum, g) => sum + (effectiveGlassware[g.id] || 0), 0)} pieces
+          </p>
         </Section>
 
         {/* ─── CONTACT ─── */}
         <Section
           ref={(el) => { sectionRefs.current['contact'] = el; }}
           title="Your details"
-          num={9}
-          done={sectionComplete.contact}
+          done={!!state.name && !!state.email && !!state.phone}
           dimmed={!state.service}
         >
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-charcoal">Full Name</label>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Name</label>
               <input
                 type="text"
                 placeholder="Your name"
                 value={state.name}
                 onChange={(e) => update({ name: e.target.value })}
-                className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
               />
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-medium text-charcoal">Email</label>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Email</label>
                 <input
                   type="email"
                   placeholder="you@email.com"
                   value={state.email}
                   onChange={(e) => update({ email: e.target.value })}
-                  className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                  className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-charcoal">Phone</label>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Phone</label>
                 <input
                   type="tel"
                   placeholder="07xxx xxxxxx"
                   value={state.phone}
                   onChange={(e) => update({ phone: e.target.value })}
-                  className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                  className="w-full border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
                 />
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-charcoal">Notes <span className="text-muted">(optional)</span></label>
+              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-light">Notes <span className="normal-case">(optional)</span></label>
               <textarea
                 rows={3}
                 placeholder="Anything else we should know..."
                 value={state.notes}
                 onChange={(e) => update({ notes: e.target.value })}
-                className="w-full resize-none rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                className="w-full resize-none border border-pale bg-faint px-4 py-3 text-sm outline-none transition-all focus:border-black"
               />
             </div>
           </div>
         </Section>
 
-        {/* ─── SUBMIT ─── */}
+        {/* ─── PRICE SUMMARY + SUBMIT ─── */}
         {state.service && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-3xl border border-warm-border bg-white p-8 text-center shadow-sm"
+            className="border border-black bg-white"
           >
-            <div className="mb-6 rounded-xl bg-gold/5 p-6">
-              <p className="text-sm text-muted">Your Estimated Total</p>
-              <p className="font-heading text-4xl font-bold text-gold">
-                £{estimate.toLocaleString()}
-              </p>
-              <p className="mt-1 text-xs text-muted">Final price confirmed by email</p>
+            <div className="border-b border-pale p-6">
+              <h2 className="font-heading text-xl font-bold">Your Quote</h2>
             </div>
 
-            {/* Summary */}
-            <div className="mb-6 space-y-2 text-left">
-              {state.eventType && (
-                <SummaryLine label="Event" value={eventOptions.find((e) => e.id === state.eventType)?.label || ''} />
-              )}
-              {state.venueType && (
-                <SummaryLine label="Venue" value={venueOptions.find((v) => v.id === state.venueType)?.label || ''} />
-              )}
-              <SummaryLine label="Guests" value={`${state.guests} people`} />
-              {state.service && (
-                <SummaryLine label="Service" value={serviceOptions.find((s) => s.id === state.service)?.label || ''} />
-              )}
-              {state.barSize && (
-                <SummaryLine label="Bar" value={barOptions.find((b) => b.id === state.barSize)?.label || ''} />
-              )}
-              <SummaryLine label="Hours" value={`${state.hours}h${state.hours > 5 ? ` (+£${(state.hours - 5) * HOUR_RATE})` : ''}`} />
-              {state.extras.length > 0 && (
-                <SummaryLine
-                  label="Extras"
-                  value={state.extras.map((e) => quoteConfig.extras.find((x) => x.id === e)?.name).join(', ')}
-                />
-              )}
+            <div className="p-6">
+              <div className="space-y-2">
+                {pricing.breakdown.map((item, i) => (
+                  <div key={i} className="flex items-start justify-between text-sm">
+                    <span className="text-mid">{item.label}</span>
+                    <span className="font-medium">£{item.amount.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 flex items-end justify-between border-t border-pale pt-4">
+                <span className="text-sm font-medium uppercase tracking-wider text-light">Estimated Total</span>
+                <span className="font-heading text-3xl font-bold">£{pricing.total.toLocaleString()}</span>
+              </div>
+              <p className="mt-1 text-right text-xs text-light">Final price confirmed by email</p>
             </div>
 
-            <button
-              onClick={() => setSubmitted(true)}
-              disabled={!state.name || !state.email || !state.phone}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-gold px-8 py-4 text-base font-semibold text-white shadow-lg shadow-gold/20 transition-all hover:bg-gold-hover hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Send size={18} /> Send My Quote Request
-            </button>
-            {(!state.name || !state.email || !state.phone) && (
-              <p className="mt-3 text-xs text-muted">Fill in your name, email and phone above to submit</p>
-            )}
+            <div className="border-t border-pale p-6">
+              <button
+                onClick={() => setSubmitted(true)}
+                disabled={!state.name || !state.email || !state.phone}
+                className="w-full bg-black py-4 text-sm font-semibold uppercase tracking-wider text-white transition-all hover:bg-dark disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                Send Quote Request
+              </button>
+              {(!state.name || !state.email || !state.phone) && (
+                <p className="mt-3 text-center text-xs text-light">Fill in your name, email and phone to submit</p>
+              )}
+            </div>
           </motion.div>
         )}
       </div>
 
-      {/* ─── FLOATING PRICE BAR ─── */}
-      {estimate > 0 && (
+      {/* ─── FLOATING PRICE ─── */}
+      {pricing.total > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full border border-warm-border bg-white/95 px-6 py-3 shadow-xl backdrop-blur-sm"
+          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 border border-black bg-black px-6 py-3 shadow-2xl"
         >
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted">Estimate:</span>
-            <span className="font-heading text-xl font-bold text-gold">£{estimate.toLocaleString()}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-medium uppercase tracking-wider text-white/60">Estimate</span>
+            <span className="font-heading text-xl font-bold text-white">£{pricing.total.toLocaleString()}</span>
           </div>
         </motion.div>
       )}
@@ -585,40 +642,35 @@ export default function QuoteBuilder() {
   );
 }
 
-/* ─── Reusable Section wrapper ─── */
-import React from 'react';
-
+/* ─── Section wrapper ─── */
 interface SectionProps {
   title: string;
-  num: number;
+  subtitle?: string;
   done: boolean;
   dimmed?: boolean;
-  optional?: boolean;
   children: React.ReactNode;
 }
 
 const Section = React.forwardRef<HTMLDivElement, SectionProps>(
-  ({ title, num, done, dimmed, optional, children }, ref) => (
+  ({ title, subtitle, done, dimmed, children }, ref) => (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       viewport={{ once: true, margin: '-30px' }}
-      className={`rounded-2xl border bg-white p-6 shadow-sm transition-all md:p-8 ${
-        dimmed ? 'border-warm-border/50 opacity-50 pointer-events-none' : 'border-warm-border'
+      className={`border bg-white p-6 transition-all md:p-8 ${
+        dimmed ? 'border-pale/50 opacity-40 pointer-events-none' : 'border-pale'
       }`}
     >
-      <div className="mb-4 flex items-center gap-3">
-        <div
-          className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
-            done ? 'bg-gold text-white' : 'bg-cream-dark text-muted'
-          }`}
-        >
-          {done ? <Check size={14} /> : num}
+      <div className="mb-4">
+        <div className="flex items-center gap-3">
+          <h2 className="font-heading text-lg font-semibold">{title}</h2>
+          {done && !dimmed && (
+            <span className="flex h-5 w-5 items-center justify-center bg-black text-xs text-white">✓</span>
+          )}
         </div>
-        <h2 className="font-heading text-lg font-semibold text-charcoal">{title}</h2>
-        {optional && <span className="text-xs text-muted">(optional)</span>}
+        {subtitle && <p className="mt-1 text-xs text-light">{subtitle}</p>}
       </div>
       {children}
     </motion.div>
@@ -626,12 +678,3 @@ const Section = React.forwardRef<HTMLDivElement, SectionProps>(
 );
 
 Section.displayName = 'Section';
-
-function SummaryLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4 rounded-lg bg-cream px-4 py-2.5 text-sm">
-      <span className="font-medium text-muted">{label}</span>
-      <span className="text-right font-medium text-charcoal">{value}</span>
-    </div>
-  );
-}
