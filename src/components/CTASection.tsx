@@ -15,11 +15,11 @@ export default function CTASection() {
         >
           <div className="absolute inset-0 bg-gradient-to-br from-charcoal via-dark to-charcoal" />
           <div className="relative z-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Get Started</p>
-            <h2 className="mt-3 font-heading text-3xl font-bold text-white md:text-4xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold" data-anyos="cta.eyebrow">Get Started</p>
+            <h2 className="mt-3 font-heading text-3xl font-bold text-white md:text-4xl" data-anyos="cta.title">
               Ready to Build Your Perfect Bar?
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-sm text-white/50">
+            <p className="mx-auto mt-4 max-w-lg text-sm text-white/50" data-anyos="cta.subtitle">
               Get an instant estimate — no commitment, no waiting.
             </p>
             <Link

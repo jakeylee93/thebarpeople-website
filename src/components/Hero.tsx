@@ -26,6 +26,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="text-xs font-semibold uppercase tracking-[0.25em] text-gold"
+              data-anyos="hero.eyebrow"
             >
               Premium Mobile Bar Hire
             </motion.p>
@@ -35,6 +36,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="mt-4 font-heading text-5xl font-bold leading-tight text-white sm:text-6xl md:text-7xl"
+              data-anyos="hero.title"
             >
               Unforgettable Events Since 2014
             </motion.h1>
@@ -44,6 +46,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mt-6 max-w-lg text-lg text-white/70"
+              data-anyos="hero.subtitle"
             >
               We bring the bar, the staff, the drinks, and the vibe. You just bring the guests.
             </motion.p>
