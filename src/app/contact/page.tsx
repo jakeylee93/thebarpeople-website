@@ -15,7 +15,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-gold">Get In Touch</p>
-            <h1 className="mt-3 font-heading text-4xl font-bold text-charcoal md:text-5xl">
+            <h1 className="mt-3 font-heading text-4xl font-bold text-charcoal md:text-5xl" data-anyos="contact.title">
               Contact Us
             </h1>
             <p className="mt-4 text-lg text-muted">

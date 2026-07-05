@@ -9,9 +9,9 @@ export default function BarsSection() {
     <section className="bg-faint py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Our Bars</p>
-          <h2 className="mt-3 font-heading text-3xl font-bold md:text-4xl">A Bar for Every Event</h2>
-          <p className="mt-4 text-mid">Any colour. Indoor or outdoor. Fully modular.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold" data-anyos="bars.eyebrow">Our Bars</p>
+          <h2 className="mt-3 font-heading text-3xl font-bold md:text-4xl" data-anyos="bars.title">A Bar for Every Event</h2>
+          <p className="mt-4 text-mid" data-anyos="bars.subtitle">Any colour. Indoor or outdoor. Fully modular.</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">

@@ -18,11 +18,11 @@ export default function ServicesSection() {
     <section className="bg-white py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">What We Do</p>
-          <h2 className="mt-3 font-heading text-3xl font-bold md:text-4xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold" data-anyos="services.eyebrow">What We Do</p>
+          <h2 className="mt-3 font-heading text-3xl font-bold md:text-4xl" data-anyos="services.title">
             Tailored Bar Solutions for Every Event
           </h2>
-          <p className="mt-4 text-mid">
+          <p className="mt-4 text-mid" data-anyos="services.subtitle">
             From intimate gatherings to 500-guest galas — we have a package that&apos;s right for you.
           </p>
         </div>

@@ -13,8 +13,8 @@ export default function TestimonialsSection() {
     <section className="bg-white py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Testimonials</p>
-          <h2 className="mt-3 font-heading text-3xl font-bold md:text-4xl">Trusted by Thousands</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold" data-anyos="testimonials.eyebrow">Testimonials</p>
+          <h2 className="mt-3 font-heading text-3xl font-bold md:text-4xl" data-anyos="testimonials.title">Trusted by Thousands</h2>
         </div>
 
         <div className="mx-auto max-w-3xl">

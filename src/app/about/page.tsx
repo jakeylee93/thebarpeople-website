@@ -17,7 +17,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-gold">Our Story</p>
-            <h1 className="mt-3 font-heading text-4xl font-bold text-charcoal md:text-5xl">
+            <h1 className="mt-3 font-heading text-4xl font-bold text-charcoal md:text-5xl" data-anyos="about.title">
               About The Bar People
             </h1>
           </div>
