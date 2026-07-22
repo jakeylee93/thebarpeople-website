@@ -83,8 +83,34 @@ function recommendedBar(guests: number): BarId {
 export default function QuoteBuilder() {
   const [s, set] = useState<Q>(init);
   const [view, setView] = useState<'build' | 'quote' | 'sent'>('build');
+  const [sendError, setSendError] = useState('');
+  // Anti-spam token from the platform (via the availability proxy) — required
+  // for the enquiry to land as a real booking in anyOS.
+  const [formToken, setFormToken] = useState('');
   const refs = useRef<Record<string, HTMLDivElement | null>>({});
   const up = useCallback((p: Partial<Q>) => set((v) => ({ ...v, ...p })), []);
+
+  // Prefill from the hero's availability checker (?date=&guests=&service=) and
+  // grab the platform form token in the same fetch.
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const date = q.get('date') || '';
+      const guests = Math.round(Number(q.get('guests')));
+      const service = q.get('service') || '';
+      set((v) => ({
+        ...v,
+        ...(date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? { date } : {}),
+        ...(Number.isFinite(guests) && guests > 0 ? { guests } : {}),
+        ...(service && ['all-inclusive', 'cash-bar', 'dry-hire', 'staff-only'].includes(service) ? { service: service as Q['service'] } : {}),
+      }));
+    } catch { /* no prefill */ }
+    const month = new Date().toISOString().slice(0, 7);
+    fetch(`/api/availability?month=${month}`)
+      .then((r) => r.json())
+      .then((b) => { if (b?.t) setFormToken(b.t); })
+      .catch(() => { /* token stays empty — the API logs the lead instead */ });
+  }, []);
   const go = useCallback((id: string) => {
     setTimeout(() => refs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
   }, []);
@@ -136,13 +162,22 @@ export default function QuoteBuilder() {
   const recBar = recommendedBar(s.guests);
 
   const handleSend = async () => {
+    setSendError('');
     try {
-      await fetch('/api/quote', {
+      const res = await fetch('/api/quote', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...s, glassware: gw, estimate: pricing.total, breakdown: pricing.lines }),
+        body: JSON.stringify({ ...s, glassware: gw, estimate: pricing.total, breakdown: pricing.lines, t: formToken }),
       });
-    } catch {}
-    setView('sent');
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.ok === false) {
+        // Honest failure — never show "sent" for a request that didn't land.
+        setSendError(typeof body.error === 'string' && body.error ? body.error : 'Could not send just now — please try again.');
+        return;
+      }
+      setView('sent');
+    } catch {
+      setSendError('Could not send just now — please check your connection and try again.');
+    }
   };
 
   // ─── SENT ───
@@ -216,6 +251,7 @@ export default function QuoteBuilder() {
         </div>
       </div>
       {!canSend && <p className="mt-3 text-center text-xs text-light">Fill in your details above to send</p>}
+      {sendError && <p className="mt-3 text-center text-xs font-semibold text-red-600">{sendError}</p>}
     </div>
   );
 

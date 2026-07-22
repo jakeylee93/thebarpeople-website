@@ -1,12 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, Check } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', phone: '', date: '', message: '' });
+  // Platform anti-spam token — fetched at render, sent with the message so the
+  // enquiry lands as a real record in the anyOS platform (not a dead inbox).
+  const [formToken, setFormToken] = useState('');
+
+  useEffect(() => {
+    const month = new Date().toISOString().slice(0, 7);
+    fetch(`/api/availability?month=${month}`)
+      .then((r) => r.json())
+      .then((b) => { if (b?.t) setFormToken(b.t); })
+      .catch(() => { /* token stays empty — the API logs the lead instead */ });
+  }, []);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (sending) return;
+    setSending(true);
+    setError('');
+    try {
+      const res = await fetch('/api/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'contact', eventType: 'contact', ...form, notes: form.message, t: formToken }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body.ok === false) {
+        setError(typeof body.error === 'string' && body.error ? body.error : 'Could not send just now — please try again.');
+        return;
+      }
+      setSent(true);
+    } catch {
+      setError('Could not send just now — please check your connection and try again.');
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <>
@@ -75,7 +113,7 @@ export default function ContactPage() {
                 </div>
               ) : (
                 <form
-                  onSubmit={(e) => { e.preventDefault(); setSent(true); }}
+                  onSubmit={submit}
                   className="space-y-5 rounded-2xl border border-warm-border bg-white p-8"
                 >
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -84,6 +122,8 @@ export default function ContactPage() {
                       <input
                         type="text"
                         required
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                         className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
                       />
                     </div>
@@ -92,30 +132,51 @@ export default function ContactPage() {
                       <input
                         type="email"
                         required
+                        value={form.email}
+                        onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                         className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
                       />
                     </div>
                   </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-charcoal">Phone</label>
-                    <input
-                      type="tel"
-                      className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
-                    />
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-charcoal">Phone</label>
+                      <input
+                        type="tel"
+                        value={form.phone}
+                        onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                        className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-charcoal">Event date <span className="font-normal text-muted">(rough is fine)</span></label>
+                      <input
+                        type="date"
+                        required
+                        min={new Date().toISOString().slice(0, 10)}
+                        value={form.date}
+                        onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                        className="w-full rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-charcoal">Message</label>
                     <textarea
                       rows={5}
                       required
+                      value={form.message}
+                      onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
                       className="w-full resize-none rounded-xl border border-warm-border bg-cream px-4 py-3 text-sm outline-none transition-all focus:border-gold focus:ring-2 focus:ring-gold/10"
                     />
                   </div>
+                  {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
                   <button
                     type="submit"
-                    className="flex items-center gap-2 rounded-full bg-gold px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-gold-hover"
+                    disabled={sending}
+                    className="flex items-center gap-2 rounded-full bg-gold px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-gold-hover disabled:opacity-50"
                   >
-                    <Send size={16} /> Send Message
+                    <Send size={16} /> {sending ? 'Sending…' : 'Send Message'}
                   </button>
                 </form>
               )}
