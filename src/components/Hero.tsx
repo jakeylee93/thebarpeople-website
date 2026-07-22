@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import AvailabilityChecker from './AvailabilityChecker';
 
 export default function Hero() {
   return (
@@ -19,7 +20,8 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
 
       <div className="relative z-10 flex h-full items-center">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto]">
           <div className="max-w-2xl">
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -89,6 +91,15 @@ export default function Hero() {
                 </div>
               ))}
             </motion.div>
+          </div>
+
+          {/* The main event: live availability + instant pricing, wired to the
+              anyOS booking calendar. Hidden on small screens where the hero
+              CTAs already lead to /quote — it appears right below the fold via
+              the quote page instead of cramping the phone hero. */}
+          <div className="hidden lg:block">
+            <AvailabilityChecker />
+          </div>
           </div>
         </div>
       </div>
