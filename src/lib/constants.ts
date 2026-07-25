@@ -2,6 +2,7 @@
 export const services = [
   {
     slug: 'all-inclusive',
+    image: '/images/events/bar-event.jpg',
     name: 'All Inclusive Hire',
     tag: 'Most Popular',
     description: 'Everything included. Drinks, staff, bar, glassware. The ultimate hassle-free experience.',
@@ -18,6 +19,7 @@ export const services = [
   },
   {
     slug: 'cash-bar',
+    image: '/images/events/salesforce-bar-2.jpg',
     name: 'Cash Bar Hire',
     tag: null,
     description: 'Guests pay for their own drinks. You pay for the professional setup and staff.',
@@ -34,6 +36,7 @@ export const services = [
   },
   {
     slug: 'dry-hire',
+    image: '/images/events/marquee-bar.jpg',
     name: 'Dry Hire',
     tag: null,
     description: 'Bar equipment rental. You source the drinks, we provide the beautiful bar and glassware.',
@@ -50,6 +53,7 @@ export const services = [
   },
   {
     slug: 'staff-hire',
+    image: '/images/events/jake-corporate.jpg',
     name: 'Staff Hire',
     tag: 'Flexible',
     description: 'Professional, certified bartenders for your own bar setup. Experienced, personable, impeccable.',
@@ -66,6 +70,7 @@ export const services = [
   },
   {
     slug: 'event-management',
+    image: '/images/events/hp-bar.jpg',
     name: 'Event Management',
     tag: 'Premium',
     description: 'Full event coordination from concept to execution. We handle everything so you can enjoy the night.',
@@ -151,12 +156,12 @@ export const teamPhotos = [
 
 // ─── Event Types ───
 export const eventTypes = [
-  { slug: 'weddings', name: 'Weddings', description: 'Make your big day unforgettable with a premium bar experience your guests will rave about.' },
-  { slug: 'corporate', name: 'Corporate Events', description: 'Impress clients and reward teams with polished, professional bar service.' },
-  { slug: 'birthday-parties', name: 'Birthday Parties', description: 'Celebrate in style with cocktails, mocktails, and a setup that wows.' },
-  { slug: 'garden-parties', name: 'Garden Parties', description: 'Al fresco drinks done right — beautiful bars for outdoor entertaining.' },
-  { slug: 'festivals', name: 'Festivals', description: 'High-volume, high-energy bar setups built for festival crowds.' },
-  { slug: 'christmas', name: 'Christmas Parties', description: 'Festive cocktails, winter warmers, and party vibes to see out the year.' },
+  { slug: 'weddings', name: 'Weddings', description: 'Make your big day unforgettable with a premium bar experience your guests will rave about.', image: '/images/events/mirror-bar-outside.jpg' },
+  { slug: 'corporate', name: 'Corporate Events', description: 'Impress clients and reward teams with polished, professional bar service.', image: '/images/events/salesforce-bar.jpg' },
+  { slug: 'birthday-parties', name: 'Birthday Parties', description: 'Celebrate in style with cocktails, mocktails, and a setup that wows.', image: '/images/events/hip-hooray.jpg' },
+  { slug: 'garden-parties', name: 'Garden Parties', description: 'Al fresco drinks done right — beautiful bars for outdoor entertaining.', image: '/images/events/garden-bar.jpg' },
+  { slug: 'festivals', name: 'Festivals', description: 'High-volume, high-energy bar setups built for festival crowds.', image: '/images/events/love-mirror.jpg' },
+  { slug: 'christmas', name: 'Christmas Parties', description: 'Festive cocktails, winter warmers, and party vibes to see out the year.', image: '/images/events/hp-bar.jpg' },
 ];
 
 // ─── Navigation ───

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { services } from '@/lib/constants';
@@ -35,6 +36,14 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
             <h1 className="font-heading text-4xl font-bold md:text-5xl">{service.name}</h1>
             <p className="mt-4 text-lg text-mid">{service.description}</p>
             <p className="mt-2 font-heading text-2xl font-bold">{service.price}</p>
+          </div>
+
+          <div className="relative mb-12 h-64 overflow-hidden rounded-3xl md:h-80">
+            <Image
+              src={service.image} alt={`${service.name} — a real Bar People event`} fill priority
+              sizes="(max-width: 896px) 100vw, 896px" className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 to-transparent" />
           </div>
 
           <div className="border border-pale bg-white p-8 md:p-12">

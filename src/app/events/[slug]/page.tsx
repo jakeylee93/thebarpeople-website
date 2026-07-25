@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -35,6 +36,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               {event.name}
             </h1>
             <p className="mt-4 text-lg text-muted">{event.description}</p>
+          </div>
+
+          <div className="relative mb-12 h-64 overflow-hidden rounded-3xl md:h-80">
+            <Image
+              src={event.image} alt={`${event.name} with The Bar People`} fill priority
+              sizes="(max-width: 896px) 100vw, 896px" className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 to-transparent" />
           </div>
 
           {/* Recommended services */}
