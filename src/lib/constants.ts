@@ -83,12 +83,14 @@ export const services = [
 ];
 
 // ─── Bars ───
+// Real event photos represent each bar (the island/horseshoe/straight-bar
+// renders in images/bars are sketches — kept for reference, not shown).
 export const bars = [
-  { name: 'Shimmer Bar', size: '5FT', tag: null, guests: 'Up to 50 guests', price: 'From £295', description: 'Intimate events & private parties' },
-  { name: 'Classic Cocktail Bar', size: '10FT', tag: 'Popular', guests: 'Up to 100 guests', price: 'From £395', description: 'Weddings, birthdays & corporate' },
-  { name: 'Horseshoe Bar', size: '15FT', tag: null, guests: 'Up to 150 guests', price: 'From £595', description: 'Larger events & festivals' },
-  { name: 'Large Horseshoe', size: '35FT', tag: 'Recommended', guests: 'Up to 250 guests', price: 'From £895', description: 'Major corporate events & galas' },
-  { name: 'Island Bar', size: '40FT', tag: 'Statement', guests: '250+ guests', price: 'From £1,195', description: 'Showstopper statement events' },
+  { name: 'Shimmer Bar', size: '5FT', tag: null, guests: 'Up to 50 guests', price: 'From £295', description: 'Intimate events & private parties', image: '/images/events/mirror-bar.jpg' },
+  { name: 'Classic Cocktail Bar', size: '10FT', tag: 'Popular', guests: 'Up to 100 guests', price: 'From £395', description: 'Weddings, birthdays & corporate', image: '/images/events/garden-bar.jpg' },
+  { name: 'Horseshoe Bar', size: '15FT', tag: null, guests: 'Up to 150 guests', price: 'From £595', description: 'Larger events & festivals', image: '/images/events/hp-bar.jpg' },
+  { name: 'Large Horseshoe', size: '35FT', tag: 'Recommended', guests: 'Up to 250 guests', price: 'From £895', description: 'Major corporate events & galas', image: '/images/events/salesforce-bar-2.jpg' },
+  { name: 'Island Bar', size: '40FT', tag: 'Statement', guests: '250+ guests', price: 'From £1,195', description: 'Showstopper statement events', image: '/images/events/salesforce-bar.jpg' },
 ];
 
 // ─── Testimonials ───
@@ -101,10 +103,50 @@ export const testimonials = [
 ];
 
 // ─── Brands ───
-export const brands = [
-  'Porsche', 'Bitcoin Conference', 'Goldman Sachs', 'HSBC',
-  'Barclays', 'Google', 'Channel 4', 'Burberry',
-  'Amazon', 'Virgin', 'NHS', 'The Shard',
+// Real client logos (public/images/brands). Names without a logo file ride
+// along as text so the strip stays full.
+export const brandLogos = [
+  { name: 'O2', src: '/images/brands/o2.png' },
+  { name: 'Sky', src: '/images/brands/sky.png' },
+  { name: 'Salesforce', src: '/images/brands/salesforce.png' },
+  { name: 'HPE', src: '/images/brands/hpe.png' },
+  { name: 'ITV2', src: '/images/brands/itv2.png' },
+  { name: 'Boux Avenue', src: '/images/brands/boux-avenue.png' },
+  { name: 'Batiste', src: '/images/brands/batiste.png' },
+  { name: 'Bulb', src: '/images/brands/bulb.png' },
+];
+export const brands = ['Porsche', 'Superdrug', 'Hewlett Packard Enterprise', 'CRATE Brewery'];
+
+// ─── Gallery (real event photos) ───
+export const galleryImages = [
+  { src: '/images/events/bar-event.jpg', label: 'Boux Avenue launch party', category: 'Corporate' },
+  { src: '/images/events/salesforce-bar.jpg', label: 'Salesforce island bar', category: 'Corporate' },
+  { src: '/images/events/salesforce-bar-2.jpg', label: 'Salesforce Tower bar', category: 'Corporate' },
+  { src: '/images/events/hp-bar.jpg', label: 'HPE winter party', category: 'Corporate' },
+  { src: '/images/events/hp-mini-island.jpg', label: 'HPE cocktail station', category: 'Corporate' },
+  { src: '/images/events/porsche.jpg', label: 'Porsche launch', category: 'Corporate' },
+  { src: '/images/events/porsche-custom.jpg', label: 'Porsche custom build', category: 'Corporate' },
+  { src: '/images/events/porsche-staff.jpg', label: 'Porsche bar team', category: 'Corporate' },
+  { src: '/images/events/superdrug.jpg', label: 'Superdrug event', category: 'Corporate' },
+  { src: '/images/events/boux-avenue.jpg', label: 'Boux Avenue bar', category: 'Corporate' },
+  { src: '/images/events/jake-corporate.jpg', label: 'Flamed cocktails, live', category: 'Corporate' },
+  { src: '/images/events/love-mirror.jpg', label: 'LOVE mirror bar', category: 'Weddings' },
+  { src: '/images/events/mirror-bar-outside.jpg', label: 'Mirror bar, al fresco', category: 'Weddings' },
+  { src: '/images/events/marquee-bar.jpg', label: 'Marquee lawn bar', category: 'Weddings' },
+  { src: '/images/events/hip-hooray.jpg', label: 'Hip hip hooray', category: 'Private' },
+  { src: '/images/events/garden-bar.jpg', label: 'Garden party bar', category: 'Private' },
+  { src: '/images/events/mirror-bar.jpg', label: 'Shimmer bar at home', category: 'Private' },
+  { src: '/images/events/outdoor-bar.jpg', label: 'Outdoor setup', category: 'Private' },
+  { src: '/images/events/special-occasions.jpg', label: 'Special occasions', category: 'Private' },
+  { src: '/images/events/cocktails.jpg', label: 'Signature serves', category: 'Cocktails' },
+  { src: '/images/events/martini-pour.jpg', label: 'Martini pour', category: 'Cocktails' },
+  { src: '/images/events/martini-daiquiri.jpg', label: 'Martinis & daiquiris', category: 'Cocktails' },
+  { src: '/images/events/pina-colada.jpg', label: 'Piña coladas', category: 'Cocktails' },
+];
+export const teamPhotos = [
+  { src: '/images/events/alex.jpg', name: 'Alex' },
+  { src: '/images/events/glody.jpg', name: 'Glody' },
+  { src: '/images/events/staff-alex.jpg', name: 'Behind the bar' },
 ];
 
 // ─── Event Types ───

@@ -1,23 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import AvailabilityChecker from './AvailabilityChecker';
 
 export default function Hero() {
   return (
     <section className="relative h-screen min-h-[600px] overflow-hidden bg-charcoal">
-      {/* Background Video */}
-      <video
-        autoPlay muted loop playsInline
-        className="absolute inset-0 h-full w-full object-cover opacity-50"
-        poster="/video-poster.jpg"
-      >
-        <source src="https://videos.pexels.com/video-files/3196487/3196487-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-      </video>
+      {/* Background — a real Bar People event (Boux Avenue launch), not stock */}
+      <Image
+        src="/images/events/bar-event.jpg"
+        alt="The Bar People pouring cocktails at a packed launch party"
+        fill priority sizes="100vw"
+        className="absolute inset-0 object-cover opacity-60"
+      />
 
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25" />
 
       <div className="relative z-10 flex h-full items-center">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">

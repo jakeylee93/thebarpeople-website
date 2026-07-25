@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { bars } from '@/lib/constants';
 
@@ -27,8 +28,14 @@ export default function BarsSection() {
                 href="/our-bars"
                 className="group flex flex-col overflow-hidden rounded-xl border border-pale bg-white transition-all hover:border-gold/30 hover:shadow-lg"
               >
-                <div className="relative flex h-28 items-center justify-center bg-gradient-to-br from-charcoal to-dark">
-                  <span className="font-heading text-3xl font-bold text-white/20">{bar.size}</span>
+                <div className="relative h-28 overflow-hidden">
+                  <Image
+                    src={bar.image} alt={`${bar.name} at a real event`} fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <span className="absolute bottom-1.5 right-2 font-heading text-lg font-bold text-white/90">{bar.size}</span>
                   {bar.tag && (
                     <span className="absolute left-2 top-2 rounded bg-gold px-1.5 py-0.5 text-[10px] font-semibold text-white">{bar.tag}</span>
                   )}

@@ -1,20 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { galleryImages } from '@/lib/constants';
 
-const categories = ['All', 'Weddings', 'Corporate', 'Festivals', 'Private'];
-
-const images = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
-  category: categories[1 + (i % 4)],
-  label: `Event ${i + 1}`,
-}));
+const categories = ['All', 'Corporate', 'Weddings', 'Private', 'Cocktails'];
 
 export default function GalleryPage() {
   const [filter, setFilter] = useState('All');
-  const filtered = filter === 'All' ? images : images.filter((img) => img.category === filter);
+  const filtered = filter === 'All' ? galleryImages : galleryImages.filter((img) => img.category === filter);
 
   return (
     <>
@@ -26,7 +22,7 @@ export default function GalleryPage() {
             <h1 className="mt-3 font-heading text-4xl font-bold text-charcoal md:text-5xl">
               Gallery
             </h1>
-            <p className="mt-4 text-muted">A snapshot of the events we&apos;ve brought to life.</p>
+            <p className="mt-4 text-muted">Real bars, real parties — 850+ events and counting.</p>
           </div>
 
           {/* Filters */}
@@ -50,14 +46,18 @@ export default function GalleryPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {filtered.map((img) => (
               <div
-                key={img.id}
-                className="group relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-cream-dark to-warm-border"
+                key={img.src}
+                className="group relative aspect-square overflow-hidden rounded-2xl bg-cream-dark"
               >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-medium text-muted">{img.label}</span>
-                </div>
-                <div className="absolute inset-0 flex items-end bg-gradient-to-t from-charcoal/50 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="text-sm font-medium text-white">{img.category}</span>
+                <Image
+                  src={img.src}
+                  alt={img.label}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 flex items-end bg-gradient-to-t from-charcoal/70 via-transparent to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="text-sm font-medium text-white">{img.label}</span>
                 </div>
               </div>
             ))}

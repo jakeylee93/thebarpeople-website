@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -32,8 +33,14 @@ export default function OurBarsPage() {
                 key={bar.name}
                 className="relative overflow-hidden rounded-2xl border border-warm-border bg-white transition-all hover:shadow-lg"
               >
-                <div className="flex h-52 items-center justify-center bg-gradient-to-br from-cream-dark to-cream">
-                  <span className="font-heading text-6xl font-bold text-gold/20">{bar.size}</span>
+                <div className="relative h-52 overflow-hidden">
+                  <Image
+                    src={bar.image} alt={`${bar.name} at a real event`} fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <span className="absolute bottom-2 right-3 font-heading text-2xl font-bold text-white/90">{bar.size}</span>
                   {bar.tag && (
                     <span className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-white">
                       {bar.tag}

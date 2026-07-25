@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -42,6 +43,18 @@ export default function AboutPage() {
             </p>
           </div>
 
+          {/* The real thing — Jake flaming a cocktail at a corporate event */}
+          <div className="relative mt-12 h-72 overflow-hidden rounded-3xl md:h-96">
+            <Image
+              src="/images/events/jake-corporate.jpg"
+              alt="Jake flaming a cocktail behind the bar at a corporate event"
+              fill sizes="(max-width: 896px) 100vw, 896px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent" />
+            <p className="absolute bottom-4 left-5 text-sm font-medium text-white">Live theatre, every pour.</p>
+          </div>
+
           {/* Values */}
           <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-3">
             {[
@@ -60,6 +73,17 @@ export default function AboutPage() {
           {/* Team */}
           <div className="mt-16 text-center">
             <h2 className="font-heading text-2xl font-semibold text-charcoal">Meet the Team</h2>
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              {[
+                { src: '/images/events/alex.jpg', alt: 'Alex behind the bar' },
+                { src: '/images/events/glody.jpg', alt: 'Glody mixing drinks' },
+                { src: '/images/events/staff-alex.jpg', alt: 'The team at work' },
+              ].map((photo) => (
+                <div key={photo.src} className="relative aspect-[4/5] overflow-hidden rounded-2xl">
+                  <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 640px) 33vw, 280px" className="object-cover transition-transform duration-500 hover:scale-105" />
+                </div>
+              ))}
+            </div>
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {[
                 { name: 'Jake Lee', role: 'Founder & Director', desc: 'Runs the show. Corporate events, logistics, and the big picture.' },

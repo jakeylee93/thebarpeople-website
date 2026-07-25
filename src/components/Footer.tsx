@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { services, eventTypes } from '@/lib/constants';
 
 export default function Footer() {
@@ -7,7 +8,10 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="font-heading text-xl font-bold">The Bar People</h3>
+            <h3 className="flex items-center gap-2.5 font-heading text-xl font-bold">
+              <Image src="/images/logos/bar-people-logo.png" alt="" width={36} height={36} className="h-9 w-9" />
+              The Bar People
+            </h3>
             <p className="text-sm leading-relaxed text-mid" data-anyos="footer.strapline">
               Premium mobile bar hire. Pop-up bars, professional bartenders,
               and unforgettable experiences since 2014.

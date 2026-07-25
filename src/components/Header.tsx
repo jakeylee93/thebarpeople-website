@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { navLinks } from '@/lib/constants';
@@ -26,7 +27,12 @@ export default function Header() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between md:h-20">
-            <Link href="/" className={`font-heading text-xl font-bold transition-colors md:text-2xl ${scrolled ? 'text-charcoal' : 'text-white'}`}>
+            <Link href="/" className={`flex items-center gap-2.5 font-heading text-xl font-bold transition-colors md:text-2xl ${scrolled ? 'text-charcoal' : 'text-white'}`}>
+              <Image
+                src="/images/logos/bar-people-logo.png"
+                alt="" width={40} height={40}
+                className={`h-9 w-9 transition md:h-10 md:w-10 ${scrolled ? '' : 'invert'}`}
+              />
               The Bar People
             </Link>
 
