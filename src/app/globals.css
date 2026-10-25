@@ -1,9 +1,8 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @theme {
-  --font-heading: 'Playfair Display', serif;
-  --font-body: 'Inter', sans-serif;
+  --font-heading: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
   --color-gold: #c9956b;
   --color-gold-hover: #b8845c;
   --color-charcoal: #1a1a1a;
@@ -14,6 +13,17 @@
   --color-faint: #F7F7F5;
   --color-cream: #FAFAF8;
   --color-white: #FFFFFF;
+
+  /* Visual quotes prototype (/concepts) — additive tokens, AA-checked pairs:
+     ink/ivory 16.5:1, stone/ivory 6.5:1, brass-ink/ivory 5.6:1, brass/ink 7.1:1 */
+  --color-ink: #151311;
+  --color-ink-soft: #24211e;
+  --color-ivory: #f6f1e9;
+  --color-ivory-deep: #ece4d6;
+  --color-brass: #c9956b;
+  --color-brass-ink: #855430;
+  --color-stone: #5d554c;
+  --color-hairline: #ddd3c3;
 }
 
 body {
@@ -42,4 +52,16 @@ input[type="range"]::-webkit-slider-thumb {
 }
 input[type="range"]::-webkit-slider-runnable-track {
   height: 3px; background: #E5E5E5; border-radius: 999px;
+}
+
+/* Respect reduced motion for in-page scrolling (overrides the smooth scroll above). */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Visual quotes prototype — phone quote sheet slides up; static for reduced motion. */
+.vq-sheet[open] { animation: vq-sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes vq-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .vq-sheet[open] { animation: none; }
 }

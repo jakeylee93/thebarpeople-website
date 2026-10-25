@@ -1,8 +1,15 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 
 const SITE_URL = 'https://thebarpeople-website.vercel.app';
+
+// Brand fonts, self-hosted at build time. (The old Google Fonts @import in
+// globals.css was dropped from production CSS, so headings fell back to a
+// default serif.)
+const playfair = Playfair_Display({ subsets: ['latin'], style: ['normal', 'italic'], variable: '--font-playfair', display: 'swap' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -47,7 +54,7 @@ const BUSINESS_JSON_LD = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <body className="antialiased">
         <script
           type="application/ld+json"
