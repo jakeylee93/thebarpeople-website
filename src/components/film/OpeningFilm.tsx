@@ -15,17 +15,23 @@
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { ArrowDown } from 'lucide-react';
-import { HERO_COPY, IMG } from './scenes';
+import { IMG } from './scenes';
+import type { OpeningCopy } from '@/content/views';
 
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
 
-export default function OpeningFilm({ silver = true }: { silver?: boolean }) {
+const pos = (img: { focusDesktop: string; focusPhone: string }) =>
+  ({ ['--fd' as string]: img.focusDesktop, ['--fp' as string]: img.focusPhone });
+
+export default function OpeningFilm({ copy, silver = true }: { copy: OpeningCopy; silver?: boolean }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const shirt = silver ? IMG.shirtPourSilver : IMG.shirtPour;
+  // Content (AnyVendor) supplies the opening photo; "As stitched" is a prototype-only comparison.
+  const shirt = silver ? copy.shirt : { ...copy.shirt, src: IMG.shirtPour.src, alt: IMG.shirtPour.alt, note: 'Real photo · roundel as stitched today' };
+  const bar = copy.bar;
 
   useEffect(() => {
     const track = trackRef.current;
@@ -73,15 +79,15 @@ export default function OpeningFilm({ silver = true }: { silver?: boolean }) {
         >
           {/* Scene 2, waiting underneath: the genuine white bar */}
           <div className="absolute inset-0 motion-reduce:hidden" style={{ transform: 'scale(calc(1.09 - 0.09 * var(--settle)))' }}>
-            <Image src={IMG.counterCopper.src} alt={IMG.counterCopper.alt} fill sizes="100vw"
-              className="object-cover [object-position:58%_60%] md:[object-position:50%_62%]" />
+            <Image src={bar.src} alt={bar.alt} fill sizes="100vw" style={pos(bar)}
+              className="object-cover [object-position:var(--fp)] md:[object-position:var(--fd)]" />
             <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(21,19,17,0.55)_0%,rgba(21,19,17,0)_40%,rgba(21,19,17,0)_70%,rgba(21,19,17,0.55)_100%)]" />
           </div>
 
           {/* Scene 1: the shirt */}
           <div className="absolute inset-0" style={{ clipPath: 'inset(0 0 0 calc(var(--w) * 100%))' }}>
-            <Image src={shirt.src} alt={shirt.alt} fill loading="eager" fetchPriority="high" sizes="100vw"
-              className="object-cover [object-position:93%_38%] md:[object-position:78%_30%]" />
+            <Image src={shirt.src} alt={shirt.alt} fill loading="eager" fetchPriority="high" sizes="100vw" style={pos(shirt)}
+              className="object-cover [object-position:var(--fp)] md:[object-position:var(--fd)]" />
             <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(21,19,17,0.86)_0%,rgba(21,19,17,0.4)_38%,rgba(21,19,17,0.05)_58%,rgba(21,19,17,0.8)_100%)] md:bg-[linear-gradient(90deg,rgba(21,19,17,0.9)_0%,rgba(21,19,17,0.62)_32%,rgba(21,19,17,0.08)_60%,rgba(21,19,17,0)_100%)]" />
           </div>
 
@@ -105,7 +111,7 @@ export default function OpeningFilm({ silver = true }: { silver?: boolean }) {
             </a>
             <a href="#build-your-quote"
               className="hidden rounded-full border border-ivory/45 px-5 py-2.5 text-[14px] font-semibold transition hover:bg-ivory hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ivory sm:inline-flex">
-              Get a quote
+              {copy.headerCtaLabel}
             </a>
           </header>
 
@@ -115,14 +121,14 @@ export default function OpeningFilm({ silver = true }: { silver?: boolean }) {
             style={{ opacity: 'var(--copy)', transform: 'translateY(calc((1 - var(--copy)) * -28px))' }}
           >
             <div className="max-w-[35rem]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-brass md:text-[12px]">{HERO_COPY.eyebrow}</p>
-              <h1 className="mt-4 font-heading text-[40px] leading-[1.03] sm:text-[48px] md:text-[64px] xl:text-[76px]">{HERO_COPY.title}</h1>
-              <p className="mt-4 text-[17px] leading-relaxed text-ivory/85 md:mt-5 md:text-[20px]">{HERO_COPY.sub}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-brass md:text-[12px]">{copy.eyebrow}</p>
+              <h1 className="mt-4 font-heading text-[40px] leading-[1.03] sm:text-[48px] md:text-[64px] xl:text-[76px]">{copy.headline}</h1>
+              <p className="mt-4 text-[17px] leading-relaxed text-ivory/85 md:mt-5 md:text-[20px]">{copy.subheadline}</p>
             </div>
             <div className="md:mt-10">
               <a href="#build-your-quote"
                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ivory px-7 text-[16px] font-semibold text-ink transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:w-auto">
-                {HERO_COPY.cta} <ArrowDown size={18} aria-hidden="true" />
+                {copy.ctaLabel} <ArrowDown size={18} aria-hidden="true" />
               </a>
             </div>
           </div>
@@ -130,25 +136,25 @@ export default function OpeningFilm({ silver = true }: { silver?: boolean }) {
           {/* As the bar settles, point gently to the quote */}
           <p aria-hidden="true" className="absolute inset-x-0 bottom-8 z-10 text-center text-[13px] font-semibold uppercase tracking-[0.24em] text-ivory motion-reduce:hidden"
             style={{ opacity: 'var(--next)' }}>
-            Build your party quote ↓
+            {copy.scrollCue}
           </p>
 
           {/* Honest labels */}
           <span className="pointer-events-none absolute bottom-[112px] right-3 z-10 max-w-[62%] rounded-sm bg-ink/75 px-2 py-1 text-right text-[11px] font-medium leading-tight text-ivory/90 md:bottom-4 md:right-4 md:max-w-[70%]"
             style={{ opacity: 'calc(1 - var(--w))' }}>
-            {silver ? 'Real photo · roundel recoloured to silver by hand (preview)' : 'Real photo · roundel as stitched today'}
+            {shirt.note}
           </span>
           <span className="pointer-events-none absolute bottom-[112px] left-3 z-10 rounded-sm bg-ink/75 px-2 py-1 text-[11px] font-medium text-ivory/90 motion-reduce:hidden md:bottom-14 md:left-auto md:right-4"
             style={{ opacity: 'var(--w)' }}>
-            Real photo · the bar
+            {bar.note}
           </span>
         </div>
       </div>
 
       {/* Reduced motion: the bar as a calm still, between the shirt and the quote */}
       <div className="relative hidden h-[42svh] min-h-[260px] overflow-hidden bg-ink motion-reduce:block">
-        <Image src={IMG.counterCopper.src} alt={IMG.counterCopper.alt} fill sizes="100vw"
-          className="object-cover [object-position:58%_60%] md:[object-position:50%_62%]" />
+        <Image src={bar.src} alt={bar.alt} fill sizes="100vw" style={pos(bar)}
+          className="object-cover [object-position:var(--fp)] md:[object-position:var(--fd)]" />
       </div>
     </>
   );

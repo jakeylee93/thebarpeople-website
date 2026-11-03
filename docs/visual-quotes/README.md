@@ -76,3 +76,4 @@ live navigation.
 | `src/lib/visual-quote/*` | Pricing engine, timing, seed catalogue, saved state, tests |
 | `public/images/film/*` | Real photos from the live media library (see [photo-sources.md](photo-sources.md)) |
 | `public/images/visual-quote/curved-mirror-sketch.svg` | Line illustration (no curved mirror photo exists yet) |
+| `src/content/*`, `docs/anyvendor/` | Editable content for AnyVendor: manifest, seed (today's site), media registry, read-only adapter — see [../anyvendor/README.md](../anyvendor/README.md) |

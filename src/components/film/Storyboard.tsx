@@ -7,8 +7,23 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import FilmFrame from './FilmFrame';
 import { SCENES } from './scenes';
+import type { Scene } from './scenes';
+import { getSiteContent } from '@/content';
+import { openingView, quoteView } from '@/content/views';
 
-export default function Storyboard() {
+/** Scenes 1–2 show the same words as the live /concepts page (from content). */
+async function withLiveOverlays(): Promise<Scene[]> {
+  const { content } = await getSiteContent();
+  const o = openingView(content);
+  const q = quoteView(content, {});
+  return SCENES.map((s) =>
+    s.n === 1 ? { ...s, overlay: { eyebrow: o.eyebrow, title: o.headline, sub: o.subheadline, cta: o.ctaLabel } }
+      : s.n === 2 ? { ...s, overlay: { eyebrow: q.eyebrow, title: q.title, sub: q.intro } }
+        : s);
+}
+
+export default async function Storyboard() {
+  const scenes = await withLiveOverlays();
   return (
     <div className="min-h-screen bg-ivory text-ink">
       <div className="bg-[#0c0b0a] px-4 py-2 text-[12px] text-ivory/80 sm:px-6">
@@ -32,11 +47,11 @@ export default function Storyboard() {
       </header>
 
       <ol className="mx-auto max-w-[1380px] space-y-10 px-4 pb-16 sm:px-6 lg:px-10">
-        {SCENES.map((scene) => (
+        {scenes.map((scene) => (
           <li key={scene.id} className="rounded-[4px] border border-hairline bg-[#fbf8f2] p-4 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="max-w-3xl">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone">Scene {scene.n} of {SCENES.length}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone">Scene {scene.n} of {scenes.length}</p>
                 <h2 className="mt-1 font-heading text-[26px] leading-tight sm:text-[30px]">{scene.title}</h2>
                 <p className="mt-1.5 text-[15px] leading-relaxed text-stone">{scene.purpose}</p>
               </div>

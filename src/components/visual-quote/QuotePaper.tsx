@@ -89,12 +89,17 @@ export default function QuotePaper({
   variant = 'panel',
   headingId,
   className,
+  emptyState,
+  disclaimer,
 }: {
   input: QuoteInput;
   result: QuoteResult;
   variant?: PaperVariant;
   headingId?: string;
   className?: string;
+  /** Wording from content (AnyVendor); line breaks are kept. */
+  emptyState: string;
+  disclaimer: string;
 }) {
   const summary = eventSummary(input, result);
   const groups = GROUP_ORDER.map((g) => ({ g, lines: result.lines.filter((l) => l.group === g) })).filter((x) => x.lines.length);
@@ -137,11 +142,7 @@ export default function QuotePaper({
       {/* Lines */}
       <div className={cn('flex-1 px-6 py-3', variant === 'panel' && 'overflow-y-auto overscroll-contain')}>
         {groups.length === 0 ? (
-          <p className="py-8 text-center text-[14px] leading-relaxed text-stone">
-            Your quote builds here as you choose.
-            <br />
-            Every line shows exactly how it’s worked out.
-          </p>
+          <p className="whitespace-pre-line py-8 text-center text-[14px] leading-relaxed text-stone">{emptyState}</p>
         ) : (
           groups.map(({ g, lines }) => (
             <section key={g} className="py-1.5" aria-label={GROUP_LABEL[g]}>
@@ -189,9 +190,7 @@ export default function QuotePaper({
               : `Provisional estimate · ${pending} ${pending === 1 ? 'item' : 'items'} to confirm`}
           </p>
         )}
-        <p className="mt-2 text-[12px] leading-relaxed text-stone">
-          A quote, not a booking: your date isn’t held and nothing is charged. VAT is added on your final quote.
-        </p>
+        <p className="mt-2 text-[12px] leading-relaxed text-stone">{disclaimer}</p>
       </footer>
     </article>
   );

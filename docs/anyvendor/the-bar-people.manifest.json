@@ -1,0 +1,1331 @@
+{
+  "version": 1,
+  "name": "The Bar People website · manifest 2026-11-03.1",
+  "sections": [
+    {
+      "key": "business",
+      "label": "Business details",
+      "help": "Used in the footer, contact page and search results.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Business name",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "legal_name",
+          "label": "Registered name",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "company_number",
+          "label": "Company number",
+          "type": "text",
+          "max": 20
+        },
+        {
+          "key": "area",
+          "label": "Where you’re based",
+          "type": "text",
+          "max": 120
+        },
+        {
+          "key": "founded",
+          "label": "Year founded",
+          "type": "number"
+        },
+        {
+          "key": "strapline",
+          "label": "Short description",
+          "type": "textarea",
+          "max": 300,
+          "required": true
+        },
+        {
+          "key": "general_email",
+          "label": "General email",
+          "type": "link",
+          "help": "mailto: link, e.g. mailto:hello@thebarpeople.co.uk"
+        },
+        {
+          "key": "contacts",
+          "label": "Who to contact",
+          "type": "list",
+          "max": 6,
+          "fields": [
+            {
+              "key": "team",
+              "label": "For",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "person",
+              "label": "Name",
+              "type": "text",
+              "max": 80
+            },
+            {
+              "key": "email",
+              "label": "Email (mailto:)",
+              "type": "link"
+            },
+            {
+              "key": "phone",
+              "label": "Phone (tel:)",
+              "type": "link"
+            }
+          ]
+        },
+        {
+          "key": "socials",
+          "label": "Social links",
+          "type": "list",
+          "max": 6,
+          "fields": [
+            {
+              "key": "link",
+              "label": "Link",
+              "type": "link"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "seo",
+      "label": "Search & sharing",
+      "fields": [
+        {
+          "key": "default_title",
+          "label": "Site title",
+          "type": "text",
+          "max": 90,
+          "required": true
+        },
+        {
+          "key": "title_template",
+          "label": "Page title pattern",
+          "type": "text",
+          "max": 60,
+          "help": "%s is replaced by the page title."
+        },
+        {
+          "key": "description",
+          "label": "Site description",
+          "type": "textarea",
+          "max": 200,
+          "required": true
+        },
+        {
+          "key": "keywords",
+          "label": "Keywords",
+          "type": "text",
+          "max": 200
+        },
+        {
+          "key": "share_title",
+          "label": "Title when shared",
+          "type": "text",
+          "max": 90
+        },
+        {
+          "key": "share_description",
+          "label": "Description when shared",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "share_image",
+          "label": "Image when shared",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "key": "navigation",
+      "label": "Menu",
+      "fields": [
+        {
+          "key": "links",
+          "label": "Menu links",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "link",
+              "label": "Link",
+              "type": "link"
+            }
+          ]
+        },
+        {
+          "key": "cta",
+          "label": "Menu button",
+          "type": "link",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "home_hero",
+      "label": "Homepage hero (current site)",
+      "help": "The hero on the current homepage. Its three lines were edited in anyOS live-edit and are carried over as they are.",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Headline",
+          "type": "text",
+          "max": 90,
+          "required": true
+        },
+        {
+          "key": "subtitle",
+          "label": "Line under the headline",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "primary_cta",
+          "label": "Main button",
+          "type": "link",
+          "required": true
+        },
+        {
+          "key": "secondary_cta",
+          "label": "Second button",
+          "type": "link"
+        },
+        {
+          "key": "stats",
+          "label": "Numbers under the buttons",
+          "type": "list",
+          "max": 6,
+          "fields": [
+            {
+              "key": "value",
+              "label": "Number",
+              "type": "text",
+              "max": 20
+            },
+            {
+              "key": "label",
+              "label": "Label",
+              "type": "text",
+              "max": 30
+            }
+          ]
+        },
+        {
+          "key": "image",
+          "label": "Background photo",
+          "type": "image",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "opening",
+      "label": "New homepage opening (scene 1 → 2, prototype)",
+      "help": "The opening film: the shirt, then the white bar. The motion is fixed; the words and photos are yours.",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "max": 90,
+          "required": true
+        },
+        {
+          "key": "subheadline",
+          "label": "Line under the headline",
+          "type": "textarea",
+          "max": 160,
+          "required": true
+        },
+        {
+          "key": "cta_label",
+          "label": "Main button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "Always scrolls to the quote builder."
+        },
+        {
+          "key": "header_cta_label",
+          "label": "Top-right button",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "shirt_image",
+          "label": "Scene 1 photo (the shirt)",
+          "type": "image",
+          "required": true
+        },
+        {
+          "key": "shirt_note",
+          "label": "Label on the photo",
+          "type": "text",
+          "max": 120,
+          "help": "Shown on the image so nobody mistakes what it is, e.g. \"Real photo\" or \"Layout sketch · not to scale\"."
+        },
+        {
+          "key": "shirt_focus_desktop",
+          "label": "Scene 1 framing on computers",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "shirt_focus_phone",
+          "label": "Scene 1 framing on phones",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "bar_image",
+          "label": "Scene 2 photo (the bar)",
+          "type": "image",
+          "required": true
+        },
+        {
+          "key": "bar_note",
+          "label": "Label on the photo",
+          "type": "text",
+          "max": 120,
+          "help": "Shown on the image so nobody mistakes what it is, e.g. \"Real photo\" or \"Layout sketch · not to scale\"."
+        },
+        {
+          "key": "bar_focus_desktop",
+          "label": "Scene 2 framing on computers",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "bar_focus_phone",
+          "label": "Scene 2 framing on phones",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "scroll_cue",
+          "label": "Hint as the bar settles",
+          "type": "text",
+          "max": 60
+        }
+      ]
+    },
+    {
+      "key": "quote_intro",
+      "label": "Quote builder — wording",
+      "help": "Words only. Prices, items and the VAT rule come from your booking system.",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "max": 300
+        },
+        {
+          "key": "empty_state",
+          "label": "Before anything is chosen",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "disclaimer",
+          "label": "Small print under the total",
+          "type": "textarea",
+          "max": 300,
+          "required": true
+        },
+        {
+          "key": "welcome_back",
+          "label": "Message for returning visitors",
+          "type": "text",
+          "max": 120
+        },
+        {
+          "key": "request_button",
+          "label": "“Request” button",
+          "type": "text",
+          "max": 40,
+          "required": true
+        },
+        {
+          "key": "save_button",
+          "label": "“Save” button",
+          "type": "text",
+          "max": 40,
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "quote_steps",
+      "label": "Quote builder — questions",
+      "help": "Write {staff_rate} where the staff rate should appear; it is filled in from your booking system.",
+      "fields": [
+        {
+          "key": "party_question",
+          "label": "Party: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "party_hint",
+          "label": "Party: hint",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "bar_question",
+          "label": "Bar: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "bar_hint",
+          "label": "Bar: hint",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "glasses_question",
+          "label": "Glasses: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "glasses_hint",
+          "label": "Glasses: hint",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "ice_question",
+          "label": "Ice: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "ice_hint",
+          "label": "Ice: hint",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "staff_question",
+          "label": "Staff: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "staff_hint",
+          "label": "Staff: hint",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "drinks_question",
+          "label": "Drinks: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "drinks_hint",
+          "label": "Drinks: hint",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "extras_question",
+          "label": "Extras: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "extras_hint",
+          "label": "Extras: hint",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "review_question",
+          "label": "Review: question",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "review_hint",
+          "label": "Review: hint",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "services_intro",
+      "label": "Services — introduction",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "subtitle",
+          "label": "Line under the heading",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "services",
+      "label": "Services",
+      "help": "Prices are not set here.",
+      "fields": [
+        {
+          "key": "items",
+          "label": "Services",
+          "type": "list",
+          "max": 12,
+          "fields": [
+            {
+              "key": "slug",
+              "label": "Web address name",
+              "type": "text",
+              "max": 40,
+              "help": "Part of the page address — change only with a redirect."
+            },
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "tag",
+              "label": "Badge",
+              "type": "text",
+              "max": 30
+            },
+            {
+              "key": "summary",
+              "label": "Summary",
+              "type": "textarea",
+              "max": 300
+            },
+            {
+              "key": "features",
+              "label": "What’s included (one per line)",
+              "type": "textarea",
+              "max": 1200
+            },
+            {
+              "key": "image",
+              "label": "Photo",
+              "type": "image"
+            },
+            {
+              "key": "image_focus",
+              "label": "Photo framing",
+              "type": "text",
+              "max": 20,
+              "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+            }
+          ]
+        },
+        {
+          "key": "included_title",
+          "label": "“What’s included” heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "card_link_label",
+          "label": "Card link text",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "button",
+          "label": "Button",
+          "type": "link",
+          "help": "Usually \"Price My Event\" → /quote."
+        }
+      ]
+    },
+    {
+      "key": "bars_intro",
+      "label": "Bars — introduction",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "subtitle",
+          "label": "Line under the heading",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "bars",
+      "label": "Bars — how each one is shown",
+      "help": "Words and pictures for each bar card. Prices, stock and the quote builder’s bar list stay in your booking system.",
+      "fields": [
+        {
+          "key": "items",
+          "label": "Bars",
+          "type": "list",
+          "max": 16,
+          "fields": [
+            {
+              "key": "catalogue_id",
+              "label": "Catalogue id",
+              "type": "text",
+              "max": 40,
+              "help": "Links this card to the bar in your booking catalogue once matched. Do not change."
+            },
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "size",
+              "label": "Size",
+              "type": "text",
+              "max": 40
+            },
+            {
+              "key": "tag",
+              "label": "Badge",
+              "type": "text",
+              "max": 30
+            },
+            {
+              "key": "summary",
+              "label": "Summary",
+              "type": "textarea",
+              "max": 300
+            },
+            {
+              "key": "guests_note",
+              "label": "Guest guide",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "image",
+              "label": "Picture",
+              "type": "image"
+            },
+            {
+              "key": "image_note",
+              "label": "Label on the photo",
+              "type": "text",
+              "max": 120,
+              "help": "Shown on the image so nobody mistakes what it is, e.g. \"Real photo\" or \"Layout sketch · not to scale\"."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "testimonials_intro",
+      "label": "Testimonials — introduction",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "testimonials",
+      "label": "Testimonials",
+      "help": "Tick once a quote is confirmed with the customer.",
+      "fields": [
+        {
+          "key": "items",
+          "label": "Testimonials",
+          "type": "list",
+          "max": 24,
+          "fields": [
+            {
+              "key": "quote",
+              "label": "Quote",
+              "type": "textarea",
+              "max": 600
+            },
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "text",
+              "max": 80
+            },
+            {
+              "key": "event",
+              "label": "Event",
+              "type": "text",
+              "max": 80
+            },
+            {
+              "key": "verified",
+              "label": "Checked with the customer",
+              "type": "boolean"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "brands",
+      "label": "Brands you’ve worked with",
+      "help": "Set a logo to Hidden to take it off the site.",
+      "fields": [
+        {
+          "key": "intro",
+          "label": "Line above the logos",
+          "type": "text",
+          "max": 120
+        },
+        {
+          "key": "also_named",
+          "label": "Names listed without a logo",
+          "type": "text",
+          "max": 200
+        },
+        {
+          "key": "logos",
+          "label": "Logos",
+          "type": "list",
+          "max": 24,
+          "fields": [
+            {
+              "key": "name",
+              "label": "Brand",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "logo",
+              "label": "Logo",
+              "type": "image"
+            },
+            {
+              "key": "permission",
+              "label": "Permission to show",
+              "type": "select",
+              "options": [
+                "To confirm",
+                "Approved",
+                "Hidden"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "cta",
+      "label": "Call to action band",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "subtitle",
+          "label": "Line under the heading",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "button",
+          "label": "Button",
+          "type": "link",
+          "help": "Usually \"Price My Event\" → /quote."
+        }
+      ]
+    },
+    {
+      "key": "event_types",
+      "label": "Event types",
+      "fields": [
+        {
+          "key": "items",
+          "label": "Event types",
+          "type": "list",
+          "max": 12,
+          "fields": [
+            {
+              "key": "slug",
+              "label": "Web address name",
+              "type": "text",
+              "max": 40,
+              "help": "Part of the page address — change only with a redirect."
+            },
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "summary",
+              "label": "Summary",
+              "type": "textarea",
+              "max": 300
+            },
+            {
+              "key": "image",
+              "label": "Photo",
+              "type": "image"
+            }
+          ]
+        },
+        {
+          "key": "recommended_title",
+          "label": "“Recommended services” heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "button",
+          "label": "Button",
+          "type": "link",
+          "help": "Usually \"Price My Event\" → /quote."
+        }
+      ]
+    },
+    {
+      "key": "gallery_page",
+      "label": "Gallery page",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "gallery",
+      "label": "Gallery photos",
+      "fields": [
+        {
+          "key": "items",
+          "label": "Photos",
+          "type": "list",
+          "max": 60,
+          "fields": [
+            {
+              "key": "image",
+              "label": "Photo",
+              "type": "image"
+            },
+            {
+              "key": "caption",
+              "label": "Caption",
+              "type": "text",
+              "max": 80
+            },
+            {
+              "key": "category",
+              "label": "Category",
+              "type": "select",
+              "options": [
+                "Corporate",
+                "Weddings",
+                "Private",
+                "Cocktails"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "about_page",
+      "label": "About page",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Story (blank line between paragraphs)",
+          "type": "richtext",
+          "max": 4000
+        },
+        {
+          "key": "image",
+          "label": "Main photo",
+          "type": "image"
+        },
+        {
+          "key": "image_caption",
+          "label": "Photo caption",
+          "type": "text",
+          "max": 80
+        },
+        {
+          "key": "values",
+          "label": "What you stand for",
+          "type": "list",
+          "max": 6,
+          "fields": [
+            {
+              "key": "icon",
+              "label": "Icon (emoji)",
+              "type": "text",
+              "max": 4
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "type": "text",
+              "max": 40
+            },
+            {
+              "key": "text",
+              "label": "Text",
+              "type": "textarea",
+              "max": 200
+            }
+          ]
+        },
+        {
+          "key": "team_title",
+          "label": "Team heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "team_photos",
+          "label": "Team photos",
+          "type": "list",
+          "max": 6,
+          "fields": [
+            {
+              "key": "image",
+              "label": "Photo",
+              "type": "image"
+            }
+          ]
+        },
+        {
+          "key": "team",
+          "label": "Team",
+          "type": "list",
+          "max": 12,
+          "fields": [
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "role",
+              "label": "Role",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "text",
+              "label": "About them",
+              "type": "textarea",
+              "max": 300
+            }
+          ]
+        },
+        {
+          "key": "button",
+          "label": "Button",
+          "type": "link",
+          "help": "Usually \"Price My Event\" → /quote."
+        },
+        {
+          "key": "seo_title",
+          "label": "Search title",
+          "type": "text",
+          "max": 70,
+          "help": "Leave blank to use the page heading."
+        },
+        {
+          "key": "seo_description",
+          "label": "Search description",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "contact_page",
+      "label": "Contact page",
+      "help": "Who to contact comes from Business details. The form itself sends to your booking system.",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "general_title",
+          "label": "“General” box heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "form_button",
+          "label": "Form button",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "success_title",
+          "label": "After sending: heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "success_text",
+          "label": "After sending: message",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "our_bars_page",
+      "label": "Our bars page",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "button",
+          "label": "Button",
+          "type": "link",
+          "help": "Usually \"Price My Event\" → /quote."
+        },
+        {
+          "key": "seo_title",
+          "label": "Search title",
+          "type": "text",
+          "max": 70,
+          "help": "Leave blank to use the page heading."
+        },
+        {
+          "key": "seo_description",
+          "label": "Search description",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "privacy_page",
+      "label": "Privacy policy",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "sections",
+          "label": "Sections",
+          "type": "list",
+          "max": 20,
+          "fields": [
+            {
+              "key": "heading",
+              "label": "Heading",
+              "type": "text",
+              "max": 80
+            },
+            {
+              "key": "body",
+              "label": "Text (blank line between paragraphs)",
+              "type": "textarea",
+              "max": 2000
+            }
+          ]
+        },
+        {
+          "key": "seo_title",
+          "label": "Search title",
+          "type": "text",
+          "max": 70,
+          "help": "Leave blank to use the page heading."
+        },
+        {
+          "key": "seo_description",
+          "label": "Search description",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "terms_page",
+      "label": "Terms of service",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 120,
+          "required": true
+        },
+        {
+          "key": "intro",
+          "label": "Introduction",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "sections",
+          "label": "Sections",
+          "type": "list",
+          "max": 20,
+          "fields": [
+            {
+              "key": "heading",
+              "label": "Heading",
+              "type": "text",
+              "max": 80
+            },
+            {
+              "key": "body",
+              "label": "Text (blank line between paragraphs)",
+              "type": "textarea",
+              "max": 2000
+            }
+          ]
+        },
+        {
+          "key": "seo_title",
+          "label": "Search title",
+          "type": "text",
+          "max": 70,
+          "help": "Leave blank to use the page heading."
+        },
+        {
+          "key": "seo_description",
+          "label": "Search description",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "footer",
+      "label": "Footer",
+      "fields": [
+        {
+          "key": "services_heading",
+          "label": "Services column heading",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "events_heading",
+          "label": "Events column heading",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "company_heading",
+          "label": "Company column heading",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "company_links",
+          "label": "Company links",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "link",
+              "label": "Link",
+              "type": "link"
+            }
+          ]
+        },
+        {
+          "key": "privacy_label",
+          "label": "Privacy link text",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "terms_label",
+          "label": "Terms link text",
+          "type": "text",
+          "max": 30
+        }
+      ]
+    }
+  ]
+}

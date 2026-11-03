@@ -26,17 +26,20 @@ import QuotePaper, { compactTotal, eventSummary } from './QuotePaper';
 import type { FlipOrigin, PartyErrors } from './steps';
 import { BarStep, DrinksStep, ExtrasStep, GlassesStep, IceStep, PartyStep, StaffStep } from './steps';
 import { FieldError, focusRing, inputClass, labelClass } from './controls';
+import type { QuoteCopy, QuoteStepId } from '@/content/views';
 
+// Step order and short labels are structure (code); each step's question and
+// hint are content (AnyVendor), passed in as `copy`.
 export const STEPS = [
-  { id: 'party', nav: 'Party', eyebrow: 'Your party', question: 'When and where is the party?', hint: 'Finishing after midnight is fine — we’ll work out the next day for you.' },
-  { id: 'bar', nav: 'Bar', eyebrow: 'The bar', question: 'Choose your bar', hint: 'Six layouts to start from. Tap one to see it larger.' },
-  { id: 'glasses', nav: 'Glasses', eyebrow: 'Glassware', question: 'Which glasses, and how many?', hint: 'Tap Add for one per guest as a starting point. We’ll help you balance the mix.' },
-  { id: 'ice', nav: 'Ice', eyebrow: 'Ice & storage', question: 'Ice and keeping things cold', hint: 'Count what you need, or let us advise.' },
-  { id: 'staff', nav: 'Staff', eyebrow: 'Your team', question: 'How many bartenders?', hint: '£28 per bartender per hour, plus VAT, for the hours of your party.' },
-  { id: 'drinks', nav: 'Drinks', eyebrow: 'Drinks', question: 'Shall we supply the drinks?', hint: 'Optional. A package covers your guests for the hours you choose.' },
-  { id: 'extras', nav: 'Extras', eyebrow: 'Anything else', question: 'Anything else for the party?', hint: 'Optional — we’ll price these for you.' },
-  { id: 'review', nav: 'Review', eyebrow: 'Review', question: 'Check your quote', hint: 'Change anything you like, then save it or ask us to confirm it.' },
-] as const;
+  { id: 'party', nav: 'Party', eyebrow: 'Your party' },
+  { id: 'bar', nav: 'Bar', eyebrow: 'The bar' },
+  { id: 'glasses', nav: 'Glasses', eyebrow: 'Glassware' },
+  { id: 'ice', nav: 'Ice', eyebrow: 'Ice & storage' },
+  { id: 'staff', nav: 'Staff', eyebrow: 'Your team' },
+  { id: 'drinks', nav: 'Drinks', eyebrow: 'Drinks' },
+  { id: 'extras', nav: 'Extras', eyebrow: 'Anything else' },
+  { id: 'review', nav: 'Review', eyebrow: 'Review' },
+] as const satisfies readonly { id: QuoteStepId; nav: string; eyebrow: string }[];
 
 type StepId = (typeof STEPS)[number]['id'];
 const stepIndexOf = (id: string) => STEPS.findIndex((s) => s.id === id);
@@ -108,7 +111,7 @@ const priceWords = (l: QuoteLine) =>
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export default function VisualQuoteBuilder() {
+export default function VisualQuoteBuilder({ copy }: { copy: QuoteCopy }) {
   const [state, dispatch] = useReducer(reducer, {
     input: EMPTY_INPUT, index: 0, furthest: 0, requestKey: '', ready: false, restoredAt: null,
   });
@@ -264,15 +267,15 @@ export default function VisualQuoteBuilder() {
           {/* Section header */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brass-ink">Instant · itemised · no obligation</p>
-              <h2 id="vq-title" className="mt-2 font-heading text-[32px] leading-[1.05] sm:text-[40px]">Build your party quote</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brass-ink">{copy.eyebrow}</p>
+              <h2 id="vq-title" className="mt-2 font-heading text-[32px] leading-[1.05] sm:text-[40px]">{copy.title}</h2>
               <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-stone">
-                Choose your bar, glasses, ice and team. Your quote builds line by line as you go — every price shows how it’s worked out.
+                {copy.intro}
               </p>
             </div>
             {state.restoredAt && (
               <div className="flex items-center gap-3 self-start rounded-full border border-hairline bg-white/70 py-1.5 pl-4 pr-1.5 text-[13px] text-stone lg:self-end">
-                <span>Welcome back — your choices are saved on this device.</span>
+                <span>{copy.welcomeBack}</span>
                 <button type="button" onClick={startAgain}
                   className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-semibold text-ink hover:bg-ivory-deep', focusRing)}>
                   <RotateCcw size={13} aria-hidden="true" /> Start again
@@ -317,9 +320,9 @@ export default function VisualQuoteBuilder() {
                   Step {state.index + 1} of {STEPS.length} · {step.eyebrow}
                 </p>
                 <h3 id={headingId} ref={headingRef} tabIndex={-1} className="mt-1 font-heading text-[26px] leading-tight outline-none sm:text-[30px]">
-                  {step.question}
+                  {copy.steps[step.id].question}
                 </h3>
-                <p className="mt-1 text-[14px] text-stone">{step.hint}</p>
+                <p className="mt-1 text-[14px] text-stone">{copy.steps[step.id].hint}</p>
               </div>
 
               <div>
@@ -331,7 +334,7 @@ export default function VisualQuoteBuilder() {
                 {step.id === 'drinks' && <DrinksStep input={state.input} patch={patch} result={result} originRef={originRef} />}
                 {step.id === 'extras' && <ExtrasStep input={state.input} patch={patch} />}
                 {step.id === 'review' && (
-                  <ReviewStep input={state.input} result={result} onEdit={(id) => go(stepIndexOf(id))} requestKey={state.requestKey} />
+                  <ReviewStep input={state.input} result={result} onEdit={(id) => go(stepIndexOf(id))} requestKey={state.requestKey} copy={copy} />
                 )}
               </div>
 
@@ -360,7 +363,7 @@ export default function VisualQuoteBuilder() {
             {/* RIGHT — the quote (desktop) */}
             <aside className="hidden lg:block" aria-label="Your quote">
               <div className="sticky top-6">
-                <QuotePaper input={state.input} result={result} headingId="vq-quote-panel" />
+                <QuotePaper input={state.input} result={result} headingId="vq-quote-panel" emptyState={copy.emptyState} disclaimer={copy.disclaimer} />
               </div>
             </aside>
           </div>
@@ -405,7 +408,7 @@ export default function VisualQuoteBuilder() {
               <X size={18} aria-hidden="true" />
             </button>
           </div>
-          <QuotePaper input={state.input} result={result} variant="sheet" headingId="vq-quote-sheet" />
+          <QuotePaper input={state.input} result={result} variant="sheet" headingId="vq-quote-sheet" emptyState={copy.emptyState} disclaimer={copy.disclaimer} />
         </dialog>
 
         <p aria-live="polite" className="sr-only">{announcement}</p>
@@ -416,8 +419,8 @@ export default function VisualQuoteBuilder() {
 
 // ─── Review ─────────────────────────────────────────────────────────────────
 
-function ReviewStep({ input, result, onEdit, requestKey }: {
-  input: QuoteInput; result: QuoteResult; onEdit: (id: StepId) => void; requestKey: string;
+function ReviewStep({ input, result, onEdit, requestKey, copy }: {
+  input: QuoteInput; result: QuoteResult; onEdit: (id: StepId) => void; requestKey: string; copy: QuoteCopy;
 }) {
   const bar = findBar(input.barId);
   const pkg = findPackage(input.drinksPackageId);
@@ -471,7 +474,7 @@ function ReviewStep({ input, result, onEdit, requestKey }: {
     <div className="space-y-6">
       {/* Phones see the whole quote here (desktop has it alongside). */}
       <div className="lg:hidden">
-        <QuotePaper input={input} result={result} variant="full" headingId="vq-quote-review" />
+        <QuotePaper input={input} result={result} variant="full" headingId="vq-quote-review" emptyState={copy.emptyState} disclaimer={copy.disclaimer} />
       </div>
 
       <dl className="divide-y divide-hairline rounded-[3px] border border-hairline bg-white">
@@ -534,11 +537,11 @@ function ReviewStep({ input, result, onEdit, requestKey }: {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <button type="submit"
               className={cn('inline-flex h-12 items-center justify-center gap-2 rounded-full bg-ink px-6 text-[15px] font-semibold text-ivory transition hover:bg-ink-soft', focusRing)}>
-              Request my quote
+              {copy.requestButton}
             </button>
             <button type="button" onClick={save}
               className={cn('inline-flex h-12 items-center justify-center gap-2 rounded-full border border-ink/30 px-6 text-[15px] font-semibold text-ink transition hover:border-ink', focusRing)}>
-              Save on this device
+              {copy.saveButton}
             </button>
             <p role="status" className="text-[13px] text-stone">{savedLabel ? `Saved on this device at ${savedLabel}.` : ''}</p>
           </div>

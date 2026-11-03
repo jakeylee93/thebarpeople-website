@@ -10,9 +10,16 @@ import Link from 'next/link';
 import OpeningFilm from './OpeningFilm';
 import { SCENES } from './scenes';
 import VisualQuoteBuilder from '@/components/visual-quote/VisualQuoteBuilder';
+import type { OpeningCopy, QuoteCopy } from '@/content/views';
 import { cn } from '@/lib/utils';
 
-export default function FilmPrototype({ initialShirt }: { initialShirt?: string }) {
+export default function FilmPrototype({ initialShirt, opening, quote, draft = false }: {
+  initialShirt?: string;
+  opening: OpeningCopy;
+  quote: QuoteCopy;
+  /** True when rendering an AnyVendor draft (?preview=<token>). */
+  draft?: boolean;
+}) {
   const [silver, setSilver] = useState(initialShirt !== 'real');
 
   const choose = (next: boolean) => {
@@ -30,7 +37,7 @@ export default function FilmPrototype({ initialShirt }: { initialShirt?: string 
     <>
       {/* Prototype strip — outside the design */}
       <div className="relative z-50 flex items-center justify-between gap-x-3 bg-[#0c0b0a] px-3 py-1.5 text-[11.5px] text-ivory/80 sm:px-6 sm:py-2 sm:text-[12px]">
-        <p className="min-w-0 truncate"><strong className="font-semibold text-ivory">Prototype</strong><span className="hidden sm:inline"> · not live · nothing is sent, booked or charged</span><span className="sm:hidden"> · nothing sent</span></p>
+        <p className="min-w-0 truncate">{draft && <span className="mr-2 rounded-sm bg-brass px-1.5 py-0.5 font-semibold text-ink">Draft preview</span>}<strong className="font-semibold text-ivory">Prototype</strong><span className="hidden sm:inline"> · not live · nothing is sent, booked or charged</span><span className="sm:hidden"> · nothing sent</span></p>
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <fieldset className="flex items-center gap-0.5 sm:gap-1">
             <legend className="sr-only">Roundel on the shirt</legend>
@@ -52,8 +59,8 @@ export default function FilmPrototype({ initialShirt }: { initialShirt?: string 
       </div>
 
       <main>
-        <OpeningFilm silver={silver} />
-        <VisualQuoteBuilder />
+        <OpeningFilm copy={opening} silver={silver} />
+        <VisualQuoteBuilder copy={quote} />
 
         {/* Scenes 3–5 come next, after the storyboard is agreed */}
         <section aria-labelledby="next-scenes" className="bg-ink px-4 py-14 text-ivory sm:px-6 lg:px-10">

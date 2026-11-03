@@ -64,13 +64,9 @@ export const IMG = {
   alexServe: { src: '/images/events/staff-alex.jpg', alt: 'A Bar People bartender in a white shirt offering a yellow cocktail across a wooden counter', width: 1024, height: 769, origin: `${REPO}/staff-alex.jpg` },
 } satisfies Record<string, FilmImage>;
 
-export const HERO_COPY = {
-  eyebrow: 'Mobile bar hire · London & nationwide',
-  // The Bar People's own words, from thebarpeople.co.uk.
-  title: 'Unforgettable events, unmatched service',
-  sub: 'You bring the guests, we’ll bring the rest.',
-  cta: 'Build your party quote',
-};
+// Scenes 1–2 are live on /concepts, so their overlay words come from the site
+// content (AnyVendor) at render time — see withLiveOverlays() in Storyboard.
+// Scenes 3–5 are still storyboard sketches and keep their draft wording here.
 
 export const SCENES: Scene[] = [
   {
@@ -84,7 +80,7 @@ export const SCENES: Scene[] = [
       { image: IMG.staffCew, shows: 'A second real example of the uniform, from a very large original photo.', caveat: 'Roundel small; faces in frame — reference only.' },
     ],
     frame: { image: IMG.shirtPourSilver, desktop: '78% 30%', phone: '81% 38%', tag: 'Real photo · roundel recoloured to silver by hand (preview)' },
-    overlay: { eyebrow: HERO_COPY.eyebrow, title: HERO_COPY.title, sub: HERO_COPY.sub, cta: HERO_COPY.cta },
+    overlay: { title: '' }, // filled from content (opening)
     still: {
       needed: true,
       plan: 'Best route: the original file of the close-up shirt photo. If its grey thread is already the silver you want, it only needs a crop and gentle light — no AI. Otherwise, an OpenArt still conditioned on that photo and the logo file: same shirt, roundel in silver thread, natural light, no face.',
@@ -102,7 +98,7 @@ export const SCENES: Scene[] = [
       { image: IMG.counterGlasses, shows: 'White counter, upturned cocktail glasses, copper tray with herbs. Used as the first picture inside the quote builder.', caveat: '1024px — fine inside the builder, too small to go full-screen.' },
     ],
     frame: { image: IMG.counterCopper, desktop: '50% 62%', phone: '58% 60%', tag: 'Real photo' },
-    overlay: { eyebrow: 'Instant · itemised · no obligation', title: 'Build your party quote', sub: 'Choose your bar, glasses, ice and team. The quote builds as you go.' },
+    overlay: { title: '' }, // filled from content (quote_intro)
     still: { needed: false, plan: 'The real photo works as it is. At most a gentle light match to scene 1 — no new content.', status: 'Ready.' },
     transitionOut: 'The white bar edge lines up with the next bar’s edge — a match cut into the services.',
   },
