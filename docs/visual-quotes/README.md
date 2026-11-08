@@ -1,5 +1,10 @@
 # The Bar People — Website & Visual Quotes (prototype)
 
+> **Look superseded on 8 Nov 2026.** Jake chose a new, simpler homepage: a photo slider plus an
+> instant quote that starts with All-inclusive or Dry hire. See
+> [../new-homepage/README.md](../new-homepage/README.md). The pricing engine and quote logic below
+> can still be reused; the ivory/brass film look is retired.
+
 Branch: `claude/loving-mendel-to07v2` · first delivery, 25 Oct 2026 · **not live**
 
 A homepage prototype in two parts, built only from The Bar People's own photos and logo:
