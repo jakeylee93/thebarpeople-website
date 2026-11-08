@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test src/lib/visual-quote/*.test.ts src/content/*.test.ts",
+    "test": "node --test src/lib/visual-quote/*.test.ts src/lib/new-home/*.test.ts src/content/*.test.ts",
     "content:export": "node --no-warnings scripts/anyvendor-export.ts"
   },
   "dependencies": {

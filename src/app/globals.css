@@ -24,6 +24,14 @@
   --color-brass-ink: #855430;
   --color-stone: #5d554c;
   --color-hairline: #ddd3c3;
+
+  /* New homepage (/new, 8 Nov 2026): black and white from the logo and the white
+     bars. AA pairs: nh-ink/white 18.9:1, nh-ash/white 5.3:1, nh-ash/nh-mist 4.8:1. */
+  --color-nh-ink: #111111;
+  --color-nh-mist: #f2f1ee;
+  --color-nh-ash: #6b6b6b;
+  --color-nh-line: #e4e2dd;
+  --font-nh-display: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 body {
@@ -64,4 +72,43 @@ input[type="range"]::-webkit-slider-runnable-track {
 @keyframes vq-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .vq-sheet[open] { animation: none; }
+}
+
+/* ─── New homepage (/new) ─────────────────────────────────────────────────── */
+.nh h1, .nh h2, .nh h3, .nh h4 { font-family: var(--font-nh-display); }
+
+/* Hero: slow push-in on the showing slide; the progress line is the slide clock. */
+@keyframes nh-kenburns { from { transform: scale(1.001); } to { transform: scale(1.08); } }
+.nh-kb { animation: nh-kenburns 9s ease-out both; }
+@keyframes nh-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.nh-progress { transform-origin: left center; animation: nh-progress var(--nh-slide, 6.5s) linear both; }
+.nh-paused .nh-progress, .nh-paused .nh-kb { animation-play-state: paused; }
+
+/* Client logos: endless strip, pauses on hover. */
+@keyframes nh-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.nh-marquee-track { animation: nh-marquee 45s linear infinite; }
+.nh-marquee:hover .nh-marquee-track, .nh-marquee:focus-within .nh-marquee-track { animation-play-state: paused; }
+
+/* Package builder: LED colour cycle and the glowing "Free artwork service" chip. */
+@keyframes nh-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+.nh-cycle { animation: nh-hue 6s linear infinite; }
+@keyframes nh-shimmer { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+.nh-glow-ring {
+  background: linear-gradient(90deg, #ff3d9a, #9b5cff, #2e7dff, #19d3e6, #2fdc6f, #ffb020, #ff3d9a);
+  background-size: 200% 100%;
+  animation: nh-shimmer 4s linear infinite;
+}
+@keyframes nh-pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+.nh-pop { animation: nh-pop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes nh-sheet { from { transform: translateY(100%); } to { transform: none; } }
+.nh-sheet-in { animation: nh-sheet 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.nh-scroll-x { scrollbar-width: none; }
+.nh-scroll-x::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nh-kb, .nh-progress, .nh-cycle, .nh-glow-ring, .nh-pop, .nh-sheet-in { animation: none; }
+  .nh-progress { transform: scaleX(1); }
+  .nh-marquee-track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; row-gap: 2rem; }
+  .nh-marquee-dup { display: none; }
 }
