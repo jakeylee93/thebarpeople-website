@@ -20,7 +20,7 @@ swipe, keys, or the dots at the side on desktop).
 
 | # | Section | What it does |
 |---|---|---|
-| 1 | Hero | The martini and pineapple photo, then a 19 second film, then three more photos. No arrows; a thin line shows the time left, with a pause button. Headline and **Build your package**. |
+| 1 | Hero | The martini and pineapple photo, then a 19 second film, then four more photos. No arrows; a thin line shows the time left, with a pause button. Headline and **Build your package**. |
 | 2 | Christmas | A full-screen advert with falling snow. "Christmas parties, sorted." and **Build your Christmas package**. |
 | 3 | Corporate events | "A bar built around your brand." A real branded bar photo, the branded bar drawing, and the client logos. |
 | 4 | Weddings | "The bar for your big day." |
@@ -233,7 +233,7 @@ and joined with soft fades.
 |---|---|
 | `hero-reel.mp4` (1600 wide, 19s), `hero-reel.jpg` | Header film on desktop. Opens on the bartender raising two cocktails. |
 | `hero-reel-phone.mp4` (upright 4:5) | Header film on phones, each shot cropped around its subject. |
-| `card-*.mp4` (720×1280) | "See us in action" card: six upright clips that fade into each other. |
+| `card-*.mp4` (720×1280) | "See us in action" card: five upright clips that fade into each other. |
 
 No sound. The films play only while on screen, can be paused, and stay still for reduced motion.
 Better originals from Jake's phone or Instagram can replace any file one for one.
@@ -283,10 +283,12 @@ longer used (replaced by the vector drawings).
 
 - 52 automated checks on the prices and rules (`pnpm test` runs these with the older ones).
 - An independent review in five parts (prices against Jake's brief, dates and times, saved quotes
-  and the PDF, every screen, the bar drawings), with a second reviewer re-testing each finding.
-  It found real faults, now fixed: typing a guest number gave the wrong number; typing a date
-  could break the Delivery step; a marquee could add itself on reload; the email step ignored an
-  incomplete address without saying so; the builder could slide off screen at the end of a list.
+  and the PDF, every screen, the bar drawings). It found real faults, now fixed: typing a guest
+  number gave the wrong number; typing a date could break the Delivery step; a marquee could add
+  itself on reload; the email step ignored an incomplete address without saying so; the builder
+  could slide off screen at the end of a list; curved bar edges were drawn in the wrong order.
+  A second reviewer re-tested the prices and the dates. The other three re-tests did not run (a
+  usage limit), so those fixes were re-tested with the browser checks below instead.
 - Browser checks at 375, 390, 768, 820, 1024 and 1440 wide: every step, keyboard and Escape, the
   PDF download, and every button at least 40px tall on phones.
 - Only Chromium was available. Not yet tried on a real iPhone, Safari or Firefox.
