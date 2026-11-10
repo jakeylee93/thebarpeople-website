@@ -3,14 +3,15 @@
 // and the same camera, so the two sit happily on one page. Pure SVG.
 
 import { useId } from 'react';
+import { VIEW as CAMERA } from '@/lib/quote/diagram';
 import { cn } from '@/lib/utils';
 
 const INK = '#141414';
 
-// The bar drawings' camera (src/lib/quote/diagram.ts): turned 16°, looking down 22°.
+// The bar drawings' camera (src/lib/quote/diagram.ts), so the marquee and the bars match.
 const rad = (deg: number) => (deg * Math.PI) / 180;
-const COS_A = Math.cos(rad(16)), SIN_A = Math.sin(rad(16));
-const COS_E = Math.cos(rad(22)), SIN_E = Math.sin(rad(22));
+const COS_A = Math.cos(rad(CAMERA.azimuth)), SIN_A = Math.sin(rad(CAMERA.azimuth));
+const COS_E = Math.cos(rad(CAMERA.elevation)), SIN_E = Math.sin(rad(CAMERA.elevation));
 
 const VIEW = { width: 436, height: 428 } as const;
 /** Pixels per metre, and where the middle of the floor lands. */

@@ -11,8 +11,12 @@ import { barModules, type BarChoice } from './bars.ts';
 // ─── Real-world sizes, in metres ────────────────────────────────────────────
 export const BAR_DIMS = {
   section: 1.5,
-  /** Face width of a 45° corner piece (about 0.5m each: six sections and two corners make "about 10m"). */
-  corner: 0.56,
+  /**
+   * Face width of a 45° corner piece. The business's own line sketches show
+   * corner pieces well over half a section wide, and the horseshoe is sold as
+   * 35ft (six 5ft sections and two corners), so about 0.9m.
+   */
+  corner: 0.9,
   /** Front to back. */
   depth: 0.6,
   /** Floor to counter top. */
@@ -33,8 +37,8 @@ export const BAR_DIMS = {
   curveFacets: 6,
 } as const;
 
-/** The one camera: turned 16° to show the right-hand end, looking down 22°. */
-export const VIEW = { azimuth: 16, elevation: 22 } as const;
+/** The one camera: turned 26° to show the right-hand end and side runs, looking down 22°. */
+export const VIEW = { azimuth: 26, elevation: 22 } as const;
 
 /** Every drawing uses this frame, in drawing units (1 unit = 1cm at full scale). */
 export const FRAME = { width: 520, height: 340 } as const;
@@ -48,6 +52,8 @@ export interface PanelFacet {
   /** This facet's slice of the panel, in cm from the panel's left edge. */
   u0: number;
   u1: number;
+  /** Which way the facet faces, in degrees: 0 is straight at the camera, positive turned to the right. A mirror uses it to pick what it reflects. */
+  turn: number;
 }
 
 export interface Panel {
@@ -233,7 +239,9 @@ export function barGeometry(choice: BarChoice): BarGeometry {
         panel = { index: s.module, kind: s.kind, width: moduleWidths[s.module] * 100, height: h, facets: [], light: 0, depth: 0, facing: 0 };
         panelsByModule.set(s.module, panel);
       }
-      panel.facets.push({ matrix, u0: s.u0 * 100, u1: s.u1 * 100 });
+      // Angle between the facet's outward normal and the direction back to the camera.
+      const turn = (Math.atan2(SIN_A * outward[1] + COS_A * outward[0], SIN_A * outward[0] - COS_A * outward[1]) * 180) / Math.PI;
+      panel.facets.push({ matrix, u0: s.u0 * 100, u1: s.u1 * 100, turn });
       // Counter edge above the panel.
       const la = lip[i], lb = lip[i + 1];
       faces.push({
@@ -324,7 +332,7 @@ export function barGeometry(choice: BarChoice): BarGeometry {
   const panels: Panel[] = [...panelsByModule.values()].map((panel) => ({
     ...panel,
     width: q(panel.width, 2), height: q(panel.height, 2), light: q(panel.light, 4), depth: q(panel.depth, 6), facing: q(panel.facing, 4),
-    facets: panel.facets.map((f) => ({ matrix: f.matrix.map((v) => q(v, 5)) as PanelFacet['matrix'], u0: q(f.u0, 2), u1: q(f.u1, 2) })),
+    facets: panel.facets.map((f) => ({ matrix: f.matrix.map((v) => q(v, 5)) as PanelFacet['matrix'], u0: q(f.u0, 2), u1: q(f.u1, 2), turn: q(f.turn, 2) })),
   }));
   const flat: Face[] = faces.map((face) => ({ ...face, points: face.points.map(q2), light: q(face.light, 4), depth: q(face.depth, 6) }));
 

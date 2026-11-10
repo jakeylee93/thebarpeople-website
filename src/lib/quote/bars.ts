@@ -43,11 +43,11 @@ export const BAR_SHAPES: BarShape[] = [
   },
   {
     id: 'l-shape', name: 'L-shaped bar', blurb: 'Two runs joined by a corner piece. Good against a wall or in a corner.',
-    minSections: 2, maxSections: 6, defaultSections: 3, corners: 1, pricing: 'sections',
+    minSections: 2, maxSections: 10, defaultSections: 4, corners: 1, pricing: 'sections',
     finishes: ['white', 'mirror', 'shimmer'], derivedPrice: true,
   },
   {
-    id: 'horseshoe', name: 'Horseshoe bar', blurb: 'Serves on three sides. Six sections and two corners, about 10m of bar.',
+    id: 'horseshoe', name: 'Horseshoe bar', blurb: 'Serves on three sides. Six 1.5m sections and two corner pieces.',
     minSections: 6, maxSections: 6, defaultSections: 6, corners: 2, pricing: 'sections',
     finishes: ['white', 'mirror', 'shimmer'],
   },

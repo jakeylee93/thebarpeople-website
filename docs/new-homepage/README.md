@@ -220,8 +220,19 @@ bar is not seen.
 
 - Curved and round bars follow the Grumpy Joe's sectional system: eight 45° curved sections make a
   4m circle. LED is an opal lit panel on a black plinth with black posts.
-- Style photos on the Style step (`public/images/new-home/styles/`) are OpenArt mock-ups made from
-  our own photos of each finish. They are illustrations, not photos of real events.
+- Every bar has the white gloss top with the black edge (Jake, 10 Nov: no black tops).
+- Corner pieces are drawn 0.9m across, from the business's own sketches and the 35ft horseshoe
+  (Jake asked for bigger corners). One photo of the real bar suggests nearer 0.5m; it is one
+  number in `src/lib/quote/diagram.ts` (`BAR_DIMS.corner`). L-shapes go from 2 to 10 sections,
+  split evenly either side of the corner.
+- The camera is turned 26° so side runs and corners show clearly.
+- Mirror shows a reflection of a garden (made from the business's own lawn photo,
+  `public/images/new-home/mirror-surroundings.jpg`), shifted by the way each panel faces, so it
+  jumps at every joint like a real mirror. The LOVE letters use the same reflection.
+- Shimmer is a sequin wall: round silver discs about 3.75cm apart on black, each catching the
+  light differently (`src/components/new-home/package/finishes.tsx`).
+- The Style step shows the customer's own bar in each finish, drawn the same way. The earlier
+  OpenArt finish photos are no longer used.
 
 ## Video
 
@@ -245,7 +256,7 @@ Better originals from Jake's phone or Instagram can replace any file one for one
 | `new-home/hero-cocktails.jpg` | OpenArt 4K clean-up of the real martini and pineapple photo. |
 | `new-home/hero-lawn.jpg`, `hero-balloons.jpg` | OpenArt 4K clean-ups of real bar photos. |
 | `new-home/christmas.jpg` | An OpenArt festive scene built around the real white bar. A promo image, not a real event. |
-| `new-home/styles/*.jpg` | OpenArt mock-ups of each bar finish (see above). |
+| `new-home/mirror-surroundings.jpg` | What the mirror bars reflect: the lawn photo, cropped and repeated. |
 | `film/*`, `events/*`, `gallery/*` | Real photos from the current site. |
 
 ### Client logos (`public/images/clients/*.svg`)

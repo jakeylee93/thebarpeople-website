@@ -34,6 +34,14 @@ test('horseshoe is six sections and two £100 corners: £925', () => {
   assert.equal(closed, false);
 });
 
+test('L-shapes run from 3m to 15m, split evenly either side of the corner', () => {
+  const ten = barModules(bar({ shapeId: 'l-shape', sections: 10 }));
+  assert.deepEqual(ten.modules.map((m) => m.kind).join(','), 'section,section,section,section,section,corner,section,section,section,section,section');
+  assert.equal(barPrice(bar({ shapeId: 'l-shape', sections: 10 }))?.pence, 112500 + 10000);
+  assert.equal(normaliseBar(bar({ shapeId: 'l-shape', sections: 14 })).sections, 10);
+  assert.equal(normaliseBar(bar({ shapeId: 'l-shape', sections: 1 })).sections, 2);
+});
+
 test('L-shape adds one corner; island is eight sections and four corners; round is £1,200', () => {
   assert.equal(barPrice(bar({ shapeId: 'l-shape', sections: 3 }))?.pence, 42500 + 10000);
   assert.equal(barPrice(bar({ shapeId: 'island', sections: 8 }))?.pence, 92500 + 40000);

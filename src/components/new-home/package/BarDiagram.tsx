@@ -13,6 +13,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { barName, findFinish, normaliseBar, type BarChoice } from '@/lib/quote/bars';
 import { BAR_DIMS, barGeometry, FRAME, VIEW, type Face, type Panel } from '@/lib/quote/diagram';
 import { cn } from '@/lib/utils';
+import { MirrorDefs, MirrorFace, ShimmerDefs, ShimmerFace } from './finishes';
 
 /** The smallest size, in screen pixels, at which words on the artwork panels are worth showing. */
 const READABLE_PX = 9;
@@ -76,15 +77,16 @@ export default function BarDiagram({
     ...geo.panels.map((panel) => ({ depth: panel.depth, face: null as Face | null, panel })),
   ].sort((a, b) => b.depth - a.depth);
 
-  // The mirror and shimmer bars have a black top; the others a white one.
-  const darkTop = !curved && (finish === 'mirror' || finish === 'shimmer');
+  // Every bar has the white gloss top with its black edge (Jake, 10 Nov 2026).
+  const darkTop = false;
   const darkInside = finish === 'led' || curved;
-  const shadeMax = finish === 'white' || finish === 'love' ? 0.16 : finish === 'led' ? 0.08 : 0.3;
+  // A mirror shows its reflection whichever way it faces, so it barely darkens; sequins darken a little.
+  const shadeMax = finish === 'white' || finish === 'love' ? 0.16 : finish === 'led' ? 0.08 : finish === 'mirror' ? 0.05 : 0.22;
 
   const faceFill = (face: Face) => {
     if (face.kind === 'edge') return INK;
     if (face.kind === 'inner') return darkInside ? mix([30, 30, 30], [40, 40, 40], face.light) : mix([150, 148, 143], [214, 212, 207], face.light);
-    if (finish === 'mirror') return mix([140, 148, 158], [214, 220, 226], face.light);
+    if (finish === 'mirror') return `url(#${id('mirror-end')})`;
     // The shimmer wall is only on the front: the end of the bar stays white gloss, like the classic bar.
     if (finish === 'led') return INK;
     return mix([212, 211, 206], [250, 250, 249], face.light);
@@ -103,32 +105,15 @@ export default function BarDiagram({
       aria-hidden={decorative || undefined}
     >
       <defs>
-        <linearGradient id={id('mirror')} x1="0" y1="0" x2="1" y2="0.6">
-          <stop offset="0" stopColor="#bfc7cf" />
-          <stop offset="0.16" stopColor="#f6f8f9" />
-          <stop offset="0.34" stopColor="#aeb7c1" />
-          <stop offset="0.55" stopColor="#e7ebee" />
-          <stop offset="0.78" stopColor="#a3adb8" />
-          <stop offset="1" stopColor="#dce1e6" />
-        </linearGradient>
-        <linearGradient id={id('ground')} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0.5" stopColor="#2f363d" stopOpacity="0" />
-          <stop offset="1" stopColor="#2f363d" stopOpacity="0.36" />
-        </linearGradient>
-        {/* Sequin wall: round mirror discs hanging on a black backing. */}
-        <pattern id={id('shimmer')} width="7" height="7" patternUnits="userSpaceOnUse">
-          <rect width="7" height="7" fill="#0e0e0e" />
-          <circle cx="1.75" cy="1.75" r="1.55" fill="#eef1f3" />
-          <circle cx="5.25" cy="1.75" r="1.55" fill="#aab3bc" />
-          <circle cx="1.75" cy="5.25" r="1.55" fill="#c9d0d6" />
-          <circle cx="5.25" cy="5.25" r="1.55" fill="#f8f3e6" />
-        </pattern>
-        <linearGradient id={id('sheen')} x1="0" y1="0" x2="1" y2="0.8">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.28" />
-          <stop offset="0.25" stopColor="#000" stopOpacity="0.2" />
-          <stop offset="0.5" stopColor="#fff" stopOpacity="0.24" />
-          <stop offset="0.75" stopColor="#000" stopOpacity="0.22" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0.2" />
+        {(finish === 'mirror' || finish === 'love') && <MirrorDefs id={id} />}
+        {finish === 'shimmer' && <ShimmerDefs id={id} />}
+        {/* The end of a mirror bar is mirror too: sky, the tree line, then the ground. */}
+        <linearGradient id={id('mirror-end')} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#c9d3dc" />
+          <stop offset="0.4" stopColor="#9fb0a5" />
+          <stop offset="0.46" stopColor="#5f6d61" />
+          <stop offset="0.52" stopColor="#7d8a71" />
+          <stop offset="1" stopColor="#9aa58a" />
         </linearGradient>
         {/* Opal light box: brightest through the middle, deeper colour at the edges. */}
         <linearGradient id={id('opal')} x1="0" y1="0" x2="0" y2="1">
@@ -185,7 +170,7 @@ export default function BarDiagram({
                         <rect width={p.width} height={p.height} fill="#fff" />
                         {p.kind === 'section' && loveLetters[p.index] && (
                           <text x={p.width / 2} y={p.height * 0.9} textAnchor="middle" fontSize={p.height * 1.02} fontWeight="900"
-                            textLength={p.width * 0.86} lengthAdjust="spacingAndGlyphs" fill={`url(#${id('mirror')})`} stroke="#8c96a1" strokeWidth="0.6"
+                            textLength={p.width * 0.86} lengthAdjust="spacingAndGlyphs" fill={`url(#${id('m-env')})`} stroke="#59626b" strokeWidth="0.7"
                             style={{ fontFamily: '"Arial Black", var(--font-nh-display), Impact, system-ui, sans-serif' }}>
                             {loveLetters[p.index]}
                           </text>
@@ -194,20 +179,14 @@ export default function BarDiagram({
                     )}
                     {finish === 'mirror' && (
                       <>
-                        <rect width={p.width} height={p.height} fill={`url(#${id('mirror')})`} />
-                        <rect width={p.width} height={p.height} fill={`url(#${id('ground')})`} />
+                        <MirrorFace id={id} width={p.width} height={p.height} turn={f.turn} />
                         {/* Curved mirror bars are built from narrow upright mirror strips. */}
                         {p.kind === 'curve' && Array.from({ length: 14 }, (_, k) => (
-                          <line key={k} x1={(p.width / 15) * (k + 1)} y1={0} x2={(p.width / 15) * (k + 1)} y2={p.height} stroke="#5c6670" strokeOpacity="0.55" strokeWidth="0.7" />
+                          <line key={k} x1={(p.width / 15) * (k + 1)} y1={0} x2={(p.width / 15) * (k + 1)} y2={p.height} stroke="#2f363d" strokeOpacity="0.35" strokeWidth="0.6" />
                         ))}
                       </>
                     )}
-                    {finish === 'shimmer' && (
-                      <>
-                        <rect width={p.width} height={p.height} fill={`url(#${id('shimmer')})`} />
-                        <rect width={p.width} height={p.height} fill={`url(#${id('sheen')})`} />
-                      </>
-                    )}
+                    {finish === 'shimmer' && <ShimmerFace id={id} width={p.width} height={p.height} index={p.index} />}
                     {finish === 'led' && (
                       <>
                         <rect width={p.width} height={litHeight} fill={ledColour} />

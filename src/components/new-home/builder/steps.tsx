@@ -4,7 +4,6 @@
 // quote (those have their own files). Headings live in the shell.
 
 import { useState, useSyncExternalStore } from 'react';
-import Image from 'next/image';
 import { Check, ChevronDown, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GlassGlyph, { IceGlyph } from '@/components/visual-quote/GlassGlyph';
@@ -13,7 +12,7 @@ import { formatPence, formatPenceCompact } from '@/lib/visual-quote/money';
 import { addDaysIso, formatDate, formatDuration, formatTime, timeOptions } from '@/lib/visual-quote/time';
 import {
   BAR_SHAPES, FINISHES, barName, barNameInSentence, barPrice, barSizeLabel, findShape, finishesFor, normaliseBar, recommendStaff, runLength, sectionsPrice,
-  type BarChoice, type BarShape, type FinishId,
+  type BarChoice, type BarShape,
 } from '@/lib/quote/bars';
 import { drinksPerHead } from '@/lib/quote/drinks';
 import { PRICES, TIME_STEP } from '@/lib/quote/prices';
@@ -230,15 +229,6 @@ export const LED_COLOURS = [
   { name: 'Red', hex: '#ff3b3b' },
 ] as const;
 
-/** Studio mock-ups of each finish, made from The Bar People's own photos of the real bars. */
-const FINISH_PHOTO: Record<FinishId, string> = {
-  white: '/images/new-home/styles/white.jpg',
-  mirror: '/images/new-home/styles/mirror.jpg',
-  shimmer: '/images/new-home/styles/shimmer.jpg',
-  love: '/images/new-home/styles/love.jpg',
-  led: '/images/new-home/styles/led.jpg',
-};
-
 export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
   const bar = state.bar ?? recommendedBar(state.guests);
   const finishes = finishesFor(bar.shapeId, bar.sections);
@@ -265,8 +255,9 @@ export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
         <div className={cn('mt-3 grid grid-cols-2 gap-3', finishes.length >= 4 ? 'lg:grid-cols-4' : finishes.length === 3 ? 'lg:grid-cols-3' : '')}>
           {FINISHES.filter((f) => finishes.includes(f.id)).map((f) => (
             <RadioCard key={f.id} name="finish" value={f.id} checked={bar.finishId === f.id} onChange={() => setBar({ finishId: f.id })} className="overflow-hidden bg-white">
-              <span className="relative block aspect-[4/3] bg-[#edebe7]">
-                <Image src={FINISH_PHOTO[f.id]} alt="" fill sizes="(min-width: 1024px) 220px, 45vw" className="object-cover" />
+              {/* Your own bar in each finish, drawn the same way as everywhere else. */}
+              <span className="relative flex aspect-[4/3] items-center bg-[radial-gradient(ellipse_at_50%_35%,#ffffff,#eceae5)] px-1">
+                <BarDiagram bar={normaliseBar({ ...bar, finishId: f.id, branded: false })} ledColour={ledColour} decorative artworkText={false} />
                 {bar.finishId === f.id && (
                   <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-nh-ink text-white"><Check className="h-3.5 w-3.5" aria-hidden /></span>
                 )}
