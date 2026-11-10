@@ -2,21 +2,24 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BUILD_HREF, CONTACTS, NAV } from './data';
+import { BUILD_HREF, CONTACTS, NAV, SCROLLER_ID, type SectionId } from './data';
 
+// The page scrolls inside the snap box (SnapPage), not the window, so the
+// header watches that box to know when to turn solid.
+const scroller = () => document.getElementById(SCROLLER_ID);
 const subscribeScroll = (cb: () => void) => {
-  window.addEventListener('scroll', cb, { passive: true });
-  return () => window.removeEventListener('scroll', cb);
+  const el = scroller();
+  el?.addEventListener('scroll', cb, { passive: true });
+  return () => el?.removeEventListener('scroll', cb);
 };
-const isScrolled = () => window.scrollY > 24;
+const isScrolled = () => (scroller()?.scrollTop ?? 0) > 24;
 
 export const nhFocus =
   'outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-nh-ink';
 
-export default function SiteHeader() {
+export default function SiteHeader({ activeId }: { activeId?: SectionId }) {
   const scrolled = useSyncExternalStore(subscribeScroll, isScrolled, () => false);
   const [menuOpen, setMenuOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -35,23 +38,38 @@ export default function SiteHeader() {
         scrolled ? 'bg-nh-ink/85 backdrop-blur-md' : 'bg-gradient-to-b from-black/45 to-transparent',
       )}
     >
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 md:h-20 lg:px-10">
-        <Link href="/new" aria-label="The Bar People, home" className={cn('rounded-full', nhFocus)}>
+      {/* Once scrolled the bar is 56px (64px on desktop): the --nh-head every section starts below. */}
+      <div
+        className={cn(
+          'mx-auto flex max-w-[1600px] items-center justify-between px-4 transition-[height] duration-300 sm:px-6 lg:px-10',
+          scrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20',
+        )}
+      >
+        <a href="#home" aria-label="The Bar People, back to the top" className={cn('rounded-full', nhFocus)}>
           <Image
             src="/images/logos/bar-people-logo.png"
             alt=""
             width={1000}
             height={1000}
             preload
-            className={cn('h-auto transition-[width] duration-300', scrolled ? 'w-11 md:w-12' : 'w-12 md:w-16')}
+            sizes="64px"
+            className={cn('h-auto transition-[width] duration-300', scrolled ? 'w-10 lg:w-11' : 'w-12 lg:w-16')}
           />
-        </Link>
+        </a>
 
-        <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-7 lg:flex xl:gap-9">
           {NAV.map((l) => (
-            <Link key={l.href} href={l.href} className={cn('rounded text-[15px] font-semibold text-white/90 transition hover:text-white', nhFocus)}>
+            <a
+              key={l.id}
+              href={l.href}
+              aria-current={l.id === activeId ? 'location' : undefined}
+              className={cn(
+                'rounded text-[15px] font-semibold text-white/80 underline-offset-[10px] transition hover:text-white aria-[current]:text-white aria-[current]:underline',
+                nhFocus,
+              )}
+            >
               {l.label}
-            </Link>
+            </a>
           ))}
           <a
             href={BUILD_HREF}
@@ -64,7 +82,11 @@ export default function SiteHeader() {
         <button
           type="button"
           onClick={() => setMenuOpen(true)}
-          className={cn('flex h-11 w-11 items-center justify-center rounded-full bg-white text-nh-ink md:hidden', nhFocus)}
+          className={cn(
+            'flex items-center justify-center rounded-full bg-white text-nh-ink transition-[width,height] duration-300 lg:hidden',
+            scrolled ? 'h-10 w-10' : 'h-11 w-11',
+            nhFocus,
+          )}
           aria-label="Open menu"
           aria-haspopup="dialog"
         >
@@ -78,9 +100,9 @@ export default function SiteHeader() {
         aria-label="Menu"
         className="m-0 h-[100dvh] max-h-none w-full max-w-none bg-nh-ink p-0 text-white backdrop:bg-black/60"
       >
-        <div className="flex h-full flex-col px-5 pb-8 pt-4">
+        <div className="flex h-full flex-col overflow-y-auto px-5 pb-8 pt-4">
           <div className="flex items-center justify-between">
-            <Image src="/images/logos/bar-people-logo.png" alt="The Bar People" width={1000} height={1000} className="h-auto w-12" />
+            <Image src="/images/logos/bar-people-logo.png" alt="The Bar People" width={1000} height={1000} sizes="48px" className="h-auto w-12" />
             <button
               type="button"
               onClick={() => setMenuOpen(false)}
@@ -90,21 +112,26 @@ export default function SiteHeader() {
               <X className="h-5 w-5" aria-hidden />
             </button>
           </div>
-          <nav aria-label="Main" className="mt-10 flex flex-col gap-1">
+          <nav aria-label="Main" className="mt-8 flex flex-col gap-0.5">
             {NAV.map((l) => (
-              <Link key={l.href} href={l.href} className={cn('rounded py-2 font-nh-display text-[34px] font-bold tracking-tight', nhFocus)}>
+              <a
+                key={l.id}
+                href={l.href}
+                onClick={() => setMenuOpen(false)}
+                className={cn('rounded py-1.5 font-nh-display text-[clamp(26px,5.2dvh,34px)] font-bold tracking-tight', nhFocus)}
+              >
                 {l.label}
-              </Link>
+              </a>
             ))}
           </nav>
           <a
             href={BUILD_HREF}
             onClick={() => setMenuOpen(false)}
-            className={cn('mt-8 flex h-14 items-center justify-center rounded-full bg-white text-[17px] font-semibold text-nh-ink', nhFocus)}
+            className={cn('mt-7 flex h-14 shrink-0 items-center justify-center rounded-full bg-white text-[17px] font-semibold text-nh-ink', nhFocus)}
           >
             Build your package
           </a>
-          <div className="mt-auto space-y-1 text-[15px] text-white/70">
+          <div className="mt-auto space-y-1 pt-6 text-[15px] text-white/70">
             {CONTACTS.map((c) => (
               <p key={c.email}>
                 {c.name} · <a className="underline-offset-4 hover:underline" href={`tel:${c.tel}`}>{c.phone}</a>

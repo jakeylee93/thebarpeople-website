@@ -3,7 +3,8 @@
 // Full-screen hero: photos (or, later, Jake's videos) crossfade on their own.
 // No left/right arrows by design. The thin line under the active slide is its
 // clock: when the line fills, the next slide comes in. Pausable, and still for
-// reduced motion.
+// reduced motion. It is the first one-screen section of the page: on phones
+// the photo flexes to whatever height the white quote sheet leaves it.
 
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import Image from 'next/image';
@@ -60,8 +61,8 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const seconds = current.kind === 'video' ? VIDEO_SECONDS : IMAGE_SECONDS;
 
   return (
-    <section aria-label="Welcome" className={cn('relative', paused && 'nh-paused')}>
-      <div className="relative h-[64svh] min-h-[440px] overflow-hidden bg-nh-ink md:h-[100svh] md:min-h-[680px]">
+    <section id="home" data-snap aria-label="Welcome" className={cn('nh-section flex flex-col bg-white', paused && 'nh-paused')}>
+      <div className="nh-media relative min-h-0 flex-1 overflow-hidden bg-nh-ink">
         {slides.map((s, i) => {
           const active = i === index;
           return (
@@ -93,13 +94,13 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/25 md:bg-black/35" />
         <div aria-hidden className="absolute inset-0 hidden bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.35),transparent_65%)] md:block" />
 
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-[84px] text-white sm:px-6 md:inset-0 md:flex md:flex-col md:items-center md:justify-center md:px-6 md:pb-0 md:text-center">
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-[78px] text-white sm:px-6 md:inset-0 md:flex md:flex-col md:items-center md:justify-center md:px-6 md:pb-0 md:text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/85 md:text-[13px]">{HERO_COPY.eyebrow}</p>
-          <h1 className="mt-3 max-w-[13ch] text-[40px] font-extrabold leading-[1.02] tracking-[-0.025em] sm:text-[48px] md:mt-5 md:max-w-[15ch] md:text-[78px] lg:text-[92px]">
+          <h1 className="nh-hero-title mt-3 max-w-[13ch] font-extrabold leading-[1.02] tracking-[-0.025em] md:mt-5 md:max-w-[15ch]">
             {HERO_COPY.headline}
           </h1>
-          <p className="mt-6 hidden max-w-[50ch] text-[18px] leading-relaxed text-white/85 md:block">{HERO_COPY.sub}</p>
-          <div className="mt-9 hidden flex-col items-center gap-3 md:flex">
+          <p className="mt-[clamp(14px,2.6dvh,24px)] hidden max-w-[50ch] text-[18px] leading-relaxed text-white/85 md:block">{HERO_COPY.sub}</p>
+          <div className="mt-[clamp(18px,4dvh,36px)] hidden flex-col items-center gap-3 md:flex">
             <a
               href={BUILD_HREF}
               className={cn(
@@ -115,7 +116,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
         </div>
 
         {/* Slide clock: thin lines, no arrows. */}
-        <div className="absolute bottom-9 left-5 flex items-center gap-3 sm:left-6 md:bottom-8 md:left-1/2 md:-translate-x-1/2">
+        <div className="absolute bottom-9 left-5 flex items-center gap-3 sm:left-6 md:bottom-[clamp(16px,3.5dvh,32px)] md:left-1/2 md:-translate-x-1/2">
           <div className="flex items-center gap-1.5" aria-hidden>
             {slides.map((s, i) => (
               <span key={s.src} className="relative h-[3px] w-7 overflow-hidden rounded-full bg-white/30 md:w-10">
@@ -145,13 +146,13 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       </div>
 
       {/* Phone: the quote starts in a white sheet under the photo. */}
-      <div className="relative z-10 -mt-6 rounded-t-[28px] bg-white px-5 pb-10 pt-7 sm:px-6 md:hidden">
+      <div className="relative z-10 -mt-6 shrink-0 rounded-t-[28px] bg-white px-5 pb-6 pt-6 sm:px-6 md:hidden">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-nh-ash">Instant quote</p>
         <h2 className="mt-2 text-[28px] font-extrabold leading-tight tracking-[-0.02em]">Get an instant quote</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-nh-ash">{HERO_COPY.sub}</p>
         <a
           href={BUILD_HREF}
-          className="mt-6 flex h-14 items-center justify-between rounded-full bg-nh-ink pl-6 pr-2 text-[17px] font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-nh-ink focus-visible:ring-offset-2"
+          className="mt-5 flex h-14 items-center justify-between rounded-full bg-nh-ink pl-6 pr-2 text-[17px] font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-nh-ink focus-visible:ring-offset-2"
         >
           {HERO_COPY.cta}
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-nh-ink">

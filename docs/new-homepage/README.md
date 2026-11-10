@@ -1,153 +1,265 @@
-# New homepage (8 Nov 2026)
+# New homepage and quote builder
 
-**Status:** first working prototype at **`/new`**. It is not live: noindex, blocked in `robots.txt`
-and not linked from the live site. Nothing in it sends anything.
+**Status (10 Nov 2026):** working prototype at **`/new`**. It is not live: noindex, blocked in
+`robots.txt` and not linked from the live site. **Nothing in it sends anything**: no enquiry, email,
+WhatsApp, booking or payment. A quote here uses no production quote number.
 
-The earlier look (ivory/brass, serif headings, the scroll "film" on `/concepts`) is retired. Its
-pricing engine (`src/lib/visual-quote/`) is reused.
-
-## Jake's decisions (8 Nov)
-
-1. **Start again, simple.** The page opens on a full-screen slider with an instant quote.
-2. **Chosen look.** Desktop is concept C (the martini and pineapple photo). Phone is the three screens
-   below, "exactly how I would like it to look".
-3. **Headline.** "You bring the guests, we’ll bring the rest."
-4. **Hero photo.**
-   - Use OpenArt instead of hunting for originals: upscale it, perfect the pineapple, fill the martinis.
-   - Upscale the other slides from the photos we already have.
-5. **Header.**
-   - Videos later: Jake will send clips. Images for now.
-   - No left/right arrows.
-6. **Under the hero.**
-   1. A carousel of client logos, as high-res SVGs.
-   2. A Christmas parties section.
-   3. A gallery carousel. Tapping a photo opens it in a modal.
-7. **One quote, "Build your package".** No All-inclusive / Dry hire split.
-   - **Order:**
-     1. Guests first, with a recommended bar size.
-     2. The bar, shown as clean white bars.
-     3. A colour. The bar can glow in different colours.
-     4. Optionally, custom branding: "Your artwork here" on the bar, with a "Free artwork service" tooltip.
-   - **Glassware and staff for everyone.** People who want drinks also choose glassware and staff ("yes, absolutely").
-
-## What's built
-
-| Section | What it does |
+| Page | What it is |
 |---|---|
-| Header | The logo plus Our bars, Gallery, About, Contact and **Build your package**. It turns into a dark glass bar on scroll. Phone: a full-screen menu. |
-| Hero | Five photos crossfade with a slow push-in. A thin line under each photo fills as its timer, and a pause button sits beside the lines; there are no arrows. Headline, line, **Build your package**. Phone: the photo is on top with a white "Get an instant quote" sheet below. Ready for video slides (see below). |
-| Client logos | An endless, slow strip in solid black. It pauses on hover and is a still row for reduced motion. |
-| Christmas parties | A festive bar image, copy and a **Build your Christmas package** button. |
-| Gallery | A swipeable strip of 28 real event photos. Tapping one opens a full-screen viewer: swipe, arrows and keys move between photos, and Esc closes it. Links to `/gallery`. |
-| Footer | The headline, contacts (Jake, Kim), Instagram, Facebook, Privacy, Terms. |
-| Build your package | See below. Opens over the page from any **Build your package** button (`#build`). |
+| `/new` | The homepage, one screen at a time. |
+| `/new#build` | "Build your package": the quote builder, opened over the homepage. |
+| `/new/quote` | The quote builder on its own (for testing). |
+| `/new/bars` | Every bar drawing, plain and branded, on one sheet (for checking). |
 
-### Build your package
+The earlier look (ivory and brass, the scroll "film" on `/concepts`) is retired.
 
-**The 9 steps:**
-1. **Guests.** A big counter with quick picks. It suggests a bar and the number of bartenders.
-2. **Bar.** Six clean white bar renders. The recommended bar is pre-selected and badged.
-3. **Colour.**
-   - **Bar colour:** Classic white, or an LED glow in pink, purple, blue, aqua, green, amber, red or a colour cycle.
-   - **Custom branded:** "Your artwork here" is drawn onto the bar's front panel in perspective. A glowing **Free artwork service** chip sits above it.
-4. **Glassware.** Six common glasses plus four more, each with a counter and "One per guest".
-5. **Ice.** Bagged ice and Igloo cool boxes. Leave both at zero and "we'll advise".
-6. **Fridges.** Bar fridges.
-7. **Staff.** Bartenders, the suggestion pre-filled, plus the party date and the times the bar opens and closes. The price shows live: 2 × 5h × £28 = £280 + VAT.
-8. **Drinks.** "We'll bring our own", or one of the three draft drinks packages. A package includes the bar, staff, glassware and ice, so nothing is charged twice.
-9. **Your quote.** Name, email, phone and postcode, then **Request my quote**. Prototype: "Preview only: nothing has been sent."
+## Jake's decisions
 
-**Layout:**
-- **Phone:** full screen. The bottom bar shows the running quote (tap it for the full quote) and **Next**.
-- **Desktop:** a large panel, with the quote beside it. The quote also shows the chosen bar in its chosen colour.
+**8 Nov.** Start again, simple. Desktop look C (the martini and pineapple photo); the phone screens
+"exactly how I would like it to look". Headline: "You bring the guests, we’ll bring the rest." No
+left/right arrows on the header. One quote, "Build your package". Client logos as SVGs. A gallery
+that opens in a pop-up.
 
-**Behaviour:**
-- **Navigation:** every step is in the URL (`#build/bar`, …), so the phone's Back gesture goes back a step.
-- **Saved choices:** kept in this browser only. Never contact details or the postcode.
+**10 Nov.** His full brief is the source for everything below:
 
-**Logic** is in `src/lib/new-home/package.ts`, with 12 tests in `package.test.ts` and `perspective.test.ts`.
+1. **Bars.** Drawn in the styles we really have (mirror, shimmer and so on), not glowing colours.
+   All facing the same way, vector, central, consistent. The curved bar follows the Grumpy Joe's
+   curved bars. Branding shows on every panel. Add an L-shape and a full island bar.
+2. **Real prices**, so the builder makes an actual quote as you go (table below).
+3. **All-inclusive first**, priced by the drinks, with a menu people can edit and search.
+4. **Staff** are paid from 30 minutes before the bar opens to 30 minutes after it closes. Never
+   fewer than two.
+5. **Set-up** the day before or on the day; collection one to three days after.
+6. **The quote** downloads as a PDF with our logo, after an email address. Leads go to AnyVendor
+   later (Jake is connecting that).
+7. **The site**: one section at a time with snapping, on phones too. Christmas as a classy advert
+   with snow. Sections for corporate, weddings and birthdays. Video in the header. Not a long,
+   confusing page. No emojis.
+8. **Marquees**: a package section, and "add a marquee" in the quote. Furniture, crockery and the
+   rest only with a marquee. Prices later.
 
-### Rules used (all to confirm)
+## Prices and rules in the builder
 
-| Rule | Source |
+Every price is plus VAT. The numbers live in one file, `src/lib/quote/prices.ts`, and the rules are
+tested in `src/lib/quote/quote.test.ts` (run `pnpm test`).
+
+| Item | Price | From |
+|---|---|---|
+| Bartender | £28 an hour | Jake |
+| 1.5m (5ft) bar | £215 | Jake |
+| 3m bar | £325 | Jake |
+| Each further 1.5m section | + £100 (£425, £525, £625, £725) | Jake |
+| Corner piece | £100 | Jake |
+| Horseshoe bar (six sections, two corners) | £925 | Jake's rule: £725 + £200 |
+| Full round bar, mirror or LED | £1,200 | Jake |
+| L-shape bar | sections + one £100 corner | worked out from Jake's rule |
+| Island bar (eight sections, four corners) | £1,325 | worked out from Jake's rule |
+| Curved (half-circle) bar | To confirm | no price given |
+| Custom branding | To confirm | no price given |
+| Glassware | 80p a glass | Jake |
+| Igloo of ice | £75 | Jake |
+| Single bar fridge | £60 | Jake |
+| Double back-bar fridge | £140 | Jake |
+| Delivery, set-up and collection | £95, once | Jake |
+| VAT | 20% on every line | assumed |
+
+### All-inclusive drinks (per guest)
+
+| Bar open for | Per guest |
 |---|---|
-| Recommended bar: up to 50 guests → 1.5m, up to 100 → 3m, up to 150 → 4.5m, more → full horseshoe | "Up to N guests" on the current site's bar cards |
-| Suggested bartenders: one per 50–75 guests | The current site's FAQ |
-| Bartenders £28 per person per hour + VAT, on the hours the bar is open | The authorised staff rate |
-| Bar, LED lighting, custom branding, glassware, ice, fridges, delivery, drinks: **"To confirm"**, never £0 | No confirmed prices yet |
-| LED colours offered | **Placeholder.** Which colours do the bars actually come in? |
+| Under 5 hours | £7.50 an hour (4 hours £30; 4½ hours £33.75) |
+| 5 hours | £35 |
+| Each extra hour | + £5 (6 hours £40, 7 hours £45, 8 hours £50) |
 
-## Images (all in `public/images/new-home/`)
+The standard menu comes ticked. Unticking a drink never changes the price.
+
+| Drink | Terms |
+|---|---|
+| Peroni, Corona | Standard |
+| Desperados | + £3 a guest |
+| Estrella Galicia | + £3 a guest |
+| Alhambra Reserva | + £5 a guest |
+| Villa Vito Pinot Grigio | Standard white |
+| House red, house rosé | Standard. **Labels not chosen yet** (Majestic has no Villa Vito red or rosé). |
+| Aqualta Prosecco | Standard |
+| Absolut | Standard |
+| Absolut Vanilia | Free to add |
+| Grey Goose | + £3 a guest |
+| Bombay Sapphire | Standard |
+| Hendrick's | + £3 a guest |
+| Bacardí | Standard |
+| Sailor Jerry | Free to add |
+| Kraken | Price to confirm ("more money", amount not given) |
+| Kentucky bourbon | Standard |
+| Jack Daniel's | Free to add |
+| Soft drinks and mixers | Standard |
+| Any drink a guest types that isn't listed | Added as a request, price to confirm |
+
+**Champagne is by the bottle:** Majestic's single-bottle price plus 25%, to the nearest pound.
+
+| Champagne | Majestic, 10 Nov 2026 | Our price a bottle |
+|---|---|---|
+| Veuve Clicquot Yellow Label | £56 | £70 |
+| Moët & Chandon Impérial | £49 | £61 |
+| Dom Pérignon (2017) | £215 | £269 |
+
+Majestic's own site blocks automated reading, so the prices were read from a price-comparison
+listing of Majestic and checked against Majestic's pages in a search index. Majestic's "Mix Six"
+prices are lower (£46, £40, £210) but move with promotions, so the steadier single-bottle price is
+used. To change a price, edit the Majestic figure in `src/lib/quote/drinks.ts`.
+
+### Staff
+
+- Recommended: one, plus one for every 25 guests. 50 guests is 3, 100 is 5, 150 is 7, 200 is 9.
+- Never fewer than two. The guest can choose more or fewer (down to two).
+- Paid from arrival to finish: at least 30 minutes before the bar opens (the guest can pick 60, 90
+  or 120) until 30 minutes after it closes. A bar open 6pm to midnight is 7 hours each.
+
+### Bars
+
+- Recommended size: one 1.5m section for every 25 guests (50 guests is a 3m bar). From about 150
+  guests the horseshoe is suggested; above 200, the island. The guest can pick anything.
+- Finishes, from our own photos: white gloss with black edging, mirror, shimmer (sequin wall), the
+  LOVE bar (3m only) and LED (curved and round bars only).
+
+### Set-up and collection
+
+- Set-up time needed before the bar opens: 2 hours up to 50 guests, 4 hours up to 100, 6 hours above.
+- The guest picks set-up the day before or on the day. On the day is not offered if it would mean
+  starting before 7am (our assumption).
+- Collection: the day after, or two or three days after.
+
+## Assumptions for Jake to confirm
+
+1. **What £35 a head covers.** The builder adds the bar, staff, glassware, ice and delivery on top
+   of the drinks price. The old site's all-in packages included those.
+2. Under 5 hours is charged pro rata in half hours.
+3. Staff above 100 guests follow the same pattern (150 is 7, 200 is 9, 250 is 11).
+4. Which bar is recommended for each guest number.
+5. L-shape and island prices, worked out from the section and corner prices.
+6. The curved half-circle bar and custom branding have no price yet.
+7. Mirror and shimmer are offered on every straight, L, horseshoe and island bar. We only have
+   photos of them on a single 1.5m bar.
+8. Kraken's extra, the house red and rosé labels, and which bourbon is the house Kentucky.
+9. VAT at 20% on everything.
+10. On-the-day set-up not offered before 7am.
+11. Champagne from Majestic's single-bottle price, with VAT then added on top like every other line.
+
+## The quote builder
+
+Ten short steps: event, bar, style, drinks, glassware, ice and fridges, bartenders, delivery,
+marquee, your quote. The quote builds down the side (desktop) or in the bar at the bottom (phone).
+
+- **Download PDF** asks for an email first, then makes the PDF in the browser (`src/lib/quote/pdf.ts`,
+  with the logo).
+- **Email it to me** and the email given for the PDF are **not sent anywhere yet**. The one place to
+  connect AnyVendor is `src/lib/quote/leads.ts` (`LEADS_CONNECTED`). Until then the screen says so.
+- **Copy link** makes a link that reopens the same quote. The postcode is never put in a link.
+- Choices are saved in the browser so a guest can come back. No account, no server.
+
+### Marquee
+
+"Add a marquee" opens the marquee partner's range in 14 groups (109 items): marquees (clear span,
+Chinese hat, catering), walls and doors, linings and ceilings (including the starlit ceiling),
+flooring, dance floors, lighting, heating and power, chairs, tables and sofas, linen, crockery,
+cutlery, tableware, catering equipment and staging.
+
+- Everything except the marquee itself is locked until a marquee is chosen.
+- **Every marquee price reads "To confirm".** Nothing is shown as £0. The partner's name is not shown.
+- The range was read from the partner's website on 10 Nov 2026. Their site does not publish marquee
+  sizes or prices. To add prices, fill `price` in `src/lib/quote/marquee.ts`.
+- Marquee pictures are our own line drawings. The partner's product photos are not used (no
+  permission on file).
+
+## Bar drawings
+
+`src/components/new-home/package/BarDiagram.tsx` draws every bar from its real measurements
+(`src/lib/quote/diagram.ts`): 1.5m sections, 0.6m deep, 1.1m high, the same camera for every bar.
+Branded bars show "Your artwork" on every panel, corners and all sides included.
+
+- Curved and round bars follow the Grumpy Joe's sectional system: eight 45° curved sections make a
+  4m circle. LED is an opal lit panel on a black plinth with black posts.
+- Style photos on the Style step (`public/images/new-home/styles/`) are OpenArt mock-ups made from
+  our own photos of each finish. They are illustrations, not photos of real events.
+
+## Video
+
+Instagram and Facebook need a login, so the clips come from The Bar People's own promo films in the
+current website's media library (1920×818 and 1920×1080). Eight shots were chosen, slowed slightly
+and joined with soft fades.
+
+| File (`public/videos/new-home/`) | Use |
+|---|---|
+| `hero-reel.mp4` (1600 wide, 19s), `hero-reel.jpg` | Header film on desktop. Opens on the bartender raising two cocktails. |
+| `hero-reel-phone.mp4` (upright 4:5) | Header film on phones, each shot cropped around its subject. |
+| `card-*.mp4` (720×1280) | "See us in action" card: six upright clips that fade into each other. |
+
+No sound. The films play only while on screen, can be paused, and stay still for reduced motion.
+Better originals from Jake's phone or Instagram can replace any file one for one.
+
+## Images
 
 | File | What it is |
 |---|---|
-| `hero-cocktails.jpg` | OpenArt 4K clean-up of the real martini/pineapple photo: fuller martinis, neater pineapple. |
-| `hero-lawn.jpg`, `hero-balloons.jpg` | OpenArt 4K clean-ups of the real lawn and balloon bar photos, extended to 16:9. |
-| `bars/*.webp` | OpenArt studio renders of each bar in the live site's sketches, with the real white-and-black finish. Cut out locally (ISNet and OpenCV). The front-panel corners are in `BAR_ART`. |
-| `christmas.jpg` | An OpenArt festive scene built around the real white bar. A promo image, not a real event. |
-
-Hero slides 3 and 5 are real photos used as they are (`film/shirt-pour.jpg`, `film/counter-copper.jpg`).
+| `new-home/hero-cocktails.jpg` | OpenArt 4K clean-up of the real martini and pineapple photo. |
+| `new-home/hero-lawn.jpg`, `hero-balloons.jpg` | OpenArt 4K clean-ups of real bar photos. |
+| `new-home/christmas.jpg` | An OpenArt festive scene built around the real white bar. A promo image, not a real event. |
+| `new-home/styles/*.jpg` | OpenArt mock-ups of each bar finish (see above). |
+| `film/*`, `events/*`, `gallery/*` | Real photos from the current site. |
 
 ### Client logos (`public/images/clients/*.svg`)
 
-Every logo is a real vector; none are traced. They were sanitised: no scripts, links, embedded images
-or fixed sizes. The page shows them solid black.
+Real vectors, none traced, sanitised (no scripts, links or embedded images).
 
 | Logo | Source |
 |---|---|
-| O2, Sky | Simple Icons. Sky is the current rounded wordmark, newer than the PNG on the old site. |
-| Salesforce, HPE | Wikimedia Commons. Salesforce's lettering is cut out of the cloud so it reads in one colour. |
+| O2, Sky | Simple Icons |
+| Salesforce, HPE | Wikimedia Commons |
 | Boux Avenue | Wikipedia (non-free logo file) |
-| Batiste | Batiste's own site, strapline removed |
+| Batiste | Batiste's own site |
 | Bulb | bulb.co.uk header (via the Web Archive) |
 | ITV2 | picons (TV logo collection) |
 | Superdrug | seeklogo vector (third party) |
 
-Not included:
-- **Porsche:** only the crest was available, which is unreadable at strip size.
-- **CRATE Brewery:** the site blocked downloads.
-
-## Header video: ready for Jake's clips
-
-Add a slide as `{ kind: 'video', src, poster, alt, focus }` in `src/components/new-home/data.ts`.
-- **Clips:** short loops (about 8–12 s), MP4 (H.264), 1920×1080 or larger, no sound needed (they play muted).
-- **Poster:** a still from the clip, shown while it loads.
-- **Behaviour:** it plays only while showing, and stays still for reduced motion.
-
-## Still open
-
-1. **Client logos.** SVGs replace the PNGs as they arrive. Check each client is happy to be shown.
-2. **Bars.** Names, sizes, guest numbers and colours for real, plus whether every bar can be branded or lit.
-3. **Prices.** Bars, LED lighting, branding, glassware, ice, fridges, delivery and drinks packages.
-4. **Free artwork service.** What's included, to word the tooltip and step note.
-5. **Christmas copy and dates**, and whether to show the section only in season.
-6. **Request my quote.** Where it should go on the live site (anyOS enquiry, email). Nothing is sent today.
-7. **Header videos** from Jake.
-8. **Switching `/new` to the homepage.** Removing anyOS live-edit (`edit.js`) for the homepage text, and the AnyVendor field map (`opening` / `quote_intro` were written for the old look).
-
-## Mockups (round 1)
-
-| Screen | Mockup | Jake's notes |
-|---|---|---|
-| Desktop home | [desktop-home.jpg](mockups/desktop-home.jpg) | Keep the look and the photo; new headline. |
-| Phone home | [phone-home.jpg](mockups/phone-home.jpg) | "Exactly how I would like it to look." |
-| Phone, choose bar | [phone-dry-hire-choose-bar.jpg](mockups/phone-dry-hire-choose-bar.jpg) | Loves the horseshoe bar card. |
-| Phone, event | [phone-all-inclusive-event.jpg](mockups/phone-all-inclusive-event.jpg) | |
+Not included: Porsche (only the crest was available) and CRATE Brewery (downloads blocked). Check
+each client is happy to be shown.
 
 ## OpenArt record
 
-All of this is in the project "The Bar People — new homepage & instant quote concepts". The model is
-GPT Image 2.6 Sunburst, image-to-image.
+Project "The Bar People — new homepage & instant quote concepts". Model: GPT Image 2.6 Sunburst,
+image-to-image, from our own photos.
 
-| Round | Jobs | Credits (list price) |
+| Round | Jobs | Credits |
 |---|---|---|
-| 1 · mockups | A–F at 2K high: `qbknaCEvnZqUysmheuos`, `rhASTTjJU58Q00rO23r8`, `zwFiUiLLwUbBtkViozpb` (C), `jAceSQ0gaGqRAoFD62P6` (D), `ZEDHROR0YcvcwmsDkRYL` (E), `sniAvkCVw6rZBJ8v8Ra1` (F) | 231 (balance drop) |
-| 2 · assets | Hero 4K high × 3 (62 each): `iBD1I1eLSQuKGPMkk8FW`, `QgKKZ1gONFvQkO60nJ5J`, `lMPI8eWU5eAl1N6l1WJk`. Bars 2K high × 6 (35 each): `fF6O20XzeL8LR9RIazbm`, `KXInyGP5cj4AzS4giXtN`, `eJdo0s27Yv0CYLz0yfVs`, `UzWa8u5Kio2wEuqWNG8a`, `Nn2M1vISVMv1qO8zoFaH`, `pMoBobGH57WxKNDVkVkb`. Christmas 2K high (35): `WhwO8mPpVENbIIfaEckJ` | 431 |
+| 1 · mockups (8 Nov) | `qbknaCEvnZqUysmheuos`, `rhASTTjJU58Q00rO23r8`, `zwFiUiLLwUbBtkViozpb`, `jAceSQ0gaGqRAoFD62P6`, `ZEDHROR0YcvcwmsDkRYL`, `sniAvkCVw6rZBJ8v8Ra1` | 231 |
+| 2 · hero, bars, Christmas (8 Nov) | `iBD1I1eLSQuKGPMkk8FW`, `QgKKZ1gONFvQkO60nJ5J`, `lMPI8eWU5eAl1N6l1WJk`, `fF6O20XzeL8LR9RIazbm`, `KXInyGP5cj4AzS4giXtN`, `eJdo0s27Yv0CYLz0yfVs`, `UzWa8u5Kio2wEuqWNG8a`, `Nn2M1vISVMv1qO8zoFaH`, `pMoBobGH57WxKNDVkVkb`, `WhwO8mPpVENbIIfaEckJ` | 431 |
+| 3 · bar finishes (10 Nov) | white `E6RhKN3tIWmVW9b9VQjR`, mirror `eyuFHjfNT6K6NFYTaXKH`, shimmer `YjE3rQyQib25tFnCOQP9`, LOVE `kJQNgsWuA446vaMATaKg`, LED `EQQM3lDgRBuZCLFDVMvh` | 175 |
 
-The total is about 662 credits. That's over the 500-credit cap set for round 1, and round 2 was
-Jake's direct request. Set a new cap before any further rounds.
+About 837 credits in total. No credits were bought or borrowed. The six round-2 bar renders are no
+longer used (replaced by the vector drawings).
 
-References uploaded to the project:
-- the logo roundel;
-- seven real photos;
-- the five bar sketches from the live site.
+## Still open
+
+1. Jake's answers to the assumptions above.
+2. Marquee prices and sizes, from the marquee partner.
+3. Connecting leads and a live quote link to AnyVendor (`src/lib/quote/leads.ts`).
+4. Header clips from Jake's own Instagram or phone, if he wants to swap any.
+5. Christmas copy and dates, and whether to show that section only in season.
+6. Switching `/new` to be the homepage: not done, and not to be done without Jake's say-so.
+
+## Where things are
+
+| What | Where |
+|---|---|
+| Prices | `src/lib/quote/prices.ts` |
+| Bars, sizes, finishes, recommendations | `src/lib/quote/bars.ts` |
+| Drinks prices and menu | `src/lib/quote/drinks.ts` |
+| Staff hours, set-up and collection | `src/lib/quote/schedule.ts` |
+| Marquee range | `src/lib/quote/marquee.ts` |
+| The quote itself (lines, VAT, totals, share link) | `src/lib/quote/quote.ts` |
+| PDF | `src/lib/quote/pdf.ts` |
+| Leads (not connected) | `src/lib/quote/leads.ts` |
+| Builder screens | `src/components/new-home/builder/` |
+| Homepage sections and words | `src/components/new-home/sections/`, `src/components/new-home/data.ts` |
+
+Earlier mockups are in `docs/new-homepage/mockups/`.

@@ -1,7 +1,8 @@
 'use client';
 
-// A swipeable strip of real event photos. Tap one and it opens large in a
-// modal: arrows, keyboard and swipe move through them, Esc closes.
+// A swipeable strip of real event photos, sized to fit one screen. Tap one and
+// it opens large in a modal: arrows, keyboard and swipe move through them, Esc
+// closes.
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
@@ -41,50 +42,53 @@ export default function GalleryCarousel() {
   const item = open !== null ? GALLERY[open] : null;
 
   return (
-    <section aria-labelledby="gallery-title" className="bg-white py-16 md:py-24">
-      <div className="mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 sm:px-6 lg:px-10">
-        <div>
-          <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-nh-ash">Our events</p>
-          <h2 id="gallery-title" className="mt-2 text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] md:text-[52px]">
-            Real bars, real parties
-          </h2>
-        </div>
-        <div className="hidden items-center gap-2 md:flex">
-          <button type="button" onClick={() => scrollStrip(-1)} aria-label="Scroll photos left"
-            className={cn('flex h-12 w-12 items-center justify-center rounded-full border border-nh-line transition hover:border-nh-ink', ring)}>
-            <ArrowLeft className="h-5 w-5" aria-hidden />
-          </button>
-          <button type="button" onClick={() => scrollStrip(1)} aria-label="Scroll photos right"
-            className={cn('flex h-12 w-12 items-center justify-center rounded-full border border-nh-line transition hover:border-nh-ink', ring)}>
-            <ArrowRight className="h-5 w-5" aria-hidden />
-          </button>
-        </div>
-      </div>
-
-      <ul ref={trackRef} className="nh-scroll-x mt-8 flex snap-x snap-mandatory scroll-px-5 gap-3 overflow-x-auto px-5 pb-2 sm:scroll-px-6 sm:px-6 md:mt-10 md:gap-4 lg:scroll-px-10 lg:px-10">
-        {GALLERY.map((g, i) => (
-          <li key={g.src} className="w-[72vw] shrink-0 snap-start sm:w-[44vw] md:w-[31vw] lg:w-[23vw] xl:w-[19vw]">
-            <button
-              type="button"
-              onClick={(e) => { openerRef.current = e.currentTarget; show(i); }}
-              className={cn('group block w-full rounded-[18px] text-left', ring)}
-              aria-label={`Open photo: ${g.caption}`}
-            >
-              <span className="relative block aspect-[4/5] overflow-hidden rounded-[18px] bg-nh-mist">
-                <Image src={g.src} alt="" fill sizes="(min-width: 1280px) 19vw, (min-width: 1024px) 23vw, (min-width: 768px) 31vw, (min-width: 640px) 44vw, 72vw"
-                  className="object-cover transition duration-500 group-hover:scale-[1.04]" />
-              </span>
-              <span className="mt-3 block text-[14px] font-semibold">{g.caption}</span>
-              <span className="block text-[13px] text-nh-ash">{g.category}</span>
+    <section id="gallery" data-snap aria-labelledby="gallery-title" className="nh-section bg-nh-mist text-nh-ink">
+      <div className="flex h-full flex-col pb-[clamp(12px,2.6dvh,36px)] pt-[calc(var(--nh-head)+clamp(14px,3dvh,40px))]">
+        <div className="mx-auto flex w-full max-w-[1600px] shrink-0 items-end justify-between gap-6 px-[var(--nh-gutter)]">
+          <div>
+            <p data-reveal="1" className="nh-eyebrow text-nh-ash">Our events</p>
+            <h2 id="gallery-title" data-reveal="2" className="nh-title mt-2 lg:mt-3">Real bars, real parties</h2>
+          </div>
+          <div className="hidden items-center gap-2 lg:flex">
+            <button type="button" onClick={() => scrollStrip(-1)} aria-label="Scroll photos left"
+              className={cn('flex h-12 w-12 items-center justify-center rounded-full border border-nh-ink/20 transition hover:border-nh-ink', ring)}>
+              <ArrowLeft className="h-5 w-5" aria-hidden />
             </button>
-          </li>
-        ))}
-      </ul>
+            <button type="button" onClick={() => scrollStrip(1)} aria-label="Scroll photos right"
+              className={cn('flex h-12 w-12 items-center justify-center rounded-full border border-nh-ink/20 transition hover:border-nh-ink', ring)}>
+              <ArrowRight className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
+        </div>
 
-      <div className="mx-auto mt-8 max-w-[1440px] px-5 sm:px-6 lg:px-10">
-        <Link href="/gallery" className={cn('inline-flex items-center gap-2 rounded text-[15px] font-semibold underline decoration-nh-ink/30 underline-offset-4 hover:decoration-nh-ink', ring)}>
-          See the full gallery <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
+        {/* The strip takes whatever height is left; each tile sizes itself from that (.nh-tile in home.css). */}
+        <div data-reveal="3" className="nh-media nh-fit mt-[clamp(12px,2.6dvh,32px)] min-h-0 flex-1">
+          <ul ref={trackRef} className="nh-strip nh-scroll-x flex h-full snap-x snap-mandatory scroll-px-[var(--nh-edge)] items-center gap-3 overflow-x-auto px-[var(--nh-edge)] lg:gap-4">
+            {GALLERY.map((g, i) => (
+              <li key={g.src} className="nh-tile shrink-0 snap-start">
+                <button
+                  type="button"
+                  onClick={(e) => { openerRef.current = e.currentTarget; show(i); }}
+                  className={cn('group block w-full rounded-[18px] text-left', ring)}
+                  aria-label={`Open photo: ${g.caption}`}
+                >
+                  <span className="nh-tile-photo relative block overflow-hidden rounded-[18px] bg-nh-line">
+                    <Image src={g.src} alt="" fill sizes="(min-width: 1024px) 34vw, 74vw"
+                      className="object-cover transition duration-500 group-hover:scale-[1.04]" />
+                  </span>
+                  <span className="mt-2.5 block truncate text-[14px] font-semibold leading-tight">{g.caption}</span>
+                  <span className="mt-1 block text-[13px] leading-tight text-nh-ash">{g.category}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mx-auto mt-[clamp(8px,1.8dvh,24px)] w-full max-w-[1600px] shrink-0 px-[var(--nh-gutter)]">
+          <Link href="/gallery" className={cn('inline-flex h-11 items-center gap-2 rounded text-[15px] font-semibold underline decoration-nh-ink/30 underline-offset-4 hover:decoration-nh-ink', ring)}>
+            See the full gallery <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
       </div>
 
       <dialog

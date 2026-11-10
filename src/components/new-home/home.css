@@ -1,0 +1,265 @@
+/* New homepage (/new): one section per screen.
+   Tokens and the older .nh-* animations live in src/app/globals.css. */
+
+/* ─── The page scrolls inside .nh-snap, never the document ────────────────────
+   With the document locked, phone browser bars stay put, so 100dvh is one
+   steady height and every section is exactly one screen. Scoped with :has()
+   because Next keeps this stylesheet loaded after you leave /new. */
+html:has(.nh-snap),
+html:has(.nh-snap) body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.nh-snap {
+  /* Height of the header once you have scrolled; sections start below it. */
+  --nh-head: 56px;
+  --nh-gutter: 20px;
+  /* Left and right edge of the page column: the gutter, or more once the screen is wider than the 1600px column. */
+  --nh-edge: max(var(--nh-gutter), calc((100vw - 1600px) / 2 + var(--nh-gutter)));
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  /* The section dots stand in for the scrollbar. */
+  scrollbar-width: none;
+}
+.nh-snap::-webkit-scrollbar { display: none; }
+
+.nh-section {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+/* The footer is shorter than a screen: it snaps to the bottom instead. */
+.nh-footer {
+  position: relative;
+  scroll-snap-align: end;
+  scroll-snap-stop: always;
+}
+
+@media (min-width: 640px) {
+  .nh-snap { --nh-gutter: 24px; }
+}
+@media (min-width: 1024px) {
+  .nh-snap { --nh-head: 64px; --nh-gutter: 40px; }
+}
+
+/* Too short for a section per screen (a phone on its side, a squashed window):
+   fall back to an ordinary scrolling page so nothing is ever cut off. */
+@media (max-height: 539px) {
+  .nh-snap { scroll-snap-type: none; }
+  .nh-section { height: auto; min-height: 100vh; min-height: 100dvh; }
+  /* Photo areas flex to fill a fixed-height section; here they need a floor. */
+  .nh-media { min-height: 240px; }
+}
+
+/* ─── Type ──────────────────────────────────────────────────────────────────
+   Sizes follow the screen's width and its height, so a section's words fit a
+   short laptop as well as a tall phone. */
+.nh-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+.nh-title {
+  font-size: clamp(1.75rem, min(4.4vw + 1rem, 7.2vh), 5.25rem);
+  font-size: clamp(1.75rem, min(4.4vw + 1rem, 7.2dvh), 5.25rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.nh-lede {
+  font-size: clamp(15px, min(0.45vw + 13px, 2.5vh), 21px);
+  font-size: clamp(15px, min(0.45vw + 13px, 2.5dvh), 21px);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.nh-points {
+  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3vh), 19px);
+  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3dvh), 19px);
+}
+.nh-hero-title {
+  font-size: clamp(2rem, 6vh, 2.5rem);
+  font-size: clamp(2rem, 6dvh, 2.5rem);
+}
+@media (min-width: 640px) {
+  .nh-points {
+  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3vh), 19px);
+  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3dvh), 19px);
+}
+.nh-hero-title { font-size: clamp(2rem, 7.2dvh, 3rem); }
+}
+@media (min-width: 768px) {
+  .nh-points {
+  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3vh), 19px);
+  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3dvh), 19px);
+}
+.nh-hero-title { font-size: clamp(2.75rem, min(10.2vw, 12.5dvh), 5.75rem); }
+}
+@media (min-width: 1024px) {
+  .nh-eyebrow { font-size: 12.5px; }
+}
+
+/* Second-line copy that gives way first on a short phone. */
+@media (max-width: 1023px) and (max-height: 719px) {
+  .nh-if-room { display: none; }
+}
+
+/* ─── Sections reveal once, the first time they come on screen ────────────────
+   SnapPage adds data-ready to the scroller and data-seen to each section. Until
+   the script runs nothing is hidden, so the page reads fine without it. */
+.nh-snap [data-reveal] {
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+.nh-snap [data-reveal='1'] { --i: 1; }
+.nh-snap [data-reveal='2'] { --i: 2; }
+.nh-snap [data-reveal='3'] { --i: 3; }
+.nh-snap [data-reveal='4'] { --i: 4; }
+.nh-snap [data-reveal='5'] { --i: 5; }
+.nh-snap[data-ready] [data-snap]:not([data-seen]) [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* ─── Section dots (desktop) ─────────────────────────────────────────────── */
+.nh-dots { color: #fff; transition: color 0.3s; }
+.nh-dots[data-tone='light'] { color: var(--color-nh-ink); }
+.nh-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.32;
+  transition: height 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s;
+}
+.nh-dots button:hover .nh-dot,
+.nh-dots button:focus-visible .nh-dot { opacity: 0.7; }
+.nh-dots button[aria-current] .nh-dot { height: 20px; opacity: 1; }
+.nh-dot-label {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  margin-right: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--color-nh-ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(4px, -50%);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.nh-dots[data-tone='dark'] .nh-dot-label { background: #fff; color: var(--color-nh-ink); }
+.nh-dots button:hover .nh-dot-label,
+.nh-dots button:focus-visible .nh-dot-label { opacity: 1; transform: translate(0, -50%); }
+
+/* ─── Christmas advert ───────────────────────────────────────────────────── */
+/* Snow sits behind the words and thins out where they are. */
+.nh-snow {
+  -webkit-mask-image: radial-gradient(ellipse 46% 40% at 50% 54%, rgb(0 0 0 / 0.3) 0%, rgb(0 0 0 / 0.3) 55%, #000 100%);
+  mask-image: radial-gradient(ellipse 46% 40% at 50% 54%, rgb(0 0 0 / 0.3) 0%, rgb(0 0 0 / 0.3) 55%, #000 100%);
+}
+
+/* ─── Client logos inside the Corporate section ──────────────────────────────
+   One fixed-height row. For reduced motion the global rule wraps the logos onto
+   several rows, which would not fit a one-screen section: keep one still row
+   that can be swiped instead. */
+@media (prefers-reduced-motion: reduce) {
+  .nh-logos-row { overflow-x: auto; scrollbar-width: none; }
+  .nh-logos-row::-webkit-scrollbar { display: none; }
+  .nh-logos-row .nh-marquee-track {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: max-content;
+    row-gap: 0;
+  }
+}
+
+/* ─── Media that sizes itself from the space it is given ─────────────────────
+   .nh-fit is a box that fills whatever room its section has left; the thing
+   inside reads that room through container units. */
+.nh-fit { container-type: size; }
+
+/* Video card: as tall as the room allows, always 9:16. */
+.nh-video-card {
+  height: min(100cqh, 100cqw * 16 / 9, 700px);
+  aspect-ratio: 9 / 16;
+}
+/* Corporate: the photo fills its box on a phone; on a desktop it is a 4:3 card
+   sized to the room, set in from the left and bottom so the drawing card can
+   overhang that corner. */
+.nh-corp-visual { position: absolute; inset: 0; }
+@media (min-width: 1024px) {
+  .nh-corp-visual {
+    inset: auto 0 auto auto;
+    top: 50%;
+    width: min(100cqw - 40px, 760px, (100cqh - 56px) * 4 / 3);
+    aspect-ratio: 4 / 3;
+    transform: translateY(calc(-50% - 18px));
+  }
+}
+/* Parties: the photo fills its box on a phone; on a desktop it is a tall 4:5
+   card, as big as the room allows, in the middle of its column. */
+.nh-party-photo { position: absolute; inset: 0; }
+@media (min-width: 1024px) {
+  .nh-party-photo {
+    inset: auto;
+    top: 50%;
+    left: 50%;
+    height: min(100cqh - clamp(40px, 9dvh, 96px), 100cqw * 1.25, 760px);
+    aspect-ratio: 4 / 5;
+    transform: translate(-50%, -50%);
+  }
+}
+/* The drawing card only shows when the photo is tall enough to carry it. */
+@container (max-height: 239px) {
+  .nh-inset { display: none; }
+}
+/* Gallery strip: each tile takes its size from the strip's height. A tall,
+   narrow strip (phones and tablets held upright) stacks the tiles two deep so
+   the photos stay landscape instead of stretching into thin columns. */
+.nh-tile {
+  --tile-h: calc(100cqh - 50px); /* 50px: the two caption lines under each photo */
+  --tile-w: min(74vw, var(--tile-h) * 0.8);
+  width: var(--tile-w);
+}
+.nh-tile-photo { height: min(var(--tile-h), var(--tile-w) * 1.5); }
+@container (min-height: 500px) and (max-width: 1023px) {
+  .nh-strip {
+    display: grid;
+    grid-template-rows: repeat(2, auto);
+    grid-auto-flow: column;
+    align-content: center;
+    row-gap: 14px;
+  }
+  .nh-tile {
+    --tile-h: calc((100cqh - 14px) / 2 - 50px);
+    --tile-w: min(74vw, var(--tile-h) * 1.4);
+  }
+  .nh-tile-photo { height: var(--tile-h); }
+}
+
+/* ─── Video card clock ───────────────────────────────────────────────────── */
+.nh-clip-bar { transform-origin: left center; transform: scaleX(0); transition: transform 0.25s linear; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nh-snap [data-reveal] { opacity: 1 !important; transform: none !important; transition: none; }
+  .nh-dot, .nh-dot-label, .nh-dots, .nh-clip-bar { transition: none; }
+}

@@ -1,11 +1,14 @@
 /* eslint-disable @next/next/no-img-element -- small logo files (mostly SVG) in an
    endless strip; plain img keeps them crisp at any size with no optimiser round trip. */
 import type { CSSProperties } from 'react';
-import { CLIENT_LOGOS, logoHeight } from './data';
+import { cn } from '@/lib/utils';
+import { CLIENT_LOGOS, CORPORATE, logoHeight } from './data';
 
-// "Who we've worked with": an endless, slow strip of client logos in solid
-// black. Pauses on hover; a still, wrapped row for reduced motion.
-export default function ClientLogos() {
+// "Trusted by": one endless, slow row of client logos along the foot of the
+// Corporate section. The logo files are black artwork; on the dark section
+// they are flattened to solid white with a CSS filter. Pauses on hover; a
+// still row for reduced motion.
+export default function ClientLogos({ className }: { className?: string }) {
   const set = (dup: boolean) =>
     CLIENT_LOGOS.map((l) => (
       <li key={`${l.name}-${dup ? 'b' : 'a'}`} className={dup ? 'nh-marquee-dup' : undefined} aria-hidden={dup || undefined}>
@@ -16,21 +19,19 @@ export default function ClientLogos() {
           height={logoHeight(l.ratio)}
           loading="lazy"
           style={{ '--h': `${logoHeight(l.ratio)}px` } as CSSProperties}
-          className="h-[calc(var(--h)*0.8)] w-auto opacity-75 brightness-0 transition hover:opacity-100 md:h-[var(--h)]"
+          className="h-[calc(var(--h)*0.7)] w-auto max-w-none opacity-80 brightness-0 invert transition hover:opacity-100 lg:h-[calc(var(--h)*0.85)]"
         />
       </li>
     ));
   return (
-    <section aria-labelledby="clients-title" className="border-b border-nh-line bg-white py-10 md:py-14">
-      <h2 id="clients-title" className="px-5 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-nh-ash md:text-[12px]">
-        Trusted by brands we’ve worked with
-      </h2>
-      <div className="nh-marquee mt-7 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] md:mt-9">
-        <ul className="nh-marquee-track flex w-max items-center gap-14 px-7 md:gap-24 md:px-12">
+    <div className={cn('flex items-center gap-5 lg:gap-8', className)}>
+      <p id="clients-label" className="nh-eyebrow shrink-0 text-white/60">{CORPORATE.trusted}</p>
+      <div className="nh-marquee nh-logos-row min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_7%,black_93%,transparent)]">
+        <ul aria-labelledby="clients-label" className="nh-marquee-track flex w-max items-center gap-11 px-[22px] lg:gap-16 lg:px-8">
           {set(false)}
           {set(true)}
         </ul>
       </div>
-    </section>
+    </div>
   );
 }

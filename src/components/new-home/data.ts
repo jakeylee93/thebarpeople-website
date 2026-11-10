@@ -4,12 +4,28 @@
 
 import { galleryImages } from '@/lib/constants';
 
-export const NAV = [
-  { href: '/our-bars', label: 'Our bars' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+/** The page scrolls inside this element, not the document (see SnapPage). */
+export const SCROLLER_ID = 'nh-scroller';
+
+/** One screen each, in page order. `tone` is what sits behind the section dots. */
+export const SECTIONS = [
+  { id: 'home', label: 'Home', tone: 'dark' },
+  { id: 'christmas', label: 'Christmas', tone: 'dark' },
+  { id: 'corporate', label: 'Corporate', tone: 'dark' },
+  { id: 'weddings', label: 'Weddings', tone: 'light' },
+  { id: 'parties', label: 'Parties', tone: 'light' },
+  { id: 'video', label: 'See us in action', tone: 'dark' },
+  { id: 'marquees', label: 'Marquees', tone: 'light' },
+  { id: 'gallery', label: 'Gallery', tone: 'light' },
+  { id: 'contact', label: 'Contact', tone: 'dark' },
 ] as const;
+
+export type SectionId = (typeof SECTIONS)[number]['id'];
+
+const NAV_IDS: SectionId[] = ['corporate', 'weddings', 'parties', 'marquees', 'gallery'];
+
+/** Header and footer links: jumps to sections of this page. */
+export const NAV = SECTIONS.filter((s) => NAV_IDS.includes(s.id)).map((s) => ({ id: s.id, href: `#${s.id}`, label: s.label }));
 
 /** Every "Build your package" button links here; the builder opens on this hash. */
 export const BUILD_HREF = '#build';
@@ -40,6 +56,8 @@ export type HeroSlide =
   // Ready for Jake's own clips: muted, looping, with a still poster.
   | { kind: 'video'; src: string; poster: string; alt: string; focus: Focus };
 
+// The lawn photo is also the Weddings picture further down, so it comes late
+// in the hero's rotation.
 export const HERO_SLIDES: HeroSlide[] = [
   {
     kind: 'image', src: '/images/new-home/hero-cocktails.jpg',
@@ -47,9 +65,9 @@ export const HERO_SLIDES: HeroSlide[] = [
     focus: { desktop: '50% 50%', phone: '52% 50%' },
   },
   {
-    kind: 'image', src: '/images/new-home/hero-lawn.jpg',
-    alt: 'A white Bar People bar on a lawn, willow trees and a gazebo behind',
-    focus: { desktop: '50% 62%', phone: '50% 70%' },
+    kind: 'image', src: '/images/new-home/hero-balloons.jpg',
+    alt: 'A white bar under big white balloons on a garden terrace',
+    focus: { desktop: '50% 58%', phone: '48% 62%' },
   },
   {
     kind: 'image', src: '/images/film/shirt-pour.jpg',
@@ -57,9 +75,9 @@ export const HERO_SLIDES: HeroSlide[] = [
     focus: { desktop: '50% 40%', phone: '58% 45%' },
   },
   {
-    kind: 'image', src: '/images/new-home/hero-balloons.jpg',
-    alt: 'A white bar under big white balloons on a garden terrace',
-    focus: { desktop: '50% 58%', phone: '48% 62%' },
+    kind: 'image', src: '/images/new-home/hero-lawn.jpg',
+    alt: 'A white Bar People bar on a lawn, willow trees and a gazebo behind',
+    focus: { desktop: '50% 62%', phone: '50% 70%' },
   },
   {
     kind: 'image', src: '/images/film/counter-copper.jpg',
@@ -88,17 +106,157 @@ export function logoHeight(ratio: number, area = 2450): number {
   return Math.round(Math.min(40, Math.max(22, Math.sqrt(area / ratio))));
 }
 
+/** A photo and where to hold the crop (CSS object-position), phone then desktop. */
+export interface Photo { src: string; alt: string; focus: Focus }
+
 export const CHRISTMAS = {
   eyebrow: 'Christmas 2026',
-  title: 'Christmas parties, sorted.',
-  body: 'Office parties, client drinks and family get-togethers. We bring the bar, the bartenders and the festive cocktails. You just bring the guests.',
-  points: ['Office parties', 'Client drinks', 'Family get-togethers'],
+  /** Two lines on a desktop; phones wrap it themselves. */
+  titleLines: ['Christmas parties,', 'sorted.'],
+  body: 'We bring the bar, the bartenders and the festive cocktails. You just bring the guests.',
   cta: 'Build your Christmas package',
   small: 'Book early for December.',
   image: {
     src: '/images/new-home/christmas.jpg',
     alt: 'A white bar dressed for Christmas with a garland, fairy lights and festive cocktails',
-  },
+    focus: { desktop: '50% 45%', phone: '32% 50%' },
+  } satisfies Photo,
+};
+
+export const CORPORATE = {
+  eyebrow: 'Corporate events',
+  title: 'A bar built around your brand.',
+  body: 'Launches, staff parties and brand events. We put your artwork on the bar, then deliver it, set it up and serve.',
+  points: [
+    'Your brand on every panel, with a free artwork service',
+    'Any size, from a 1.5m bar to a full island',
+    'Bartenders and all-inclusive drinks',
+  ],
+  cta: 'Build your package',
+  trusted: 'Trusted by',
+  diagramCaption: 'Your artwork on every panel',
+  image: {
+    src: '/images/events/salesforce-bar.jpg',
+    alt: 'A white bar with the Salesforce logo across its front panel, set up in an office',
+    focus: { desktop: '48% 55%', phone: '48% 58%' },
+  } satisfies Photo,
+};
+
+export const WEDDINGS = {
+  eyebrow: 'Weddings',
+  title: 'The bar for your big day.',
+  body: 'A bar to suit your venue, the drinks you love and bartenders to serve them, in London and nationwide.',
+  points: [
+    'Classic white or mirror finish',
+    'All-inclusive drinks, glassware and ice',
+    'We deliver, set up and collect',
+  ],
+  cta: 'Build your package',
+  image: {
+    src: '/images/new-home/hero-lawn.jpg',
+    alt: 'A white horseshoe bar on a lawn in front of a gazebo and willow trees',
+    focus: { desktop: '50% 74%', phone: '50% 72%' },
+  } satisfies Photo,
+};
+
+export const PARTIES = {
+  eyebrow: 'Birthdays and private parties',
+  title: 'Your party, our bar.',
+  body: 'Birthdays, garden parties and get-togethers. Start with a 1.5m bar and add whatever the night needs.',
+  points: [
+    'Bars from a single 1.5m section',
+    'Bartenders, drinks, glassware and ice',
+    'Delivered, set up and collected for you',
+  ],
+  cta: 'Build your package',
+  image: {
+    src: '/images/events/special-occasions.jpg',
+    alt: 'A neon sign reading Sip Sip Hooray on a leafy wall above a bar set with copper cups, under party balloons',
+    focus: { desktop: '50% 42%', phone: '50% 45%' },
+  } satisfies Photo,
+};
+
+export interface VideoClip { src: string; poster: string; alt: string }
+export interface Still { src: string; alt: string; /** CSS object-position inside the tall card */ focus: string }
+
+/**
+ * Clips for the "See us in action" card: tall (9:16) videos, played one after
+ * another with no sound. Empty until Jake's clips arrive; add them here, e.g.
+ *   { src: '/videos/pour.mp4', poster: '/videos/pour.jpg', alt: 'A bartender pouring a cocktail' },
+ * and the card switches from the photos below to the clips.
+ */
+export const VIDEO_CLIPS: VideoClip[] = [];
+
+/** Shown in the card while there are no clips. */
+export const VIDEO_STILLS: Still[] = [
+  { src: '/images/film/shirt-pour.jpg', alt: 'A Bar People bartender pouring a cocktail into a row of martini glasses', focus: '82% 50%' },
+  { src: '/images/events/martini-daiquiri.jpg', alt: 'A strawberry daiquiri beside copper cocktail shakers', focus: '64% 50%' },
+  { src: '/images/events/alex.jpg', alt: 'A Bar People bartender holding out a pineapple cocktail', focus: '50% 50%' },
+  { src: '/images/events/pina-colada.jpg', alt: 'A bartender finishing two tall piña coladas', focus: '56% 50%' },
+];
+
+export const VIDEO = {
+  eyebrow: 'See us in action',
+  title: 'Shaken, poured and served.',
+  body: 'A look behind the bar with our bartenders.',
+  cta: 'Build your package',
+  /** A soft, black-and-white backdrop behind the card; too blurred to pick anyone out. */
+  backdrop: '/images/events/boux-avenue.jpg',
+};
+
+export const MARQUEE = {
+  eyebrow: 'Packages',
+  title: 'The marquee package',
+  body: 'One quote for the marquee, the bar and everything that goes with it.',
+  items: ['Marquee', 'Bar', 'Bartenders', 'Drinks', 'Glassware', 'Ice and fridges'],
+  cta: 'Build a marquee package',
+  href: '#build/marquee',
+  note: 'Furniture, flooring, lighting and crockery can be added with a marquee.',
+};
+
+export type HowTopic = 'corporate' | 'weddings' | 'parties';
+
+/** The shared "How it works" sheet: the same three steps, one list per section. */
+export const HOW_IT_WORKS = {
+  title: 'How it works',
+  steps: [
+    { title: 'Build your package', body: 'Pick your bar, drinks, glassware and team, and see the price as you go.' },
+    { title: 'We confirm the details', body: 'We get in touch and go through everything with you.' },
+    { title: 'We deliver, set up, serve and collect', body: 'You just bring the guests.' },
+  ],
+  includedTitle: 'What you can include',
+  topics: {
+    corporate: {
+      label: 'Corporate events',
+      included: [
+        'A bar in your branding, with a free artwork service',
+        'Any size, from a 1.5m bar to a full island',
+        'Bartenders',
+        'All-inclusive drinks: beer, wine, spirits and soft drinks',
+        'Glassware, ice and fridges',
+      ],
+    },
+    weddings: {
+      label: 'Weddings',
+      included: [
+        'A bar in classic white or mirror',
+        'Bartenders',
+        'All-inclusive drinks: beer, wine, spirits and soft drinks',
+        'Glassware, ice and fridges',
+        'A marquee, through our marquee partner',
+      ],
+    },
+    parties: {
+      label: 'Birthdays and private parties',
+      included: [
+        'A bar, from a single 1.5m section upwards',
+        'Bartenders',
+        'All-inclusive drinks: beer, wine, spirits and soft drinks',
+        'Glassware, ice and fridges',
+      ],
+    },
+  } satisfies Record<HowTopic, { label: string; included: string[] }>,
+  cta: 'Build your package',
 };
 
 export interface GalleryItem { src: string; caption: string; category: string }
