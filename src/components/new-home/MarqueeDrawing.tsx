@@ -111,7 +111,7 @@ export default function MarqueeDrawing({ className }: { className?: string }) {
       <polygon points={FLOOR} transform="translate(0 9)" fill="#000" opacity="0.2" filter={`url(#${soft})`} />
       <polygon points={FLOOR} fill="#fbfbfa" {...outline} strokeOpacity="0.55" strokeWidth="0.9" />
 
-      <Leg at={BACK_LEFT} />
+      {/* The far left leg is hidden behind the roof from this angle. */}
       <Leg at={BACK_RIGHT} />
 
       {/* Bar */}

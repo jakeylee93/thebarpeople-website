@@ -15,13 +15,14 @@ import { drinksPerHead, findDrink, standardMenu } from './drinks.ts';
 import { findMarqueeItem, hasStructure, marqueeGroupOf } from './marquee.ts';
 import { PRICES } from './prices.ts';
 import {
-  buildSchedule, COLLECTION_DAYS, STAFF_EARLY_OPTIONS,
+  buildSchedule, COLLECTION_DAYS, STAFF_EARLY_OPTIONS, usableDate,
   type CollectionDays, type Schedule, type SetupDay, type StaffEarly,
 } from './schedule.ts';
 
 export const GUESTS_MIN = 10;
 export const GUESTS_MAX = 1000;
 export const MAX_REQUESTS = 6;
+export const STAFF_MAX = 60;
 
 export type DrinksMode = 'all-inclusive' | 'own';
 
@@ -33,6 +34,8 @@ export interface QuoteState {
   close: string;
   /** Null until the guest reaches the bar step (the recommendation is then filled in). */
   bar: BarChoice | null;
+  /** True once the guest has chosen their own shape or size; the bar then stops following the guest count. */
+  barPicked: boolean;
   /** Null until the guest reaches the drinks step (all-inclusive is then ticked). */
   drinksMode: DrinksMode | null;
   /** Drinks ticked on the all-inclusive menu. */
@@ -47,6 +50,8 @@ export interface QuoteState {
   fridgesDouble: number;
   /** Null until the guest reaches the staff step (the recommendation is then filled in). */
   staffCount: number | null;
+  /** True once the guest has chosen their own number; it then stops following the guest count. */
+  staffPicked: boolean;
   /** Minutes the team arrives before the bar opens (at least 30). */
   staffEarly: StaffEarly;
   setupDay: SetupDay;
@@ -62,6 +67,7 @@ export const DEFAULT_STATE: QuoteState = {
   open: '18:00',
   close: '23:00',
   bar: null,
+  barPicked: false,
   drinksMode: null,
   menu: standardMenu(),
   bottles: {},
@@ -71,6 +77,7 @@ export const DEFAULT_STATE: QuoteState = {
   fridgesSingle: 0,
   fridgesDouble: 0,
   staffCount: null,
+  staffPicked: false,
   staffEarly: 30,
   setupDay: 'day-before',
   collectionDays: 1,
@@ -105,32 +112,41 @@ export function reach(state: QuoteState, section: 'bar' | 'drinks' | 'staff'): Q
   return state;
 }
 
-/** Changing the guest count moves the bar and team along with it, unless the guest picked their own. */
+/**
+ * Changing the guest count moves the bar and team along with it, unless the
+ * guest picked their own. A bar is also left alone when moving it would lose
+ * the finish they chose (the LOVE bar only comes as a 3m bar, for one).
+ */
 export function setGuests(state: QuoteState, guests: number): QuoteState {
   const next = Math.min(GUESTS_MAX, Math.max(GUESTS_MIN, Math.round(Number.isFinite(guests) ? guests : state.guests)));
-  const was = recommend(state.guests);
   const now = recommend(next);
   let bar = state.bar;
-  if (bar && bar.shapeId === was.bar.shapeId && bar.sections === was.bar.sections) {
-    bar = normaliseBar({ ...bar, shapeId: now.bar.shapeId, sections: now.bar.sections });
+  if (bar && !state.barPicked) {
+    const moved = normaliseBar({ ...bar, shapeId: now.bar.shapeId, sections: now.bar.sections });
+    if (moved.finishId === bar.finishId) bar = moved;
   }
-  const staffCount = state.staffCount !== null && state.staffCount === was.staff ? now.staff : state.staffCount;
+  const staffCount = state.staffCount !== null && !state.staffPicked ? now.staff : state.staffCount;
   return { ...state, guests: next, bar, staffCount };
 }
 
-/** Picks a shape, keeping the finish where the new shape comes in it. */
+/** Picks a shape, keeping the finish where the new shape comes in it. Picking our recommendation lets the bar follow the guest count again. */
 export function chooseShape(state: QuoteState, shapeId: BarShapeId, sections?: number): QuoteState {
   const shape = findShape(shapeId) ?? BAR_SHAPES[0];
   const current = state.bar;
-  return {
-    ...state,
-    bar: normaliseBar({
-      shapeId: shape.id,
-      sections: sections ?? (current?.shapeId === shape.id ? current.sections : shape.defaultSections),
-      finishId: current?.finishId ?? shape.finishes[0],
-      branded: current?.branded ?? false,
-    }),
-  };
+  const bar = normaliseBar({
+    shapeId: shape.id,
+    sections: sections ?? (current?.shapeId === shape.id ? current.sections : shape.defaultSections),
+    finishId: current?.finishId ?? shape.finishes[0],
+    branded: current?.branded ?? false,
+  });
+  const rec = recommendBar(state.guests);
+  return { ...state, bar, barPicked: !(bar.shapeId === rec.shapeId && bar.sections === rec.sections) };
+}
+
+/** Sets the number of bartenders (never fewer than two). Choosing our recommendation lets it follow the guest count again. */
+export function chooseStaff(state: QuoteState, count: number): QuoteState {
+  const staffCount = Math.min(STAFF_MAX, Math.max(PRICES.staffMinimum, Math.round(Number.isFinite(count) ? count : PRICES.staffMinimum)));
+  return { ...state, staffCount, staffPicked: staffCount !== recommendStaff(state.guests) };
 }
 
 // ─── The quote ──────────────────────────────────────────────────────────────
@@ -170,17 +186,30 @@ export interface Quote {
   drinksPerHead: Pence | null;
   /** Short notes for the guest, in order. */
   notes: string[];
+  /** What the clocks changing does to the hours that night, in words. Null on an ordinary night. */
+  clockNote: string | null;
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const pending = (reason = 'To confirm'): LinePrice => ({ kind: 'pending', reason });
 const whole = (n: unknown, max: number) => (typeof n === 'number' && Number.isFinite(n) ? Math.min(max, Math.max(0, Math.floor(n))) : 0);
 
-/** VAT at the standard rate. Every price here is a multiple of 5p, so 20% is always exact. */
+/** VAT at the standard rate, to the nearest penny (half a penny rounds up). */
 export function vatOn(subtotal: Pence): Pence {
-  const numerator = subtotal * PRICES.vatBasisPoints;
-  if (numerator % 10000 !== 0) throw new Error(`VAT on ${formatPence(subtotal)} is not a whole number of pence; no rounding rule is confirmed`);
-  return numerator / 10000;
+  if (!Number.isSafeInteger(subtotal) || subtotal < 0) throw new Error(`Not an amount in pence: ${subtotal}`);
+  return Math.floor((subtotal * PRICES.vatBasisPoints + 5000) / 10000);
+}
+
+/** Says in words what a clock change does to the hours, or null on an ordinary night. */
+function clockChangeNote(schedule: Schedule): string | null {
+  const change = schedule.timing.clockChange;
+  if (!change) return null;
+  const way = change.direction === 'back' ? 'go back' : 'go forward';
+  const hours = formatDuration(schedule.barMinutes);
+  const by = formatDuration(Math.abs(change.differenceMinutes));
+  if (change.differenceMinutes > 0) return `The clocks ${way} that night, so the bar is open for ${hours}: ${by} more than the clock times show.`;
+  if (change.differenceMinutes < 0) return `The clocks ${way} that night, so the bar is open for ${hours}: ${by} less than the clock times show.`;
+  return `The clocks ${way} that night, so we’ll confirm your exact times with you.`;
 }
 
 export function buildQuote(state: QuoteState): Quote {
@@ -261,7 +290,8 @@ export function buildQuote(state: QuoteState): Quote {
       });
     }
     state.requests.slice(0, MAX_REQUESTS).forEach((text, i) => {
-      const trimmed = text.trim().slice(0, 40);
+      // Cut by whole characters, so an emoji or accented letter is never split.
+      const trimmed = Array.from(text.replace(/\s+/g, ' ').trim()).slice(0, 40).join('');
       const name = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
       if (name) lines.push({ id: `request-${i}`, group: 'drinks', title: name, detail: 'Your request', price: pending('Price to confirm') });
     });
@@ -293,9 +323,12 @@ export function buildQuote(state: QuoteState): Quote {
     });
   }
 
-  // ── Bartenders ──
-  if (state.staffCount !== null) {
-    const count = Math.min(60, Math.max(PRICES.staffMinimum, Math.floor(state.staffCount) || PRICES.staffMinimum));
+  // ── Bartenders: always on a job with a bar or drinks, and never fewer than two ──
+  // Until the guest has chosen a number, the recommended team is quoted.
+  const needsTeam = bar !== null || state.drinksMode !== null;
+  const chosenStaff = state.staffCount ?? (needsTeam ? recommended.staff : null);
+  if (chosenStaff !== null) {
+    const count = Math.min(STAFF_MAX, Math.max(PRICES.staffMinimum, Math.floor(chosenStaff) || PRICES.staffMinimum));
     if (schedule) {
       const each = rateForMinutes(PRICES.staffPerHour, schedule.staffMinutes);
       lines.push({
@@ -345,8 +378,9 @@ export function buildQuote(state: QuoteState): Quote {
     for (const [id, raw] of Object.entries(state.marqueeItems)) {
       const item = findMarqueeItem(id);
       const group = marqueeGroupOf(id);
-      const qty = whole(raw, 2000);
-      if (!item || !group || qty === 0) continue;
+      if (!item || !group) continue;
+      const qty = whole(raw, group.max);
+      if (qty === 0) continue;
       // Extras are only offered with a marquee.
       if (group.kind === 'extra' && !structure) continue;
       lines.push({
@@ -362,7 +396,8 @@ export function buildQuote(state: QuoteState): Quote {
     }
   }
 
-  if (schedule?.timing.clockChange) notes.push('The clocks change that night, so we’ll confirm your exact times with you.');
+  const clockNote = schedule ? clockChangeNote(schedule) : null;
+  if (clockNote) notes.push(clockNote);
 
   const order: LineGroup[] = ['bar', 'drinks', 'glassware', 'ice', 'staff', 'delivery', 'marquee'];
   lines.sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group));
@@ -372,50 +407,70 @@ export function buildQuote(state: QuoteState): Quote {
   return {
     lines, subtotal, vat, total: sumPence([subtotal, vat]),
     toConfirm: lines.filter((l) => l.price.kind === 'pending').length,
-    schedule, scheduleIssue, recommended, drinksPerHead: perHead, notes,
+    schedule, scheduleIssue, recommended, drinksPerHead: perHead, notes, clockNote,
   };
 }
 
 // ─── Saving and sharing ─────────────────────────────────────────────────────
 
+// Each choice is checked on its own. One that doesn't fit (a half-typed date,
+// a drink we no longer list, a field added after the link was made) falls back
+// to its starting value, so a single bad value never costs the whole quote.
+
 const time = z.string().regex(/^([01]\d|2[0-3]):(00|30)$/);
 const count = (max: number) => z.number().int().min(0).max(max);
 const shapeIds = BAR_SHAPES.map((s) => s.id) as [BarShapeId, ...BarShapeId[]];
+const D = DEFAULT_STATE;
 
 const StateSchema = z.object({
-  guests: z.number().int().min(GUESTS_MIN).max(GUESTS_MAX),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
-  open: time,
-  close: time,
+  guests: z.number().int().min(GUESTS_MIN).max(GUESTS_MAX).catch(D.guests),
+  date: z.string().refine((v) => usableDate(v) !== null).nullable().catch(null),
+  open: time.catch(D.open),
+  close: time.catch(D.close),
   bar: z.object({
     shapeId: z.enum(shapeIds),
     sections: z.number().int().min(1).max(12),
     finishId: z.enum(['white', 'mirror', 'shimmer', 'love', 'led']),
     branded: z.boolean(),
-  }).nullable(),
-  drinksMode: z.enum(['all-inclusive', 'own']).nullable(),
-  menu: z.array(z.string().max(40)).max(80),
-  bottles: z.record(z.string().max(40), count(500)),
-  requests: z.array(z.string().max(40)).max(MAX_REQUESTS),
-  glasses: z.record(z.string().max(40), count(5000)),
-  igloos: count(50),
-  fridgesSingle: count(50),
-  fridgesDouble: count(50),
-  staffCount: z.number().int().min(PRICES.staffMinimum).max(60).nullable(),
-  staffEarly: z.union([z.literal(30), z.literal(60), z.literal(90), z.literal(120)]),
-  setupDay: z.enum(['day-before', 'on-the-day']),
-  collectionDays: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-  postcode: z.string().max(10),
-  marquee: z.boolean(),
-  marqueeItems: z.record(z.string().max(60), count(2000)),
+  }).nullable().catch(null),
+  barPicked: z.boolean().catch(false),
+  drinksMode: z.enum(['all-inclusive', 'own']).nullable().catch(null),
+  menu: z.array(z.string().max(40)).max(80).catch(D.menu),
+  bottles: z.record(z.string().max(40), count(500)).catch({}),
+  requests: z.array(z.string().max(160)).max(MAX_REQUESTS).catch([]),
+  glasses: z.record(z.string().max(40), count(5000)).catch({}),
+  igloos: count(50).catch(0),
+  fridgesSingle: count(50).catch(0),
+  fridgesDouble: count(50).catch(0),
+  staffCount: z.number().int().min(PRICES.staffMinimum).max(STAFF_MAX).nullable().catch(null),
+  staffPicked: z.boolean().catch(false),
+  staffEarly: z.union([z.literal(30), z.literal(60), z.literal(90), z.literal(120)]).catch(D.staffEarly),
+  setupDay: z.enum(['day-before', 'on-the-day']).catch(D.setupDay),
+  collectionDays: z.union([z.literal(1), z.literal(2), z.literal(3)]).catch(D.collectionDays),
+  postcode: z.string().max(10).catch(''),
+  marquee: z.boolean().catch(false),
+  marqueeItems: z.record(z.string().max(60), count(2000)).catch({}),
 });
 
-/** Checks saved or shared choices. Anything that doesn't fit falls back to a fresh start. */
+/** Checks saved or shared choices. Returns null only when the value isn't a set of choices at all. */
 export function parseState(value: unknown): QuoteState | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
   const parsed = StateSchema.safeParse(value);
   if (!parsed.success) return null;
   const s = parsed.data as QuoteState;
-  return { ...s, bar: s.bar ? normaliseBar(s.bar) : null, menu: s.menu.filter((id) => findDrink(id) !== null) };
+  // Only things we still list are kept, so old ids never pile up in links.
+  const known = <T,>(record: Record<string, T>, ok: (id: string) => boolean) =>
+    Object.fromEntries(Object.entries(record).filter(([id]) => ok(id))) as Record<string, T>;
+  return {
+    ...s,
+    bar: s.bar ? normaliseBar(s.bar) : null,
+    barPicked: s.bar !== null && s.barPicked,
+    staffPicked: s.staffCount !== null && s.staffPicked,
+    menu: [...new Set(s.menu)].filter((id) => findDrink(id) !== null),
+    bottles: known(s.bottles, (id) => findDrink(id)?.terms.kind === 'bottle'),
+    glasses: known(s.glasses, (id) => GLASSES.some((g) => g.id === id)),
+    marqueeItems: known(s.marqueeItems, (id) => findMarqueeItem(id) !== null),
+  };
 }
 
 /** The choices as a compact, URL-safe string for a share link. */

@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { standardMenu } from './drinks.ts';
-import { buildQuotePdf } from './pdf.ts';
+import { buildQuotePdf, toPrintable } from './pdf.ts';
 import { buildQuote, DEFAULT_STATE, encodeState, type QuoteState } from './quote.ts';
 
 const full: QuoteState = {
@@ -41,4 +41,29 @@ test('a very long quote runs onto more pages instead of off the page', async () 
   const big: QuoteState = { ...full, glasses, menu: [...standardMenu(), 'grey-goose', 'hendricks', 'desperados', 'estrella-galicia', 'alhambra-reserva', 'kraken'], requests: ['One', 'Two', 'Three', 'Four', 'Five', 'Six'] };
   const bytes = await buildQuotePdf({ state: big, quote: buildQuote(big), logoPng: null, preparedOn: '2026-11-10' });
   assert.ok((await PDFDocument.load(bytes)).getPageCount() >= 2);
+});
+
+test('names and requests the font cannot print stay readable, and never break the PDF', async () => {
+  const doc = await PDFDocument.create();
+  const helvetica = new Set((await doc.embedFont(StandardFonts.Helvetica)).getCharacterSet());
+  const print = (text: string) => toPrintable(text, (cp) => helvetica.has(cp));
+  assert.equal(print('Michał Żółkowski'), 'Michal Zólkowski');
+  assert.equal(print('Żubrówka wódka'), 'Zubrówka wódka');
+  assert.equal(print('Patrón Silver'), 'Patrón Silver');
+  assert.equal(print('gin\ttonic\nplease'), 'gin tonic please');
+  assert.equal(print('茅台酒 Moutai'), 'Moutai');
+  assert.equal(print('🍾🍾'), '');
+  assert.equal(print('  spaced   out  '), 'spaced out');
+
+  const state: QuoteState = { ...full, requests: ['🍾🍾', 'Żubrówka', '茅台酒', 'مشروب', 'A'.repeat(40)] };
+  const pdf = await buildQuotePdf({ state, quote: buildQuote(state), logoPng: null, preparedOn: '2026-11-10', customerName: '王芳 \t Żółć 😀' });
+  assert.equal((await PDFDocument.load(pdf)).getPageCount() >= 1, true);
+});
+
+test('the PDF builds when the bar times are not usable', async () => {
+  const state: QuoteState = { ...full, close: full.open };
+  const quote = buildQuote(state);
+  assert.ok(quote.scheduleIssue);
+  const pdf = await buildQuotePdf({ state, quote, logoPng: null, preparedOn: '2026-11-10' });
+  assert.ok(pdf.length > 1000);
 });

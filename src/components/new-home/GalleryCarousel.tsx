@@ -36,7 +36,8 @@ export default function GalleryCarousel() {
   };
   const scrollStrip = (dir: 1 | -1) => {
     const t = trackRef.current;
-    if (t) t.scrollBy({ left: dir * t.clientWidth * 0.8, behavior: 'smooth' });
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (t) t.scrollBy({ left: dir * t.clientWidth * 0.8, behavior: calm ? 'instant' : 'smooth' });
   };
 
   const item = open !== null ? GALLERY[open] : null;

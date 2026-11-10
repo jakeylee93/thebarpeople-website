@@ -24,7 +24,7 @@ export default function Weddings() {
           <div>
             <p data-reveal="1" className="nh-eyebrow text-nh-ash">{WEDDINGS.eyebrow}</p>
             <h2 id="weddings-title" data-reveal="2" className="nh-title mt-2 lg:mt-4">{WEDDINGS.title}</h2>
-            <p data-reveal="3" className="nh-lede mt-2.5 max-w-[46ch] text-nh-ash lg:mt-5">{WEDDINGS.body}</p>
+            <p data-reveal="3" className="nh-lede nh-if-tall mt-2.5 max-w-[46ch] text-nh-ash lg:mt-5">{WEDDINGS.body}</p>
           </div>
           <div className="mt-3.5 lg:mt-0">
             <div data-reveal="3">

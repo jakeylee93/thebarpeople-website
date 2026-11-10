@@ -1,6 +1,6 @@
 'use client';
 
-// Full-screen hero: photos (or, later, Jake's videos) crossfade on their own.
+// Full-screen hero: photos and a short film crossfade on their own.
 // No left/right arrows by design. The thin line under the active slide is its
 // clock: when the line fills, the next slide comes in. Pausable, and still for
 // reduced motion. It is the first one-screen section of the page: on phones
@@ -14,7 +14,6 @@ import { BUILD_HREF, HERO_COPY, type HeroSlide } from './data';
 import { nhFocus } from './SiteHeader';
 
 const IMAGE_SECONDS = 6.5;
-const VIDEO_SECONDS = 10;
 
 const reducedQuery = '(prefers-reduced-motion: reduce)';
 const subscribeReduced = (cb: () => void) => {
@@ -24,23 +23,61 @@ const subscribeReduced = (cb: () => void) => {
 };
 const getReduced = () => window.matchMedia(reducedQuery).matches;
 
-function SlideVideo({ slide, active, reduced }: { slide: Extract<HeroSlide, { kind: 'video' }>; active: boolean; reduced: boolean }) {
+// Below the md breakpoint the hero is a tall frame, so the film has an upright cut.
+const phoneQuery = '(max-width: 767px)';
+const subscribePhone = (cb: () => void) => {
+  const m = window.matchMedia(phoneQuery);
+  m.addEventListener('change', cb);
+  return () => m.removeEventListener('change', cb);
+};
+const getPhone = () => window.matchMedia(phoneQuery).matches;
+
+// False on the server and while the page is waking up in the browser. Until
+// then we don't know which cut of the film this screen wants, so none is asked for.
+const subscribeNever = () => () => {};
+const useAwake = () => useSyncExternalStore(subscribeNever, () => true, () => false);
+
+type VideoSlide = Extract<HeroSlide, { kind: 'video' }>;
+
+/**
+ * The film. Nothing is downloaded until its turn is next; then it loads, and
+ * it plays once from the top each time its slide comes round. With reduced
+ * motion it never plays: the poster stands in as a photo.
+ */
+function SlideVideo({ slide, active, near, playing }: { slide: VideoSlide; active: boolean; near: boolean; playing: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const awake = useAwake();
+  const phone = useSyncExternalStore(subscribePhone, getPhone, () => false);
+  const file = phone && slide.phone ? slide.phone : slide;
+
+  // Start fetching one slide early, so the film is ready when it fades in.
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || !awake || !(near || active)) return;
+    if (v.preload !== 'auto') { v.preload = 'auto'; v.load(); }
+  }, [awake, near, active, file.src]);
+
+  // Each time the slide comes round, the film starts from the top.
+  useEffect(() => {
+    const v = ref.current;
+    if (active && v && v.currentTime > 0) v.currentTime = 0;
+  }, [active]);
+
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    if (active && !reduced) void v.play().catch(() => {});
+    if (playing && awake) void v.play().catch(() => {});
     else v.pause();
-  }, [active, reduced]);
+  }, [playing, awake, file.src]);
+
   return (
     <video
       ref={ref}
-      src={slide.src}
-      poster={slide.poster}
+      src={awake ? file.src : undefined}
+      poster={file.poster}
       muted
-      loop
       playsInline
-      preload="metadata"
+      preload="none"
       aria-label={slide.alt}
       className="h-full w-full object-cover [object-position:var(--fp)] md:[object-position:var(--fd)]"
     />
@@ -58,11 +95,12 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
     setIndex((index + 1) % slides.length);
   };
   const current = slides[index];
-  const seconds = current.kind === 'video' ? VIDEO_SECONDS : IMAGE_SECONDS;
+  const seconds = current.kind === 'video' ? current.seconds : IMAGE_SECONDS;
+  const hasVideo = slides.some((s) => s.kind === 'video');
 
   return (
     <section id="home" data-snap aria-label="Welcome" className={cn('nh-section flex flex-col bg-white', paused && 'nh-paused')}>
-      <div className="nh-media relative min-h-0 flex-1 overflow-hidden bg-nh-ink">
+      <div className="nh-hero-photo relative min-h-0 flex-1 overflow-hidden bg-nh-ink">
         {slides.map((s, i) => {
           const active = i === index;
           return (
@@ -72,7 +110,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               className={cn('absolute inset-0 transition-opacity duration-[1400ms] ease-out', active ? 'opacity-100' : 'opacity-0')}
               style={{ '--fp': s.focus.phone, '--fd': s.focus.desktop } as CSSProperties}
             >
-              <div className={cn('absolute inset-0', (active || i === leaving) && !reduced && 'nh-kb')}>
+              <div className={cn('absolute inset-0', s.kind === 'image' && (active || i === leaving) && !reduced && 'nh-kb')}>
                 {s.kind === 'image' ? (
                   <Image
                     src={s.src}
@@ -83,7 +121,13 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                     className="object-cover [object-position:var(--fp)] md:[object-position:var(--fd)]"
                   />
                 ) : (
-                  <SlideVideo slide={s} active={active} reduced={reduced} />
+                  <SlideVideo
+                    slide={s}
+                    active={active}
+                    near={(index + 1) % slides.length === i}
+                    // Keeps running while it fades out, so it never freezes on screen.
+                    playing={(active || i === leaving) && !reduced && !paused}
+                  />
                 )}
               </div>
             </div>
@@ -137,7 +181,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               type="button"
               onClick={() => setPaused((p) => !p)}
               className={cn('flex h-7 w-7 items-center justify-center rounded-full text-white/80 transition hover:text-white', nhFocus)}
-              aria-label={paused ? 'Play the photos' : 'Pause the photos'}
+              aria-label={hasVideo ? (paused ? 'Play the slideshow' : 'Pause the slideshow') : paused ? 'Play the photos' : 'Pause the photos'}
             >
               {paused ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
             </button>

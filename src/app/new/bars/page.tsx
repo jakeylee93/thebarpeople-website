@@ -6,15 +6,18 @@ import { formatPenceCompact } from '@/lib/visual-quote/money';
 export default function BarsSheet() {
   const bars: BarChoice[] = [];
   for (const shape of BAR_SHAPES) {
-    const sizes = shape.id === 'straight' ? [1, 2, 3, 4, 6] : shape.id === 'l-shape' ? [3, 5] : [shape.defaultSections];
+    // Every size the builder offers.
+    const sizes = Array.from({ length: shape.maxSections - shape.minSections + 1 }, (_, i) => shape.minSections + i);
     for (const sections of sizes) for (const finishId of finishesFor(shape.id, sections)) bars.push(normaliseBar({ shapeId: shape.id, sections, finishId, branded: false }));
   }
   return (
     <main className="mx-auto max-w-[1400px] px-5 py-10">
       <h1 className="text-[32px] font-extrabold tracking-tight">Bar drawings</h1>
-      <p className="mt-1 text-[15px] text-nh-ash">Every shape, in each finish it comes in. Same camera for all. Second row of each: with artwork.</p>
+      <p className="mt-1 text-[15px] text-nh-ash">Every shape and size, in each finish it comes in. Same camera for all. Each bar is followed by its branded version, where it can be branded.</p>
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
         {bars.flatMap((bar, i) => [false, true].map((branded) => {
+          // The LOVE bar is never branded, so it has no second drawing.
+          if (branded && !normaliseBar({ ...bar, branded: true }).branded) return null;
           const price = barPrice(bar);
           return (
             <figure key={`${i}-${branded}`} className="rounded-[18px] bg-nh-mist p-3">

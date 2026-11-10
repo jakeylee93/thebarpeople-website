@@ -72,6 +72,8 @@ export interface Face {
   points: V2[];
   light: number;
   depth: number;
+  /** For a counter edge: the module (panel) it sits above. */
+  module?: number;
 }
 
 export interface BarGeometry {
@@ -237,7 +239,7 @@ export function barGeometry(choice: BarChoice): BarGeometry {
       faces.push({
         kind: 'edge',
         points: [at([la[0], la[1], H]), at([lb[0], lb[1], H]), at([lb[0], lb[1], panelTop]), at([la[0], la[1], panelTop])],
-        light: lightOn(outward), depth: depthOf(mid) - 0.001,
+        light: lightOn(outward), depth: depthOf(mid) - 0.001, module: s.module,
       });
       // A seam where this module meets the next (not between the facets of one curve).
       const next = segments[i + 1] ?? (closed ? segments[0] : null);
@@ -273,20 +275,34 @@ export function barGeometry(choice: BarChoice): BarGeometry {
     panel.depth = depthOf([(first.a[0] + last.b[0]) / 2, (first.a[1] + last.b[1]) / 2, H / 2]);
     panel.facing = Math.abs(panel.facets.reduce((sum, f) => sum + f.matrix[0] * (f.u1 - f.u0), 0)) / panel.width / scale * 100;
   }
+  // A counter edge is painted straight after the panel it sits on. On a curved
+  // section the far facets are deeper than the panel's middle, and would
+  // otherwise be painted first and then half covered by the panel.
+  for (const face of faces) {
+    const panel = face.kind === 'edge' && face.module !== undefined ? panelsByModule.get(face.module) : undefined;
+    if (panel) face.depth = panel.depth - 0.001;
+  }
 
   if (!closed) {
-    // Square ends.
-    const ends: [V2, V2, V2][] = [
-      [outer[0], inner[0], [-segments[0].dir[0], -segments[0].dir[1]]],
-      [outer[n], inner[n], segments[n - 1].dir],
+    // Square ends. The black counter edge carries on round each end, as on the real bars.
+    const ends: [V2, V2, V2, V2][] = [
+      [outer[0], inner[0], [-segments[0].dir[0], -segments[0].dir[1]], lip[0]],
+      [outer[n], inner[n], segments[n - 1].dir, lip[n]],
     ];
-    for (const [p, q, normal] of ends) {
+    for (const [p, q, normal, front] of ends) {
       if (!facesCamera(normal)) continue;
+      const depth = depthOf([(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, H / 2]);
       faces.push({
         kind: 'cap',
         points: [at([p[0], p[1], H]), at([q[0], q[1], H]), at([q[0], q[1], 0]), at([p[0], p[1], 0])],
         light: lightOn(normal),
-        depth: depthOf([(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, H / 2]),
+        depth,
+      });
+      faces.push({
+        kind: 'edge',
+        points: [at([front[0], front[1], H]), at([q[0], q[1], H]), at([q[0], q[1], panelTop]), at([front[0], front[1], panelTop])],
+        light: lightOn(normal),
+        depth: depth - 0.001,
       });
     }
   }
@@ -300,6 +316,21 @@ export function barGeometry(choice: BarChoice): BarGeometry {
   const floorInner = inner.map(([x, y]) => at([x, y, 0]));
   const floor = closed ? pathOf(floorOuter.slice(0, n)) : pathOf([...floorOuter, ...floorInner.reverse()]);
 
+  // Sines and cosines can differ in their last digit between the server and a
+  // browser. Every number is rounded here, so both draw exactly the same picture.
+  const q = (value: number, places: number) => { const f = 10 ** places; return Math.round(value * f) / f; };
+  const q2 = (v: V2): V2 => [q(v[0], 2), q(v[1], 2)];
+  const line = (l: [number, number, number, number]) => l.map((v) => q(v, 2)) as [number, number, number, number];
+  const panels: Panel[] = [...panelsByModule.values()].map((panel) => ({
+    ...panel,
+    width: q(panel.width, 2), height: q(panel.height, 2), light: q(panel.light, 4), depth: q(panel.depth, 6), facing: q(panel.facing, 4),
+    facets: panel.facets.map((f) => ({ matrix: f.matrix.map((v) => q(v, 5)) as PanelFacet['matrix'], u0: q(f.u0, 2), u1: q(f.u1, 2) })),
+  }));
+  const flat: Face[] = faces.map((face) => ({ ...face, points: face.points.map(q2), light: q(face.light, 4), depth: q(face.depth, 6) }));
+
   const byDepth = <T extends { depth: number }>(list: T[]) => list.sort((a, b) => b.depth - a.depth);
-  return { panels: byDepth([...panelsByModule.values()]), faces: byDepth(faces), top, floor, seams, outline, scale };
+  return {
+    panels: byDepth(panels), faces: byDepth(flat), top, floor,
+    seams: seams.map((seam) => ({ ...seam, line: line(seam.line) })), outline: outline.map(line), scale: q(scale, 4),
+  };
 }

@@ -12,15 +12,15 @@ import { GLASSES } from '@/lib/visual-quote/catalogue';
 import { formatPence, formatPenceCompact } from '@/lib/visual-quote/money';
 import { addDaysIso, formatDate, formatDuration, formatTime, timeOptions } from '@/lib/visual-quote/time';
 import {
-  BAR_SHAPES, FINISHES, barName, barPrice, barSizeLabel, findShape, finishesFor, normaliseBar, recommendStaff, runLength, sectionsPrice,
+  BAR_SHAPES, FINISHES, barName, barNameInSentence, barPrice, barSizeLabel, findShape, finishesFor, normaliseBar, recommendStaff, runLength, sectionsPrice,
   type BarChoice, type BarShape, type FinishId,
 } from '@/lib/quote/bars';
 import { drinksPerHead } from '@/lib/quote/drinks';
 import { PRICES, TIME_STEP } from '@/lib/quote/prices';
-import { GUESTS_MAX, GUESTS_MIN, chooseShape, recommendedBar, setGuests, type Quote, type QuoteState } from '@/lib/quote/quote';
+import { GUESTS_MAX, GUESTS_MIN, STAFF_MAX, chooseShape, chooseStaff, recommendedBar, setGuests, type Quote, type QuoteState } from '@/lib/quote/quote';
 import { COLLECTION_DAYS, STAFF_EARLY_OPTIONS, setupLeadMinutes } from '@/lib/quote/schedule';
 import BarDiagram from '../package/BarDiagram';
-import { Badge, Counter, Hint, Note, RadioCard, Segmented, field, ring } from './ui';
+import { Badge, Counter, DateField, Hint, Note, RadioCard, Segmented, field, ring } from './ui';
 
 export interface StepProps {
   state: QuoteState;
@@ -41,10 +41,22 @@ const localToday = () => {
 };
 export const useToday = () => useSyncExternalStore(noSubscribe, localToday, () => undefined);
 
+/** The days the builder takes: from tomorrow, up to five years ahead. */
+export function dateRange(today: string | undefined): { min?: string; max?: string } {
+  if (!today) return {};
+  return { min: addDaysIso(today, 1), max: `${Number(today.slice(0, 4)) + 5}-12-31` };
+}
+
+/** Why the hours are an hour out on the night the clocks change. */
+function ClockNote({ quote }: { quote: Quote }) {
+  if (!quote.clockNote) return null;
+  return <p role="note" className="mt-3 rounded-[14px] bg-nh-mist px-4 py-3 text-[14px] leading-relaxed">{quote.clockNote}</p>;
+}
+
 // ─── 1. Event ───────────────────────────────────────────────────────────────
 
 export function EventStep({ state, set, update, quote }: StepProps) {
-  const today = useToday();
+  const range = dateRange(useToday());
   const rec = quote.recommended;
   const recBar = recommendedBar(state.guests);
   const s = quote.schedule;
@@ -75,10 +87,7 @@ export function EventStep({ state, set, update, quote }: StepProps) {
       </div>
 
       <div className="mt-9 grid gap-3 sm:grid-cols-3">
-        <label className="block text-[14px] font-semibold">
-          Event date
-          <input type="date" min={today} value={state.date ?? ''} onChange={(e) => set({ date: e.currentTarget.value || null })} className={field} />
-        </label>
+        <DateField label="Event date" value={state.date} onChange={(date) => set({ date })} min={range.min} max={range.max} />
         <label className="block text-[14px] font-semibold">
           Bar opens
           <select value={state.open} onChange={(e) => set({ open: e.currentTarget.value })} className={field}>
@@ -93,6 +102,7 @@ export function EventStep({ state, set, update, quote }: StepProps) {
         </label>
       </div>
       {quote.scheduleIssue && <p role="alert" className="mt-2 text-[14px] font-semibold text-[#a12b2b]">{quote.scheduleIssue}.</p>}
+      <ClockNote quote={quote} />
 
       <div className="mt-7 rounded-[20px] bg-nh-mist p-5" aria-live="polite">
         <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-nh-ash">We’d recommend</p>
@@ -195,7 +205,10 @@ export function BarStep({ state, update, quote }: StepProps) {
               }))}
             />
             <p className="mt-2 text-[13px] text-nh-ash">
-              {price?.working}. Each extra 1.5m section adds {formatPenceCompact(PRICES.barExtraSection)}.
+              {price?.working}.{' '}
+              {shape.id === 'straight' && bar.sections === 1
+                ? `The 3m bar is ${formatPenceCompact(PRICES.barTwoSections)}, and each 1.5m section after that adds ${formatPenceCompact(PRICES.barExtraSection)}.`
+                : `Each extra 1.5m section adds ${formatPenceCompact(PRICES.barExtraSection)}.`}
             </p>
           </div>
         )}
@@ -232,7 +245,7 @@ export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
   const setBar = (patch: Partial<BarChoice>) => set({ bar: normaliseBar({ ...bar, ...patch }) });
   return (
     <div>
-      <Note>Choose the finish for your {barName(bar).toLowerCase()}, and add your own artwork if you’d like it branded.</Note>
+      <Note>Choose the finish for your {barNameInSentence(bar)}, and add your own artwork if you’d like it branded.</Note>
 
       <div className="relative mt-5 rounded-[24px] bg-[radial-gradient(ellipse_at_50%_35%,#ffffff,#eceae5)] px-2 pb-2 pt-9 sm:px-8">
         {bar.branded && (
@@ -244,7 +257,7 @@ export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
             </div>
           </div>
         )}
-        <BarDiagram bar={bar} ledColour={ledColour} artworkText className="mx-auto max-w-[620px]" />
+        <BarDiagram bar={bar} ledColour={ledColour} className="mx-auto max-w-[620px]" />
       </div>
 
       <fieldset className="mt-6">
@@ -272,7 +285,7 @@ export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
           <legend className="text-[15px] font-bold">Preview a colour</legend>
           <div className="mt-3 flex flex-wrap gap-3">
             {LED_COLOURS.map((c) => (
-              <label key={c.hex} className="group relative cursor-pointer" title={c.name}>
+              <label key={c.hex} className="group relative flex h-10 w-10 cursor-pointer items-center justify-center" title={c.name}>
                 <input type="radio" name="led-colour" checked={ledColour === c.hex} onChange={() => setLedColour(c.hex)} className="peer sr-only" aria-label={c.name} />
                 <span
                   className={cn(
@@ -290,7 +303,7 @@ export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
 
       {bar.finishId !== 'love' && <label
         className={cn(
-          'mt-6 flex cursor-pointer items-start gap-4 rounded-[18px] border-2 p-4 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nh-ink has-[:focus-visible]:ring-offset-2',
+          'relative mt-6 flex cursor-pointer items-start gap-4 rounded-[18px] border-2 p-4 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nh-ink has-[:focus-visible]:ring-offset-2',
           bar.branded ? 'border-nh-ink' : 'border-nh-line hover:border-nh-ink/40',
         )}
       >
@@ -336,7 +349,7 @@ export function GlasswareStep({ state, set }: StepProps) {
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                 <Counter label={g.name} value={qty} onChange={(n) => setQty(g.id, n)} step={10} min={0} max={5000} />
-                <button type="button" onClick={() => setQty(g.id, state.guests)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-semibold underline underline-offset-4', ring)}>
+                <button type="button" onClick={() => setQty(g.id, state.guests)} className={cn('min-h-10 rounded-full px-3 text-[13px] font-semibold underline underline-offset-4', ring)}>
                   One per guest
                 </button>
               </div>
@@ -346,7 +359,7 @@ export function GlasswareStep({ state, set }: StepProps) {
       </ul>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         {!more ? (
-          <button type="button" onClick={() => setMore(true)} className={cn('inline-flex items-center gap-1.5 rounded-full border border-nh-line px-4 py-2 text-[14px] font-semibold hover:border-nh-ink', ring)}>
+          <button type="button" onClick={() => setMore(true)} className={cn('inline-flex min-h-10 items-center gap-1.5 rounded-full border border-nh-line px-4 text-[14px] font-semibold hover:border-nh-ink', ring)}>
             More glasses <ChevronDown className="h-4 w-4" aria-hidden />
           </button>
         ) : <span />}
@@ -397,7 +410,7 @@ export function IceStep({ state, set }: StepProps) {
 
 const EARLY_LABEL: Record<number, string> = { 30: '30 min', 60: '1 hour', 90: '1½ hours', 120: '2 hours' };
 
-export function StaffStep({ state, set, quote }: StepProps) {
+export function StaffStep({ state, set, update, quote }: StepProps) {
   const rec = recommendStaff(state.guests);
   const count = state.staffCount ?? rec;
   const s = quote.schedule;
@@ -409,16 +422,16 @@ export function StaffStep({ state, set, quote }: StepProps) {
       </Note>
 
       <div className="mt-7 flex flex-col items-center gap-3">
-        <Counter label="Bartenders" value={count} onChange={(staffCount) => set({ staffCount })} min={PRICES.staffMinimum} max={60} size="xl" />
+        <Counter label="Bartenders" value={count} onChange={(n) => update((st) => chooseStaff(st, n))} min={PRICES.staffMinimum} max={STAFF_MAX} size="xl" />
         {count === rec ? <Badge>Recommended</Badge> : (
-          <button type="button" onClick={() => set({ staffCount: rec })} className={cn('rounded-full px-3 py-1 text-[13px] font-semibold underline underline-offset-4', ring)}>
+          <button type="button" onClick={() => update((st) => chooseStaff(st, rec))} className={cn('min-h-10 rounded-full px-3 text-[13px] font-semibold underline underline-offset-4', ring)}>
             Use our recommendation ({rec})
           </button>
         )}
       </div>
 
       <div className="mt-8">
-        <p className="flex items-center gap-1 text-[14px] font-semibold">
+        <p className="flex items-center gap-2 text-[14px] font-semibold">
           Team arrives before the bar opens
           <Hint label="About staff times">
             Tell us when the bar opens and closes. Your bartenders are hired from at least 30 minutes before it opens, to set up, until 30 minutes after it closes, to clear down.
@@ -451,6 +464,7 @@ export function StaffStep({ state, set, quote }: StepProps) {
       ) : (
         <p role="alert" className="mt-6 text-[14px] font-semibold text-[#a12b2b]">{quote.scheduleIssue}.</p>
       )}
+      <ClockNote quote={quote} />
 
       <div className="mt-4 rounded-[18px] bg-nh-mist px-5 py-4" aria-live="polite">
         {line?.price.kind === 'priced' ? (
@@ -473,48 +487,50 @@ export function StaffStep({ state, set, quote }: StepProps) {
 // ─── 8. Delivery and set-up ─────────────────────────────────────────────────
 
 export function DeliveryStep({ state, set, quote }: StepProps) {
-  const today = useToday();
+  const range = dateRange(useToday());
   const s = quote.schedule;
+  // Dates come from the schedule, which only ever holds a real, checked date.
+  const date = s?.date ?? null;
   const lead = setupLeadMinutes(state.guests);
   const onTheDayBy = s?.setupOnTheDayBy ?? null;
+  const chosen = s?.setupDay ?? state.setupDay;
   return (
     <div>
       <Note>
         Delivery, set-up and collection is one fee of <strong className="text-nh-ink">{formatPenceCompact(PRICES.delivery)}</strong> for your bar and equipment.
       </Note>
 
-      {!state.date && (
-        <label className="mt-6 block max-w-xs text-[14px] font-semibold">
-          Event date
-          <input type="date" min={today} value="" onChange={(e) => set({ date: e.currentTarget.value || null })} className={field} />
-        </label>
-      )}
+      <DateField label="Event date" value={state.date} onChange={(d) => set({ date: d })} min={range.min} max={range.max} className="mt-6 max-w-xs" />
+      {!s && quote.scheduleIssue && <p role="alert" className="mt-3 text-[14px] font-semibold text-[#a12b2b]">{quote.scheduleIssue}.</p>}
 
       <fieldset className="mt-6">
-        <legend className="flex items-center gap-1 text-[15px] font-bold">
+        <legend className="flex items-center gap-2 text-[15px] font-bold">
           When shall we set up?
           <Hint label="About set-up time">
             We need {formatDuration(lead)} to set up for {state.guests} guests: 2 hours for up to 50, 4 hours for up to 100 and 6 hours for more.
           </Hint>
         </legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <RadioCard name="setup" value="day-before" checked={(s?.setupDay ?? state.setupDay) === 'day-before'} onChange={() => set({ setupDay: 'day-before' })} className="p-4">
+          <RadioCard name="setup" value="day-before" checked={chosen === 'day-before'} onChange={() => set({ setupDay: 'day-before' })} className="p-4">
             <span className="block text-[16px] font-bold">The day before</span>
             <span className="mt-0.5 block text-[14px] text-nh-ash">
-              {state.date ? formatDate(addDaysIso(state.date, -1)) : 'Ready and waiting on the day'}
+              {date ? formatDate(addDaysIso(date, -1)) : 'Ready and waiting on the day'}
             </span>
           </RadioCard>
           <RadioCard
             name="setup" value="on-the-day"
-            checked={(s?.setupDay ?? state.setupDay) === 'on-the-day'}
-            onChange={() => { if (onTheDayBy !== null) set({ setupDay: 'on-the-day' }); }}
-            className={cn('p-4', onTheDayBy === null && 'cursor-not-allowed opacity-55')}
+            checked={chosen === 'on-the-day'}
+            disabled={onTheDayBy === null}
+            onChange={() => set({ setupDay: 'on-the-day' })}
+            className="p-4"
           >
             <span className="block text-[16px] font-bold">On the day</span>
             <span className="mt-0.5 block text-[14px] text-nh-ash">
               {onTheDayBy !== null
-                ? `We’ll arrive by ${formatTime(onTheDayBy)}${state.date ? `, ${formatDate(state.date, true)}` : ''}`
-                : `Not enough time before your bar opens: we need ${formatDuration(lead)}`}
+                ? `We’ll arrive by ${formatTime(onTheDayBy)}${date ? `, ${formatDate(date, true)}` : ''}`
+                : s
+                  ? `Not available: we need ${formatDuration(lead)} before your bar opens, and we start from 7am`
+                  : 'Add your bar times first'}
             </span>
           </RadioCard>
         </div>
@@ -531,7 +547,7 @@ export function DeliveryStep({ state, set, quote }: StepProps) {
           options={COLLECTION_DAYS.map((d) => ({
             value: d,
             label: d === 1 ? 'The day after' : `${d} days after`,
-            sub: state.date ? formatDate(addDaysIso(state.date, d), true) : undefined,
+            sub: date ? formatDate(addDaysIso(date, d), true) : undefined,
           }))}
         />
       </div>

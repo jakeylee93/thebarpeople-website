@@ -35,7 +35,8 @@ export function QuoteLines({ quote, dense = false }: { quote: Quote; dense?: boo
                 {l.price.kind === 'priced' ? (
                   <p className="shrink-0 text-right text-[15px] font-semibold tabular-nums">{formatPence(l.price.pence)}</p>
                 ) : (
-                  <p className="shrink-0 text-right text-[13px] text-nh-ash">To confirm</p>
+                  // The engine's own reason is shown when it tells the guest what to do ("Add your bar times").
+                  <p className="max-w-[9rem] shrink-0 text-right text-[13px] text-nh-ash">{l.price.reason.startsWith('Add ') ? l.price.reason : 'To confirm'}</p>
                 )}
               </li>
             ))}
@@ -108,7 +109,7 @@ export default function QuotePanel({ state, quote, ledColour, onReset, className
         Prices are plus VAT. This is a quote, not a booking: nothing is charged.
       </p>
       {onReset && quote.lines.length > 0 && (
-        <button type="button" onClick={onReset} className="mt-2 self-start rounded text-[13px] font-semibold text-nh-ash underline underline-offset-4 hover:text-nh-ink">
+        <button type="button" onClick={onReset} className="mt-1 min-h-10 self-start rounded text-[13px] font-semibold text-nh-ash underline underline-offset-4 outline-none hover:text-nh-ink focus-visible:ring-2 focus-visible:ring-nh-ink focus-visible:ring-offset-2">
           Start again
         </button>
       )}

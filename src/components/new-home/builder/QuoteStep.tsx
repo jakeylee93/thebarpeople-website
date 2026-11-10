@@ -3,11 +3,12 @@
 // The finished quote: every line, VAT and total, then three ways to keep it.
 // Downloading the PDF or emailing it asks for an email address first.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Download, Link2, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDate, formatDuration, formatTime } from '@/lib/visual-quote/time';
 import { looksLikeEmail, submitLead } from '@/lib/quote/leads';
+import { usableDate } from '@/lib/quote/schedule';
 import BarDiagram from '../package/BarDiagram';
 import { QuoteLines, QuoteTotals } from './QuotePanel';
 import { goToStep, shareLink } from './route';
@@ -17,6 +18,8 @@ import { Note, field, ring } from './ui';
 type Want = 'pdf' | 'email';
 type Outcome = null | { kind: 'pdf' } | { kind: 'email-not-connected' } | { kind: 'email-sent' } | { kind: 'error'; message: string };
 
+const BAD_EMAIL = 'That email address doesn’t look complete. Please check it.';
+
 export default function QuoteStep({ state, quote, ledColour }: StepProps) {
   const today = useToday();
   const [want, setWant] = useState<Want | null>(null);
@@ -24,13 +27,25 @@ export default function QuoteStep({ state, quote, ledColour }: StepProps) {
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [copied, setCopied] = useState(false);
   const [contact, setContact] = useState({ name: '', email: '', phone: '' });
+  const [emailProblem, setEmailProblem] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   const s = quote.schedule;
   const empty = quote.lines.length === 0;
+  // The same check the schedule uses, so the date still shows when the bar times need fixing.
+  const date = usableDate(state.date);
 
-  const facts: [string, string][] = [['Guests', String(state.guests)], ['Date', state.date ? formatDate(state.date) : 'Not set yet']];
+  // The form opens below the buttons: bring it into view and put the cursor in it.
+  useEffect(() => {
+    if (!want) return;
+    formRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    emailRef.current?.focus({ preventScroll: true });
+  }, [want]);
+
+  const facts: [string, string][] = [['Guests', String(state.guests)], ['Date', date ? formatDate(date) : 'Not set yet']];
   if (s) {
     facts.push(['Bar open', `${formatTime(s.timing.startMinutes)} to ${formatTime(s.timing.endMinutes)} · ${formatDuration(s.barMinutes)}`]);
-    if (state.staffCount !== null) facts.push(['Team on site', `${formatTime(s.staffArrive)} to ${formatTime(s.staffFinish)}`]);
+    if (quote.lines.some((l) => l.id === 'staff')) facts.push(['Team on site', `${formatTime(s.staffArrive)} to ${formatTime(s.staffFinish)}`]);
     if (quote.lines.some((l) => l.id === 'delivery')) {
       facts.push(['Set-up', s.setupDay === 'on-the-day'
         ? `On the day${s.setupOnTheDayBy !== null ? `, by ${formatTime(s.setupOnTheDayBy)}` : ''}`
@@ -41,7 +56,15 @@ export default function QuoteStep({ state, quote, ledColour }: StepProps) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!want || busy || !looksLikeEmail(contact.email)) return;
+    if (!want || busy) return;
+    if (!looksLikeEmail(contact.email)) {
+      // The browser's own check lets "name@gmail" through, so say what's wrong ourselves.
+      setEmailProblem(true);
+      setOutcome(null);
+      emailRef.current?.focus();
+      return;
+    }
+    setEmailProblem(false);
     setBusy(true);
     setOutcome(null);
     try {
@@ -98,6 +121,13 @@ export default function QuoteStep({ state, quote, ledColour }: StepProps) {
   return (
     <div>
       <Note>Here’s your package, priced. Download it, email it to yourself or share the link.</Note>
+      {quote.scheduleIssue && (
+        <p role="alert" className="mt-3 rounded-[14px] bg-[#fbeeee] px-4 py-3 text-[14px] font-semibold leading-relaxed text-[#8f2424]">
+          {quote.scheduleIssue}.{' '}
+          <button type="button" onClick={() => goToStep('event')} className={cn('min-h-10 rounded underline underline-offset-4', ring)}>Change your bar times</button>{' '}
+          and we’ll price your drinks and bartenders.
+        </p>
+      )}
 
       {state.bar && (
         <div className="mt-5 rounded-[24px] bg-[radial-gradient(ellipse_at_50%_35%,#ffffff,#eceae5)] px-4 py-2">
@@ -113,9 +143,9 @@ export default function QuoteStep({ state, quote, ledColour }: StepProps) {
           </div>
         ))}
       </dl>
-      {!state.date && (
+      {!date && (
         <p className="mt-2 text-[14px] text-nh-ash">
-          <button type="button" onClick={() => goToStep('event')} className={cn('rounded font-semibold text-nh-ink underline underline-offset-4', ring)}>Add your event date</button>{' '}
+          <button type="button" onClick={() => goToStep('event')} className={cn('min-h-10 rounded font-semibold text-nh-ink underline underline-offset-4', ring)}>Add your event date</button>{' '}
           so we can check it’s free.
         </p>
       )}
@@ -146,7 +176,7 @@ export default function QuoteStep({ state, quote, ledColour }: StepProps) {
       </div>
 
       {want && (
-        <form onSubmit={submit} className="nh-pop mt-4 rounded-[20px] border-2 border-nh-ink p-5" aria-labelledby="lead-title">
+        <form ref={formRef} onSubmit={submit} noValidate className="nh-pop mt-4 scroll-mb-40 rounded-[20px] border-2 border-nh-ink p-5" aria-labelledby="lead-title">
           <h3 id="lead-title" className="text-[20px] font-extrabold tracking-tight">
             {want === 'pdf' ? 'Where shall we send a copy?' : 'Email my quote'}
           </h3>
@@ -154,10 +184,14 @@ export default function QuoteStep({ state, quote, ledColour }: StepProps) {
             {want === 'pdf' ? 'Pop in your email and your PDF downloads straight away.' : 'We’ll email your quote and one of us will be in touch.'}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <label className="block text-[14px] font-semibold">Email
-              <input type="email" name="email" autoComplete="email" required value={contact.email}
-                onChange={(e) => setContact({ ...contact, email: e.currentTarget.value })} className={field} />
-            </label>
+            {/* The message sits outside the label, so the field is still just called "Email". */}
+            <div>
+              <label htmlFor="lead-email" className="block text-[14px] font-semibold">Email</label>
+              <input ref={emailRef} id="lead-email" type="email" name="email" autoComplete="email" required value={contact.email}
+                aria-invalid={emailProblem ? true : undefined} aria-describedby={emailProblem ? 'lead-email-problem' : undefined}
+                onChange={(e) => { setContact({ ...contact, email: e.currentTarget.value }); if (emailProblem) setEmailProblem(false); }} className={field} />
+              {emailProblem && <p id="lead-email-problem" role="alert" className="mt-1.5 text-[13px] font-semibold text-[#a12b2b]">{BAD_EMAIL}</p>}
+            </div>
             <label className="block text-[14px] font-semibold">Name <span className="font-normal text-nh-ash">(optional)</span>
               <input name="name" autoComplete="name" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.currentTarget.value })} className={field} />
             </label>

@@ -1,8 +1,9 @@
 'use client';
 
 // The builder lives in the URL hash, so the phone's Back gesture steps back:
-//   #build            opens it          #build/<step>   a step
-//   #quote=<choices>  a shared quote, opened on the last step
+//   #build                  opens it          #build/<step>   a step
+//   #build/marquee-package  starts a marquee package (see MARQUEE_PACKAGE_HREF)
+//   #quote=<choices>        a shared quote, opened on the last step
 // Any link to #build anywhere on the page opens it.
 
 import { useSyncExternalStore } from 'react';
@@ -37,14 +38,30 @@ function subscribe(cb: () => void) {
   };
 }
 
-export interface BuildRoute { open: boolean; step: StepId; shared: string | null }
+/**
+ * The homepage's "marquee package" button. It starts the quote at step 1 with
+ * the marquee switched on, so the package has the bar, team and drinks in it
+ * as well. It is used once and then swapped for the plain first step, so a
+ * reload or the Back button never adds a marquee by itself.
+ */
+export const MARQUEE_PACKAGE_HREF = '#build/marquee-package';
+
+export interface BuildRoute {
+  open: boolean;
+  step: StepId;
+  shared: string | null;
+  /** True only while the address is the marquee package link. */
+  marqueePackage: boolean;
+}
 
 export function parseRoute(hash: string): BuildRoute {
-  const shared = /^#quote=([A-Za-z0-9_-]+)$/.exec(hash);
-  if (shared) return { open: true, step: 'quote', shared: shared[1] };
+  // A link pasted from a sentence often picks up a full stop or bracket: ignore it.
+  const shared = /^#quote=([A-Za-z0-9_-]+)[.,;:!?)\]'"]*$/.exec(hash);
+  if (shared) return { open: true, step: 'quote', shared: shared[1], marqueePackage: false };
+  if (hash === MARQUEE_PACKAGE_HREF) return { open: true, step: 'event', shared: null, marqueePackage: true };
   const m = /^#build(?:\/([a-z-]+))?$/.exec(hash);
   const step = m?.[1];
-  return { open: m !== null, step: isStepId(step) ? step : 'event', shared: null };
+  return { open: m !== null, step: isStepId(step) ? step : 'event', shared: null, marqueePackage: false };
 }
 
 export function useBuildRoute(): BuildRoute {
@@ -54,6 +71,12 @@ export function useBuildRoute(): BuildRoute {
 
 export function goToStep(step: StepId) {
   window.history.pushState(null, '', `#build/${step}`);
+  window.dispatchEvent(new Event(ROUTE_EVENT));
+}
+
+/** Swaps the address for a step without adding to the Back history. */
+export function replaceStep(step: StepId) {
+  window.history.replaceState(null, '', `#build/${step}`);
   window.dispatchEvent(new Event(ROUTE_EVENT));
 }
 
@@ -71,17 +94,27 @@ export function shareLink(state: QuoteState): string {
 
 const KEY = 'tbp-quote-v2';
 
-export function loadState(shared: string | null): QuoteState {
-  if (shared) {
-    const fromLink = decodeState(shared);
-    if (fromLink) return fromLink;
-  }
+function loadSaved(): QuoteState {
   try {
     const raw = window.localStorage.getItem(KEY);
     return (raw ? parseState(JSON.parse(raw)) : null) ?? DEFAULT_STATE;
   } catch {
     return DEFAULT_STATE;
   }
+}
+
+/**
+ * The choices to start from: a shared link if there is one, otherwise what
+ * this browser saved. `badLink` is true when a link was given but couldn't be
+ * read, so the page can say so rather than quietly showing something else.
+ */
+export function loadState(shared: string | null): { state: QuoteState; badLink: boolean } {
+  if (shared) {
+    const fromLink = decodeState(shared);
+    if (fromLink) return { state: fromLink, badLink: false };
+    return { state: loadSaved(), badLink: true };
+  }
+  return { state: loadSaved(), badLink: false };
 }
 
 export function saveState(state: QuoteState) {

@@ -27,7 +27,7 @@ export default function Parties() {
         <div className="relative z-10 -mt-6 shrink-0 rounded-t-[28px] bg-nh-mist px-[var(--nh-gutter)] pb-[clamp(14px,3dvh,28px)] pt-6 lg:mt-0 lg:rounded-none lg:p-0">
           <p data-reveal="1" className="nh-eyebrow text-nh-ash">{PARTIES.eyebrow}</p>
           <h2 id="parties-title" data-reveal="2" className="nh-title mt-2 lg:mt-4">{PARTIES.title}</h2>
-          <p data-reveal="3" className="nh-lede mt-2.5 max-w-[44ch] text-nh-ash lg:mt-5">{PARTIES.body}</p>
+          <p data-reveal="3" className="nh-lede nh-if-tall mt-2.5 max-w-[44ch] text-nh-ash lg:mt-5">{PARTIES.body}</p>
           <div data-reveal="3">
             <Points items={PARTIES.points} tone="light" className="mt-3.5 lg:mt-6" />
           </div>

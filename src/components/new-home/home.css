@@ -51,12 +51,23 @@ html:has(.nh-snap) body {
 }
 
 /* Too short for a section per screen (a phone on its side, a squashed window):
-   fall back to an ordinary scrolling page so nothing is ever cut off. */
+   fall back to an ordinary scrolling page so nothing is ever cut off. Photo
+   areas normally flex to fill a fixed-height section; here they get a set
+   height instead (a set height, not a minimum, so the container units used
+   inside them still resolve). */
 @media (max-height: 539px) {
   .nh-snap { scroll-snap-type: none; }
   .nh-section { height: auto; min-height: 100vh; min-height: 100dvh; }
-  /* Photo areas flex to fill a fixed-height section; here they need a floor. */
-  .nh-media { min-height: 240px; }
+  .nh-media { flex: none; height: 260px; }
+  .nh-media-tall { height: 420px; }
+  .nh-hero-photo { min-height: 320px; }
+  .nh-poster { min-height: 540px; }
+}
+@media (max-height: 539px) and (min-width: 768px) {
+  .nh-hero-photo { min-height: 460px; }
+}
+@media (max-height: 539px) and (min-width: 1024px) {
+  .nh-media, .nh-media-tall { height: 400px; }
 }
 
 /* ─── Type ──────────────────────────────────────────────────────────────────
@@ -92,26 +103,22 @@ html:has(.nh-snap) body {
   font-size: clamp(2rem, 6dvh, 2.5rem);
 }
 @media (min-width: 640px) {
-  .nh-points {
-  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3vh), 19px);
-  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3dvh), 19px);
-}
-.nh-hero-title { font-size: clamp(2rem, 7.2dvh, 3rem); }
+  .nh-hero-title { font-size: clamp(2rem, 7.2dvh, 3rem); }
 }
 @media (min-width: 768px) {
-  .nh-points {
-  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3vh), 19px);
-  font-size: clamp(14.5px, min(0.4vw + 11px, 2.3dvh), 19px);
-}
-.nh-hero-title { font-size: clamp(2.75rem, min(10.2vw, 12.5dvh), 5.75rem); }
+  .nh-hero-title { font-size: clamp(2.75rem, min(10.2vw, 12.5dvh), 5.75rem); }
 }
 @media (min-width: 1024px) {
   .nh-eyebrow { font-size: 12.5px; }
 }
 
-/* Second-line copy that gives way first on a short phone. */
+/* Copy that gives way on a short phone so the photo keeps its room: .nh-if-room
+   goes first, .nh-if-tall on the very shortest screens. */
 @media (max-width: 1023px) and (max-height: 719px) {
   .nh-if-room { display: none; }
+}
+@media (max-width: 1023px) and (max-height: 619px) {
+  .nh-if-tall { display: none; }
 }
 
 /* ─── Sections reveal once, the first time they come on screen ────────────────
@@ -254,6 +261,19 @@ html:has(.nh-snap) body {
     --tile-w: min(74vw, var(--tile-h) * 1.4);
   }
   .nh-tile-photo { height: var(--tile-h); }
+}
+
+/* Browsers without container units (Safari 15 and older) get plain screen-based
+   sizes instead. Untested on a real device; it only applies where the rules
+   above cannot. */
+@supports not (width: 1cqh) {
+  .nh-video-card { height: min(52vh, 700px); }
+  .nh-tile { width: min(72vw, 340px); }
+  .nh-tile-photo { height: 42vh; }
+  @media (min-width: 1024px) {
+    .nh-corp-visual { width: min(44vw, 640px); }
+    .nh-party-photo { height: min(70vh, 760px); }
+  }
 }
 
 /* ─── Video card clock ───────────────────────────────────────────────────── */

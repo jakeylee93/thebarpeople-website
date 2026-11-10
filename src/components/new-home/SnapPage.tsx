@@ -2,23 +2,31 @@
 
 // The page shell: one full-height box that scrolls and snaps, a section at a
 // time, on phones and desktops alike. Because the document itself never
-// scrolls, three things the browser would normally do are done here:
+// scrolls, a few things the browser would normally do are done here:
 //   1. keyboard paging (PageDown, Space, arrows, Home, End) moves one section;
 //   2. links to a section (#weddings) and the dots scroll this box smoothly;
-//   3. the dots and the header follow the section that is showing.
+//   3. one click of a mouse wheel moves one section;
+//   4. the dots and the header follow the section that is showing.
 
 import { useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
 import SiteHeader from './SiteHeader';
 import { SCROLLER_ID, SECTIONS } from './data';
 
 const LAST = SECTIONS.length - 1;
+/** Matches the fallback in home.css: too short to snap, so the page scrolls freely. */
+const TOO_SHORT = '(max-height: 539px)';
+const REDUCED = '(prefers-reduced-motion: reduce)';
 
 export default function SnapPage({ children }: { children: React.ReactNode }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-  /** Where a keyboard or dot scroll is heading, so quick repeat presses add up. */
+  /** Where a keyboard, wheel or dot scroll is heading, so quick repeats add up. */
   const heading = useRef<{ index: number; timer: number } | null>(null);
+  /** The run of wheel events in progress: when the last one came, whether the run
+   *  is a mouse wheel's clicks, and until when further clicks are ignored. */
+  const wheel = useRef({ last: 0, clicks: false, quietUntil: 0 });
+
+  const behavior = (): ScrollBehavior => (window.matchMedia(REDUCED).matches ? 'instant' : 'smooth');
 
   const goTo = (index: number) => {
     const scroller = scrollerRef.current;
@@ -27,10 +35,9 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
     const top = index === LAST
       ? scroller.scrollHeight - scroller.clientHeight
       : el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (heading.current) window.clearTimeout(heading.current.timer);
     heading.current = { index, timer: window.setTimeout(() => { heading.current = null; }, 900) };
-    scroller.scrollTo({ top, behavior: reduced ? 'instant' : 'smooth' });
+    scroller.scrollTo({ top, behavior: behavior() });
   };
 
   /** The section whose top is nearest the top of the screen. */
@@ -70,6 +77,17 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
     }
     scroller.dataset.ready = '';
 
+    // Lazy photos are fetched as they near the screen, which in Safari is too
+    // late for a page that snaps: start the next section's photos as soon as
+    // its neighbour is showing. (Only what would be on screen, not the whole
+    // gallery strip.)
+    const warm = (el?: HTMLElement) => {
+      el?.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((img) => {
+        const r = img.getBoundingClientRect();
+        if (r.right > 0 && r.left < window.innerWidth) img.loading = 'eager';
+      });
+    };
+
     const shown = new Map<Element, number>();
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
@@ -83,13 +101,18 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
         if (ratio > most) { best = i; most = ratio; }
       });
       setActive(best);
+      warm(els[best + 1]);
     }, { root: scroller, threshold: [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1] });
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
-  // Keyboard paging and in-page links.
+  // Keyboard paging, mouse wheel and in-page links.
   useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const tooShort = window.matchMedia(TOO_SHORT);
+
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       // An open dialog (menu, builder, photo viewer, How it works) owns the keyboard.
@@ -98,17 +121,43 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
       if (target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
       // Space and the arrows already mean something on a button or link.
       const onControl = Boolean(target?.closest('a[href], button, summary, [role="button"], video'));
+      // On a screen too short to snap, sections are taller than the screen: page by distance instead.
+      const page = (by: number) => (tooShort.matches ? scroller.scrollBy({ top: by * scroller.clientHeight * 0.85, behavior: behavior() }) : step(by));
+      const line = (by: number) => (tooShort.matches ? scroller.scrollBy({ top: by * 80, behavior: behavior() }) : step(by));
       switch (e.key) {
-        case 'PageDown': step(1); break;
-        case 'PageUp': step(-1); break;
+        case 'PageDown': page(1); break;
+        case 'PageUp': page(-1); break;
         case 'Home': goTo(0); break;
         case 'End': goTo(LAST); break;
-        case ' ': if (onControl) return; step(e.shiftKey ? -1 : 1); break;
-        case 'ArrowDown': if (onControl) return; step(1); break;
-        case 'ArrowUp': if (onControl) return; step(-1); break;
+        case ' ': if (onControl) return; page(e.shiftKey ? -1 : 1); break;
+        case 'ArrowDown': if (onControl) return; line(1); break;
+        case 'ArrowUp': if (onControl) return; line(-1); break;
         default: return;
       }
       e.preventDefault();
+    };
+
+    // One click of a mouse wheel is about 100px, and the browser's snapping
+    // springs back from that, so a wheel felt stuck. Take each click as "next
+    // section" (a spin of several clicks still moves one). Trackpads and touch
+    // are left alone: they scroll by the pixel and already snap well.
+    // Telling them apart: a wheel reports whole clicks (wheelDelta in 120s, or
+    // lines in Firefox) from the first event of a run; a trackpad run starts
+    // with a few pixels, and only by chance lands on a 120 later.
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || tooShort.matches || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      const legacy = (e as WheelEvent & { wheelDeltaY?: number }).wheelDeltaY;
+      const click = e.deltaMode === WheelEvent.DOM_DELTA_LINE || (typeof legacy === 'number' && legacy !== 0 && legacy % 120 === 0);
+      const run = wheel.current;
+      const newRun = e.timeStamp - run.last > 150;
+      run.last = e.timeStamp;
+      if (newRun) run.clicks = click;
+      else if (!click) run.clicks = false;
+      if (!run.clicks) return;
+      e.preventDefault();
+      if (e.timeStamp < run.quietUntil) return;
+      run.quietUntil = e.timeStamp + 450;
+      step(e.deltaY > 0 ? 1 : -1);
     };
 
     const onClick = (e: MouseEvent) => {
@@ -123,9 +172,11 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
 
     window.addEventListener('keydown', onKey);
     document.addEventListener('click', onClick);
+    scroller.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       window.removeEventListener('keydown', onKey);
       document.removeEventListener('click', onClick);
+      scroller.removeEventListener('wheel', onWheel);
     };
   });
 
@@ -145,9 +196,7 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
                 onClick={() => goTo(i)}
                 aria-label={`Go to ${s.label}`}
                 aria-current={i === active ? 'true' : undefined}
-                className={cn(
-                  'relative flex h-[26px] w-7 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-current',
-                )}
+                className="relative flex h-[26px] w-7 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-current"
               >
                 <span className="nh-dot" />
                 <span className="nh-dot-label" aria-hidden>{s.label}</span>

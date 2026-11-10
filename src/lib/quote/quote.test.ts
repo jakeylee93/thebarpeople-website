@@ -5,7 +5,7 @@ import { bottlePrice, drinksPerHead, MENU, searchMenu, standardMenu, upgradesPer
 import { hasStructure, MARQUEE_GROUPS, MARQUEE_ITEMS } from './marquee.ts';
 import { PRICES } from './prices.ts';
 import {
-  buildQuote, chooseShape, decodeState, DEFAULT_STATE, encodeState, parseState, reach, setGuests, vatOn,
+  buildQuote, chooseShape, chooseStaff, decodeState, DEFAULT_STATE, encodeState, parseState, reach, setGuests, vatOn,
   type QuoteState,
 } from './quote.ts';
 import { buildSchedule, setupLeadMinutes } from './schedule.ts';
@@ -198,7 +198,21 @@ test('bartenders: 2 × 7 hours × £28 = £392 for a bar open 6pm to midnight', 
 test('there are never fewer than two bartenders', () => {
   const q = buildQuote(state({ staffCount: 1 }));
   assert.match(line(q, 'staff')?.detail ?? '', /^2 bartenders/);
-  assert.equal(parseState({ ...DEFAULT_STATE, staffCount: 1 }), null);
+  // A saved or shared "1 bartender" is not accepted: the number goes back to unset.
+  assert.equal(parseState({ ...DEFAULT_STATE, staffCount: 1 })?.staffCount, null);
+  assert.equal(chooseStaff(state(), 1).staffCount, 2);
+  assert.equal(chooseStaff(state(), 500).staffCount, 60);
+});
+
+test('any quote with a bar or drinks has bartenders, however the guest got there', () => {
+  // Nothing chosen yet: no team.
+  assert.equal(line(buildQuote(state()), 'staff'), undefined);
+  // A bar but no number chosen (jumped straight to the quote, or an old link): the recommended team is quoted.
+  const withBar = buildQuote(state({ guests: 100, bar: bar() }));
+  assert.match(line(withBar, 'staff')?.detail ?? '', /^5 bartenders/);
+  assert.equal(priced(withBar, 'staff'), 5 * 6 * 2800);
+  const drinksOnly = buildQuote(state({ guests: 50, drinksMode: 'own' }));
+  assert.match(line(drinksOnly, 'staff')?.detail ?? '', /^3 bartenders/);
 });
 
 test('all-inclusive is priced per guest for the hours the bar is open', () => {
@@ -258,7 +272,12 @@ test('custom branding is a "to confirm" line next to the bar', () => {
 test('VAT is 20% of the subtotal, exact to the penny', () => {
   assert.equal(vatOn(10000), 2000);
   assert.equal(vatOn(80), 16);
-  assert.throws(() => vatOn(3));
+  // A price that isn't a multiple of 5p rounds to the nearest penny instead of failing.
+  assert.equal(vatOn(22), 4); // 4.4p
+  assert.equal(vatOn(13), 3); // 2.6p
+  assert.equal(vatOn(0), 0);
+  assert.throws(() => vatOn(-1));
+  assert.throws(() => vatOn(1.5));
   const q = buildQuote(state({ bar: bar(), glasses: { 'glass-flute': 37 } }));
   assert.equal(q.vat * 5, q.subtotal);
   assert.equal(q.total, q.subtotal + q.vat);
@@ -305,10 +324,38 @@ test('changing the guests moves the recommended bar and team, but not the guest�
   const auto = setGuests(reach(reach(state({ guests: 50 }), 'bar'), 'staff'), 100);
   assert.equal(auto.bar?.sections, 4);
   assert.equal(auto.staffCount, 5);
-  const own = setGuests(state({ guests: 50, bar: bar({ sections: 5 }), staffCount: 8 }), 100);
+  const own = setGuests(chooseStaff(chooseShape(state({ guests: 50 }), 'straight', 5), 8), 100);
   assert.equal(own.bar?.sections, 5);
   assert.equal(own.staffCount, 8);
   assert.equal(setGuests(state(), 5).guests, 10);
+});
+
+test('a choice stays the guest’s own even when it happens to match a recommendation later', () => {
+  // 100 guests: they pick a 3m bar and 3 bartenders, both smaller than recommended.
+  let s = reach(reach(state({ guests: 100 }), 'bar'), 'staff');
+  s = chooseStaff(chooseShape(s, 'straight', 2), 3);
+  assert.equal(s.barPicked, true);
+  assert.equal(s.staffPicked, true);
+  // At 50 guests those are exactly what we'd recommend. Going on to 150 must not move them.
+  s = setGuests(setGuests(s, 50), 150);
+  assert.deepEqual([s.bar?.shapeId, s.bar?.sections, s.staffCount], ['straight', 2, 3]);
+  // Choosing our recommendation hands them back to us.
+  s = chooseStaff(chooseShape(s, 'horseshoe', 6), 7);
+  assert.equal(s.barPicked, false);
+  assert.equal(s.staffPicked, false);
+  s = setGuests(s, 100);
+  assert.deepEqual([s.bar?.shapeId, s.bar?.sections, s.staffCount], ['straight', 4, 5]);
+});
+
+test('a bar is not moved if that would lose the finish the guest chose', () => {
+  // The LOVE bar only comes as a 3m bar. More guests must not swap it for a plain horseshoe.
+  const love = { ...reach(state({ guests: 50 }), 'bar') };
+  const withLove = { ...love, bar: { ...love.bar!, finishId: 'love' as const } };
+  const more = setGuests(withLove, 200);
+  assert.deepEqual(more.bar, { shapeId: 'straight', sections: 2, finishId: 'love', branded: false });
+  // A finish every bar comes in moves with the bar.
+  const mirror = setGuests({ ...love, bar: { ...love.bar!, finishId: 'mirror' as const } }, 100);
+  assert.deepEqual(mirror.bar, { shapeId: 'straight', sections: 4, finishId: 'mirror', branded: false });
 });
 
 test('choosing a shape keeps the finish where it can', () => {
@@ -317,14 +364,62 @@ test('choosing a shape keeps the finish where it can', () => {
   assert.equal(chooseShape(state({ bar: bar() }), 'round').bar?.finishId, 'led');
 });
 
-test('choices survive a share link, without the postcode; rubbish is rejected', () => {
+test('choices survive a share link, without the postcode', () => {
   const s = state({ guests: 120, date: '2027-06-12', bar: bar({ shapeId: 'horseshoe', sections: 6 }), drinksMode: 'all-inclusive', postcode: 'E11 1AA', glasses: { 'glass-flute': 120 } });
   const back = decodeState(encodeState(s));
   assert.deepEqual(back, { ...s, postcode: '' });
   assert.equal(decodeState('not-a-quote'), null);
   assert.equal(decodeState('%%%'), null);
-  assert.equal(parseState({ ...DEFAULT_STATE, guests: 5 }), null);
-  assert.equal(parseState({ ...DEFAULT_STATE, open: '18:15' }), null);
+  for (const notChoices of [null, undefined, 7, 'x', [], [DEFAULT_STATE]]) assert.equal(parseState(notChoices), null);
+});
+
+test('one bad value costs only that value, never the whole quote', () => {
+  const good = state({ guests: 120, bar: bar({ sections: 3 }), drinksMode: 'all-inclusive', igloos: 2 });
+  const fix = (over: Record<string, unknown>) => parseState({ ...good, ...over });
+  assert.equal(fix({ guests: 5 })?.guests, 100);
+  assert.equal(fix({ guests: 5 })?.igloos, 2);
+  assert.equal(fix({ open: '18:15' })?.open, '18:00');
+  assert.equal(fix({ igloos: -3 })?.igloos, 0);
+  assert.equal(fix({ igloos: 1e9 })?.igloos, 0);
+  assert.equal(fix({ bar: { shapeId: 'pyramid', sections: 2, finishId: 'white', branded: false } })?.bar, null);
+  assert.equal(fix({ drinksMode: 'free-bar' })?.drinksMode, null);
+  // A link made before a field existed still opens.
+  const older = Object.fromEntries(Object.entries(good).filter(([key]) => !['barPicked', 'staffPicked', 'marqueeItems'].includes(key)));
+  assert.deepEqual(parseState(older), good);
+  // Things we don't list are dropped rather than carried round in links.
+  const tidy = fix({ menu: ['peroni', 'peroni', 'gone'], bottles: { moet: 2, peroni: 4, gone: 1 }, glasses: { 'glass-flute': 10, gone: 5 }, marqueeItems: { 'mq-clear-span': 1, gone: 3 }, __proto__: { guests: 999 } });
+  assert.deepEqual(tidy?.menu, ['peroni']);
+  assert.deepEqual(tidy?.bottles, { moet: 2 });
+  assert.deepEqual(tidy?.glasses, { 'glass-flute': 10 });
+  assert.deepEqual(tidy?.marqueeItems, { 'mq-clear-span': 1 });
+  assert.equal(tidy?.guests, 120);
+});
+
+test('a date that is not a real, sensible day is treated as no date, and never breaks the quote', () => {
+  for (const bad of ['0002-12-06', '0027-06-12', '20277-06-12', '2027-02-30', '9999-12-31', '2027-13-01', 'tomorrow', '', 12]) {
+    assert.equal(parseState({ ...DEFAULT_STATE, date: bad })?.date, null, String(bad));
+  }
+  assert.equal(parseState({ ...DEFAULT_STATE, date: '2027-06-12' })?.date, '2027-06-12');
+  // Even if one slips through (typed straight into the page), the quote still builds, without dates.
+  for (const bad of ['0002-12-06', '2027-02-30', '9999-12-31']) {
+    const q = buildQuote(state({ date: bad, close: '01:00', bar: bar(), drinksMode: 'all-inclusive' }));
+    assert.equal(q.schedule?.date, null, bad);
+    assert.equal(q.schedule?.setupDate, null, bad);
+    assert.equal(priced(q, 'drinks-package'), 100 * 4500);
+  }
+});
+
+test('on a clock-change night the quote says what happens to the hours', () => {
+  const ordinary = buildQuote(state({ date: '2027-10-23', open: '19:00', close: '02:00', drinksMode: 'all-inclusive' }));
+  assert.equal(ordinary.clockNote, null);
+  assert.equal(ordinary.drinksPerHead, 4500);
+  const back = buildQuote(state({ date: '2027-10-30', open: '19:00', close: '02:00', drinksMode: 'all-inclusive' }));
+  assert.equal(back.drinksPerHead, 5000);
+  assert.match(back.clockNote ?? '', /go back.*8 hours.*1 hour more/);
+  assert.ok(back.notes.includes(back.clockNote!));
+  const forward = buildQuote(state({ date: '2027-03-27', open: '19:00', close: '02:00', drinksMode: 'all-inclusive' }));
+  assert.equal(forward.drinksPerHead, 4000);
+  assert.match(forward.clockNote ?? '', /go forward.*6 hours.*1 hour less/);
 });
 
 test('champagne is by the bottle: Majestic price plus 25%, to the nearest pound', () => {
@@ -380,6 +475,13 @@ test('marquee prices are never shown as £0: unpriced lines stay out of the tota
   const withMarquee = buildQuote(state({ bar: bar(), marquee: true, marqueeItems: { 'mq-chinese-hat': 2, 'mq-starlit-ceiling': 1 } }));
   assert.equal(withMarquee.subtotal, base.subtotal);
   assert.ok(withMarquee.toConfirm > base.toConfirm);
+});
+
+test('marquee quantities are kept to what the builder offers', () => {
+  const q = buildQuote(state({ marquee: true, marqueeItems: { 'mq-clear-span': 2000, 'mq-starlit-ceiling': 2000, 'mq-wooden-folding-chair': 2000 } }));
+  assert.equal(line(q, 'marquee-mq-clear-span')?.detail, '6 marquees');
+  assert.equal(line(q, 'marquee-mq-starlit-ceiling')?.detail, '1 set');
+  assert.equal(line(q, 'marquee-mq-wooden-folding-chair')?.detail, 'Quantity: 1000');
 });
 
 test('marquee range: unique ids, a structure group, and no partner name in customer wording', () => {

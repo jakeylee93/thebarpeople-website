@@ -20,6 +20,15 @@ export type CollectionDays = (typeof COLLECTION_DAYS)[number];
 /** DERIVED: on-the-day set-up isn't offered if we'd have to start before 7am. To confirm. */
 export const EARLIEST_SETUP_START = 7 * 60;
 
+/**
+ * A real calendar day in a sensible range. Anything else (a half-typed year
+ * such as 0002, the 30th of February, the year 9999) is treated as no date.
+ */
+export function usableDate(value: string | null | undefined): string | null {
+  const parts = parseIsoDate(value);
+  return parts && parts.y >= 2020 && parts.y <= 2100 ? (value as string) : null;
+}
+
 /** A mid-winter day with no clock change, used for durations before a date is chosen. */
 const NEUTRAL_DATE = '2027-01-16';
 
@@ -63,7 +72,7 @@ export function buildSchedule(input: {
   collectionDays: CollectionDays;
 }): ScheduleResult {
   // Durations don't need the date; only a clock-change night can alter them.
-  const date = parseIsoDate(input.date) ? (input.date as string) : null;
+  const date = usableDate(input.date);
   const open = parseTime(input.open);
   const close = parseTime(input.close);
   if (open === null) return { ok: false, reason: 'Choose when the bar opens' };

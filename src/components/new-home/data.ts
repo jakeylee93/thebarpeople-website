@@ -53,8 +53,14 @@ export interface Focus { desktop: string; phone: string }
 
 export type HeroSlide =
   | { kind: 'image'; src: string; alt: string; focus: Focus }
-  // Ready for Jake's own clips: muted, looping, with a still poster.
-  | { kind: 'video'; src: string; poster: string; alt: string; focus: Focus };
+  // A silent film with a still poster. It plays once through while its slide
+  // is showing. `phone` is an upright cut for narrow screens.
+  | {
+      kind: 'video'; src: string; poster: string; alt: string; focus: Focus;
+      /** How long the slide stays up: just under the film's length. */
+      seconds: number;
+      phone?: { src: string; poster: string };
+    };
 
 // The lawn photo is also the Weddings picture further down, so it comes late
 // in the hero's rotation.
@@ -63,6 +69,15 @@ export const HERO_SLIDES: HeroSlide[] = [
     kind: 'image', src: '/images/new-home/hero-cocktails.jpg',
     alt: 'A row of pink martinis with fresh pineapple wedges on a white bar',
     focus: { desktop: '50% 50%', phone: '52% 50%' },
+  },
+  // Eight shots from The Bar People's own promo films, joined with soft fades
+  // (19 seconds). To open the page on the film instead, move it to the top.
+  {
+    kind: 'video', src: '/videos/new-home/hero-reel.mp4', poster: '/videos/new-home/hero-reel.jpg',
+    phone: { src: '/videos/new-home/hero-reel-phone.mp4', poster: '/videos/new-home/hero-reel-phone.jpg' },
+    alt: 'Bar People bartenders raising, pouring, shaking and serving cocktails',
+    focus: { desktop: '50% 50%', phone: '50% 50%' },
+    seconds: 18.5,
   },
   {
     kind: 'image', src: '/images/new-home/hero-balloons.jpg',
@@ -181,13 +196,18 @@ export interface Still { src: string; alt: string; /** CSS object-position insid
 
 /**
  * Clips for the "See us in action" card: tall (9:16) videos, played one after
- * another with no sound. Empty until Jake's clips arrive; add them here, e.g.
- *   { src: '/videos/pour.mp4', poster: '/videos/pour.jpg', alt: 'A bartender pouring a cocktail' },
- * and the card switches from the photos below to the clips.
+ * another with no sound. Cut from The Bar People's own promo films. To swap
+ * one, replace its file or add a line here.
  */
-export const VIDEO_CLIPS: VideoClip[] = [];
+export const VIDEO_CLIPS: VideoClip[] = [
+  { src: '/videos/new-home/card-1-toast.mp4', poster: '/videos/new-home/card-1-toast.jpg', alt: 'A Bar People bartender tasting a cocktail under fairy lights' },
+  { src: '/videos/new-home/card-2-pour.mp4', poster: '/videos/new-home/card-2-pour.jpg', alt: 'A cocktail being poured into a martini glass' },
+  { src: '/videos/new-home/card-4-bubbles.mp4', poster: '/videos/new-home/card-4-bubbles.jpg', alt: 'Champagne flutes fizzing in the sun' },
+  { src: '/videos/new-home/card-5-shimmer.mp4', poster: '/videos/new-home/card-5-shimmer.jpg', alt: 'Cocktails lined up on a shimmer bar on a terrace' },
+  { src: '/videos/new-home/card-6-shaker.mp4', poster: '/videos/new-home/card-6-shaker.jpg', alt: 'A bartender shaking a cocktail' },
+];
 
-/** Shown in the card while there are no clips. */
+/** Shown in the card if there are no clips. */
 export const VIDEO_STILLS: Still[] = [
   { src: '/images/film/shirt-pour.jpg', alt: 'A Bar People bartender pouring a cocktail into a row of martini glasses', focus: '82% 50%' },
   { src: '/images/events/martini-daiquiri.jpg', alt: 'A strawberry daiquiri beside copper cocktail shakers', focus: '64% 50%' },
@@ -210,7 +230,8 @@ export const MARQUEE = {
   body: 'One quote for the marquee, the bar and everything that goes with it.',
   items: ['Marquee', 'Bar', 'Bartenders', 'Drinks', 'Glassware', 'Ice and fridges'],
   cta: 'Build a marquee package',
-  href: '#build/marquee',
+  // Starts the quote at step 1 with the marquee switched on (builder/route.ts: MARQUEE_PACKAGE_HREF).
+  href: '#build/marquee-package',
   note: 'Furniture, flooring, lighting and crockery can be added with a marquee.',
 };
 

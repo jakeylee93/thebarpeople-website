@@ -32,6 +32,31 @@ const ASH = rgb(0.42, 0.42, 0.42);
 const LINE = rgb(0.89, 0.886, 0.867);
 const MIST = rgb(0.949, 0.945, 0.933);
 
+const PLAIN: Record<string, string> = {
+  ł: 'l', Ł: 'L', đ: 'd', Đ: 'D', ı: 'i', ħ: 'h', Ħ: 'H', ŋ: 'n', Ŋ: 'N', ŧ: 't', Ŧ: 'T', ĸ: 'k',
+  '→': 'to', '‘': '’', '‚': ',', '−': '-', '‐': '-', '‑': '-', '―': '-',
+};
+
+/**
+ * Text the PDF's font can print. The built-in font covers Western European
+ * text. Other letters are swapped for the nearest plain one (ł → l, Ż → Z) so
+ * a name stays readable; anything with no plain equivalent (emoji, Chinese,
+ * Arabic) is left out. Tabs and line breaks become a space.
+ */
+export function toPrintable(text: string, canPrint: (codePoint: number) => boolean): string {
+  let out = '';
+  for (const ch of text.replace(/\s+/g, ' ')) {
+    if (canPrint(ch.codePointAt(0)!)) { out += ch; continue; }
+    if (PLAIN[ch] !== undefined) { out += PLAIN[ch]; continue; }
+    // Split an accented letter into the letter and its accent, and keep the letter.
+    for (const part of ch.normalize('NFKD')) {
+      if (canPrint(part.codePointAt(0)!) && !/\p{M}/u.test(part)) out += part;
+      else if (PLAIN[part] !== undefined) out += PLAIN[part];
+    }
+  }
+  return out.replace(/ {2,}/g, ' ').trim();
+}
+
 export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
   const { state, quote } = input;
   const doc = await PDFDocument.create();
@@ -45,15 +70,10 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
     try { logo = await doc.embedPng(input.logoPng); } catch { logo = null; }
   }
 
-  // Helvetica covers Western European text; anything else becomes a plain equivalent.
   const charset = new Set(regular.getCharacterSet());
-  const safe = (text: string) => {
-    let out = '';
-    for (const ch of text.replace(/→/g, 'to').replace(/[‘’]/g, '’')) {
-      out += charset.has(ch.codePointAt(0)!) ? ch : ch === ' ' ? ' ' : '';
-    }
-    return out;
-  };
+  const safe = (text: string) => toPrintable(text, (codePoint) => charset.has(codePoint));
+  /** A line title that would print as nothing (a request typed in emoji, say) gets a stand-in. */
+  const titleOf = (title: string) => safe(title) || 'Your request (see your online quote)';
 
   const width = A4[0] - MARGIN * 2;
   let page: PDFPage = doc.addPage(A4);
@@ -106,7 +126,8 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
   if (logo) page.drawImage(logo, { x: MARGIN, y: y - logoSize, width: logoSize, height: logoSize });
   right('QUOTE', MARGIN + width, y - 14, 9, bold, ASH);
   right(`Prepared ${formatDate(input.preparedOn)}`, MARGIN + width, y - 30, 10, regular, INK);
-  if (input.customerName?.trim()) right(`For ${input.customerName.trim().slice(0, 60)}`, MARGIN + width, y - 45, 10, regular, INK);
+  const forName = safe(Array.from(input.customerName ?? '').slice(0, 60).join(''));
+  if (forName) right(`For ${forName}`, MARGIN + width, y - 45, 10, regular, INK);
   y -= logoSize + 26;
   text('Your package', MARGIN, y, 26, bold);
   y -= 18;
@@ -157,9 +178,9 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
       y -= 15;
       lastGroup = line.group;
     }
-    text(line.title, MARGIN, y, 10, bold);
+    text(titleOf(line.title), MARGIN, y, 10, bold);
     if (line.price.kind === 'priced') right(formatPence(line.price.pence), amountX, y, 10, bold);
-    else right('To confirm', amountX, y, 9.5, regular, ASH);
+    else right(line.price.reason.startsWith('Add ') ? line.price.reason : 'To confirm', amountX, y, 9.5, regular, ASH);
     y -= 11.5;
     for (const d of detail) { text(d, MARGIN, y, 8.5, regular, ASH); y -= 10.5; }
     y -= 1;
@@ -221,6 +242,7 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
 
   // ── Notes ──
   const notes = [
+    ...(quote.scheduleIssue ? [`${quote.scheduleIssue}. Drinks and bartenders are priced once your bar times are set.`] : []),
     ...quote.notes,
     'All prices are plus VAT, shown above. This is a quote, not a booking: nothing is charged, and dates are held only once we confirm.',
     // Only a short link is worth printing; the long self-contained one stays on screen.

@@ -103,7 +103,7 @@ export default function MarqueeStep({ state, set }: StepProps) {
       </section>
 
       <button type="button" onClick={() => set({ marquee: false })}
-        className={cn('mt-8 rounded text-[14px] font-semibold text-nh-ash underline underline-offset-4 hover:text-nh-ink', ring)}>
+        className={cn('mt-6 min-h-10 rounded text-[14px] font-semibold text-nh-ash underline underline-offset-4 hover:text-nh-ink', ring)}>
         Remove the marquee from my quote
       </button>
     </div>
@@ -120,7 +120,8 @@ function ExtraGroup({ group, items, setQty }: {
   const Icon = GROUP_ICON[group.id] ?? Tent;
   return (
     <details className="group bg-white">
-      <summary className={cn('flex cursor-pointer list-none items-center gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden', ring)}>
+      {/* The ring is drawn inside the row, because the rounded box around the list clips anything outside it. */}
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-nh-ink [&::-webkit-details-marker]:hidden">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-nh-mist text-nh-ink">
           <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
         </span>

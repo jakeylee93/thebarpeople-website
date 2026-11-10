@@ -105,7 +105,7 @@ function MenuEditor({ state, set }: Pick<StepProps, 'state' | 'set'>) {
         </div>
         {!isStandard && (
           <button type="button" onClick={() => { set({ menu: standardMenu(), bottles: {}, requests: [] }); setQuery(''); }}
-            className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold text-nh-ash underline underline-offset-4 hover:text-nh-ink', ring)}>
+            className={cn('inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-nh-ash underline underline-offset-4 hover:text-nh-ink', ring)}>
             <RotateCcw className="h-3.5 w-3.5" aria-hidden /> Back to the standard menu
           </button>
         )}
@@ -123,7 +123,7 @@ function MenuEditor({ state, set }: Pick<StepProps, 'state' | 'set'>) {
         />
         {searching && (
           <button type="button" onClick={() => setQuery('')} aria-label="Clear search"
-            className={cn('absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full hover:bg-nh-mist', ring)}>
+            className={cn('absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full hover:bg-nh-mist', ring)}>
             <X className="h-4 w-4" aria-hidden />
           </button>
         )}
@@ -152,10 +152,10 @@ function MenuEditor({ state, set }: Pick<StepProps, 'state' | 'set'>) {
           <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-nh-ash">You’ve asked for</p>
           <ul className="mt-2 flex flex-wrap gap-2">
             {state.requests.map((r) => (
-              <li key={r} className="inline-flex items-center gap-1 rounded-full bg-nh-mist py-1 pl-3 pr-1 text-[14px] font-semibold">
+              <li key={r} className="inline-flex items-center gap-1 rounded-full bg-nh-mist pl-3.5 text-[14px] font-semibold">
                 {r}
                 <button type="button" aria-label={`Remove ${r}`} onClick={() => set({ requests: state.requests.filter((x) => x !== r) })}
-                  className={cn('flex h-7 w-7 items-center justify-center rounded-full hover:bg-white', ring)}>
+                  className={cn('flex h-10 w-10 items-center justify-center rounded-full hover:bg-white', ring)}>
                   <X className="h-3.5 w-3.5" aria-hidden />
                 </button>
               </li>
@@ -207,7 +207,7 @@ function TermsChip({ drink }: { drink: Drink }) {
 
 function DrinkRow({ drink, checked, onToggle }: { drink: Drink; checked: boolean; onToggle: () => void }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3 py-3 has-[:focus-visible]:rounded-lg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nh-ink has-[:focus-visible]:ring-offset-2">
+    <label className="relative flex cursor-pointer items-center gap-3 py-3 has-[:focus-visible]:rounded-lg has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nh-ink has-[:focus-visible]:ring-offset-2">
       <input type="checkbox" checked={checked} onChange={onToggle} className="sr-only" />
       <span aria-hidden className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition', checked ? 'border-nh-ink bg-nh-ink text-white' : 'border-nh-line bg-white')}>
         {checked && <Check className="h-4 w-4" />}

@@ -147,6 +147,12 @@ export function barName(choice: BarChoice): string {
   return shape.name;
 }
 
+/** The bar's name for the middle of a sentence: "your 3m bar", "your horseshoe bar", "your L-shaped bar". */
+export function barNameInSentence(choice: BarChoice): string {
+  const name = barName(choice);
+  return /^[A-Z][a-z]/.test(name) ? name.charAt(0).toLowerCase() + name.slice(1) : name;
+}
+
 /** One line of size detail: "Two 1.5m sections · 10ft", "6 sections + 2 corners · about 10m". */
 export function barSizeLabel(choice: BarChoice): string {
   const bar = normaliseBar(choice);

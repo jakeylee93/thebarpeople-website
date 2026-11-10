@@ -13,7 +13,7 @@ export default function Video() {
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent,rgba(17,17,17,0.85))]" />
 
       <div className="relative mx-auto flex h-full max-w-[1320px] flex-col gap-[clamp(14px,2.6dvh,24px)] px-[var(--nh-gutter)] pb-[clamp(16px,3.4dvh,40px)] pt-[calc(var(--nh-head)+clamp(12px,2.6dvh,40px))] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-center lg:gap-16">
-        <div data-reveal className="nh-media nh-fit flex min-h-0 flex-1 items-center justify-center lg:order-2 lg:self-stretch">
+        <div data-reveal className="nh-media nh-media-tall nh-fit flex min-h-0 flex-1 items-center justify-center lg:order-2 lg:self-stretch">
           <VideoCard clips={VIDEO_CLIPS} stills={VIDEO_STILLS} className="nh-video-card" />
         </div>
 

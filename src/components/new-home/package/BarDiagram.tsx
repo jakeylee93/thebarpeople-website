@@ -1,3 +1,5 @@
+'use client';
+
 // A bar drawn as a clean vector: the same camera for every shape, centred,
 // in the finishes The Bar People really have, and (when branded) with "your
 // artwork" on every customer-facing panel. Pure SVG, sharp at any size.
@@ -7,10 +9,28 @@
 // LOVE bar (mirror letters on white); and the lit, colour-changing curved
 // sections with a black plinth and uprights.
 
-import { useId } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { barName, findFinish, normaliseBar, type BarChoice } from '@/lib/quote/bars';
-import { BAR_DIMS, barGeometry, FRAME, type Face, type Panel } from '@/lib/quote/diagram';
+import { BAR_DIMS, barGeometry, FRAME, VIEW, type Face, type Panel } from '@/lib/quote/diagram';
 import { cn } from '@/lib/utils';
+
+/** The smallest size, in screen pixels, at which words on the artwork panels are worth showing. */
+const READABLE_PX = 9;
+const READABLE_SMALL_PX = 8;
+
+/** How wide the drawing is on screen, once it has been laid out. Null until then, or when it isn't being watched. */
+function useWidthOnScreen(watch: boolean) {
+  const ref = useRef<SVGSVGElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!watch || !el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [watch]);
+  return [ref, watch ? width : null] as const;
+}
 
 const INK = '#141414';
 type RGB = [number, number, number];
@@ -29,7 +49,11 @@ export default function BarDiagram({
   ledColour?: string;
   /** Slowly cycle the LED through its colours. */
   cycle?: boolean;
-  /** Words on the artwork panels: always, never, or only when the bar is drawn large enough. */
+  /**
+   * Words on the artwork panels ("Your artwork"). They are only ever drawn when
+   * they would be big enough to read on screen; otherwise the picture icon
+   * stands alone. False switches them off altogether.
+   */
   artworkText?: boolean | 'auto';
   className?: string;
   /** True when the drawing only repeats nearby text. */
@@ -42,7 +66,10 @@ export default function BarDiagram({
   const curved = bar.shapeId === 'curved' || bar.shapeId === 'round';
   const id = (name: string) => `${uid}-${name}`;
   const label = `${barName(bar)}, ${findFinish(finish)?.name ?? ''} finish${bar.branded ? ', with your artwork on every panel' : ''}`;
-  const words = artworkText === 'auto' ? geo.scale >= 78 : artworkText;
+  const wantWords = bar.branded && artworkText !== false;
+  const [svgRef, widthOnScreen] = useWidthOnScreen(wantWords);
+  // Screen pixels for one centimetre of panel height, in this drawing at this size.
+  const pxPerCm = widthOnScreen === null ? 0 : (geo.scale * Math.cos((VIEW.elevation * Math.PI) / 180) / 100) * (widthOnScreen / FRAME.width);
 
   const draw = [
     ...geo.faces.map((face) => ({ depth: face.depth, face, panel: null as Panel | null })),
@@ -58,7 +85,7 @@ export default function BarDiagram({
     if (face.kind === 'edge') return INK;
     if (face.kind === 'inner') return darkInside ? mix([30, 30, 30], [40, 40, 40], face.light) : mix([150, 148, 143], [214, 212, 207], face.light);
     if (finish === 'mirror') return mix([140, 148, 158], [214, 220, 226], face.light);
-    if (finish === 'shimmer') return mix([14, 14, 14], [44, 44, 44], face.light);
+    // The shimmer wall is only on the front: the end of the bar stays white gloss, like the classic bar.
     if (finish === 'led') return INK;
     return mix([212, 211, 206], [250, 250, 249], face.light);
   };
@@ -68,6 +95,7 @@ export default function BarDiagram({
 
   return (
     <svg
+      ref={svgRef}
       viewBox={`0 0 ${FRAME.width} ${FRAME.height}`}
       className={cn('block h-auto w-full', className)}
       role={decorative ? undefined : 'img'}
@@ -140,8 +168,9 @@ export default function BarDiagram({
           const p = panel!;
           const shade = (1 - p.light) * shadeMax;
           const litHeight = p.height * (1 - plinth);
-          const showWords = words && p.kind !== 'corner' && p.facing > 0.42;
           const fs = Math.min(15, p.width * 0.105);
+          const showWords = wantWords && p.kind !== 'corner' && p.facing > 0.42 && fs * pxPerCm >= READABLE_PX;
+          const showSmallWords = showWords && fs * 0.56 * pxPerCm >= READABLE_SMALL_PX;
           const artTop = 7, artBottom = (finish === 'led' ? litHeight : p.height) - 7;
           const artMid = (artTop + artBottom) / 2;
           return (
@@ -191,22 +220,22 @@ export default function BarDiagram({
                       <g>
                         <rect x={6} y={artTop} width={p.width - 12} height={artBottom - artTop} rx={3} fill="#fff" fillOpacity={finish === 'white' || finish === 'love' ? 0.72 : 0.92}
                           stroke={INK} strokeOpacity="0.55" strokeWidth="1.1" strokeDasharray="5 4" />
-                        <g transform={`translate(${p.width / 2} ${artMid - (showWords ? fs * 1.05 : 0)})`} stroke={INK} strokeOpacity="0.7" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                        <g transform={`translate(${p.width / 2} ${artMid - (showWords ? fs * (showSmallWords ? 1.05 : 0.7) : 0)})`} stroke={INK} strokeOpacity="0.7" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
                           <rect x={-9} y={-7.5} width={18} height={15} rx={2.5} />
                           <path d="M-9 4 L-3.5 -1.5 L1 3 L4 0.5 L9 5" />
                           <circle cx={4.2} cy={-3} r={1.6} />
                         </g>
                         {showWords && (
-                          <>
-                            <text x={p.width / 2} y={artMid + fs * 0.75} textAnchor="middle" fontSize={fs} fontWeight="800" fill={INK}
-                              style={{ fontFamily: 'var(--font-nh-display), system-ui, sans-serif', letterSpacing: '-0.02em' }}>
-                              Your artwork
-                            </text>
-                            <text x={p.width / 2} y={artMid + fs * 1.75} textAnchor="middle" fontSize={fs * 0.56} fill={INK} fillOpacity="0.62"
-                              style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif' }}>
-                              Logo, names or a pattern
-                            </text>
-                          </>
+                          <text x={p.width / 2} y={artMid + fs * (showSmallWords ? 0.75 : 1.1)} textAnchor="middle" fontSize={fs} fontWeight="800" fill={INK}
+                            style={{ fontFamily: 'var(--font-nh-display), system-ui, sans-serif', letterSpacing: '-0.02em' }}>
+                            Your artwork
+                          </text>
+                        )}
+                        {showSmallWords && (
+                          <text x={p.width / 2} y={artMid + fs * 1.75} textAnchor="middle" fontSize={fs * 0.56} fill={INK} fillOpacity="0.62"
+                            style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif' }}>
+                            Logo, names or a pattern
+                          </text>
                         )}
                       </g>
                     )}

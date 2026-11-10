@@ -9,7 +9,7 @@ import Snow from '../Snow';
 export default function Christmas() {
   const { image } = CHRISTMAS;
   return (
-    <section id="christmas" data-snap aria-labelledby="christmas-title" className="nh-section bg-nh-ink text-white">
+    <section id="christmas" data-snap aria-labelledby="christmas-title" className="nh-section nh-poster bg-nh-ink text-white">
       <Image
         src={image.src}
         alt={image.alt}

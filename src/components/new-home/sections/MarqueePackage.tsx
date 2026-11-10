@@ -14,14 +14,14 @@ export default function MarqueePackage() {
         <div className="shrink-0">
           <p data-reveal="1" className="nh-eyebrow text-nh-ash">{MARQUEE.eyebrow}</p>
           <h2 id="marquees-title" data-reveal="2" className="nh-title mt-2 lg:mt-4">{MARQUEE.title}</h2>
-          <p data-reveal="3" className="nh-lede mt-2.5 max-w-[42ch] text-nh-ash lg:mt-5">{MARQUEE.body}</p>
+          <p data-reveal="3" className="nh-lede nh-if-tall mt-2.5 max-w-[42ch] text-nh-ash lg:mt-5">{MARQUEE.body}</p>
           <div data-reveal="3">
             <Points items={MARQUEE.items} tone="light" columns className="mt-3.5 max-w-[440px] font-semibold lg:mt-7" />
           </div>
           <div data-reveal="4" className="mt-[clamp(14px,2.6dvh,32px)]">
             <BuildButton tone="light" href={MARQUEE.href}>{MARQUEE.cta}</BuildButton>
           </div>
-          <p data-reveal="5" className="mt-3 max-w-[46ch] text-[13px] leading-snug text-nh-ash lg:mt-4 lg:text-[14px]">{MARQUEE.note}</p>
+          <p data-reveal="5" className="nh-if-tall mt-3 max-w-[46ch] text-[13px] leading-snug text-nh-ash lg:mt-4 lg:text-[14px]">{MARQUEE.note}</p>
         </div>
       </div>
     </section>

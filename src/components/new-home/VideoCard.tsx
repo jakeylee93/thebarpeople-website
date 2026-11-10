@@ -26,10 +26,12 @@ const subscribeReduced = (cb: () => void) => {
 const getReduced = () => window.matchMedia(reducedQuery).matches;
 
 function Clip({
-  clip, active, run, loop, onNearEnd, onProgress,
+  clip, active, wanted, run, loop, onNearEnd, onProgress,
 }: {
   clip: VideoClip;
   active: boolean;
+  /** Worth downloading: false until the card has first come on screen. */
+  wanted: boolean;
   /** Playing right now: the showing clip, or the one fading out behind it. */
   run: boolean;
   loop: boolean;
@@ -38,17 +40,24 @@ function Clip({
 }) {
   const ref = useRef<HTMLVideoElement>(null);
 
+  // Nothing is fetched until the card is first seen; until then the poster shows.
+  useEffect(() => {
+    const v = ref.current;
+    if (v && wanted && v.preload !== 'auto') { v.preload = 'auto'; v.load(); }
+  }, [wanted]);
+
   // Each time a clip comes round again it starts from the top.
   useEffect(() => {
     if (active && ref.current && ref.current.currentTime > 0) ref.current.currentTime = 0;
   }, [active]);
 
   // `active` is a dependency so a clip that was still running as it faded out
-  // is started again when its turn comes back.
+  // is started again when its turn comes back. A clip that has finished fading
+  // out stays finished until then (play() would restart it unseen).
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    if (run) void v.play().catch(() => {});
+    if (run && (active || !v.ended)) void v.play().catch(() => {});
     else v.pause();
   }, [run, active]);
 
@@ -60,7 +69,7 @@ function Clip({
       muted
       playsInline
       loop={loop}
-      preload="metadata"
+      preload="none"
       aria-label={active ? clip.alt : undefined}
       aria-hidden={!active || undefined}
       onTimeUpdate={(e) => {
@@ -95,6 +104,8 @@ export default function VideoCard({
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState<number | null>(null);
   const [inView, setInView] = useState(false);
+  /** True from the first moment any of the card is on screen. */
+  const [seen, setSeen] = useState(false);
   /** null until the visitor presses the button: then their choice wins. */
   const [choice, setChoice] = useState<'play' | 'pause' | null>(null);
   const reduced = useSyncExternalStore(subscribeReduced, getReduced, () => false);
@@ -102,7 +113,10 @@ export default function VideoCard({
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.4 });
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setSeen(true);
+      setInView(entry.intersectionRatio >= 0.4);
+    }, { threshold: [0, 0.4] });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -120,45 +134,51 @@ export default function VideoCard({
     setIndex((index + 1) % count);
   };
 
+  const layers = hasClips
+    ? clips.map((clip, i) => (
+        <div key={clip.src} className={cn('absolute inset-0 transition-opacity duration-[900ms] ease-out', i === index ? 'opacity-100' : 'opacity-0')}>
+          <Clip
+            clip={clip}
+            active={i === index}
+            wanted={seen}
+            run={playing && (i === index || i === leaving)}
+            loop={count === 1}
+            onNearEnd={advance}
+            onProgress={(fraction) => { if (barRef.current) barRef.current.style.transform = `scaleX(${fraction.toFixed(3)})`; }}
+          />
+        </div>
+      ))
+    : stills.map((still, i) => (
+        <div key={still.src} className={cn('absolute inset-0 transition-opacity duration-[1200ms] ease-out', i === index ? 'opacity-100' : 'opacity-0')}>
+          <div className={cn('absolute inset-0', (i === index || i === leaving) && !reduced && 'nh-kb')}>
+            <Image
+              src={still.src}
+              alt={i === index ? still.alt : ''}
+              fill
+              sizes="(min-width: 1024px) 400px, 60vw"
+              className="object-cover"
+              style={{ objectPosition: still.focus }}
+            />
+          </div>
+        </div>
+      ));
+
   return (
     <div
       ref={rootRef}
       className={cn(
-        'relative isolate overflow-hidden rounded-[28px] bg-nh-ink shadow-[0_30px_80px_rgba(0,0,0,0.55)] ring-1 ring-white/15',
+        'relative isolate rounded-[28px] bg-nh-ink shadow-[0_30px_80px_rgba(0,0,0,0.55)] ring-1 ring-white/15',
         !playing && 'nh-paused',
         className,
       )}
     >
-      {hasClips
-        ? clips.map((clip, i) => (
-            <div key={clip.src} className={cn('absolute inset-0 transition-opacity duration-[900ms] ease-out', i === index ? 'opacity-100' : 'opacity-0')}>
-              <Clip
-                clip={clip}
-                active={i === index}
-                run={playing && (i === index || i === leaving)}
-                loop={count === 1}
-                onNearEnd={advance}
-                onProgress={(fraction) => { if (barRef.current) barRef.current.style.transform = `scaleX(${fraction.toFixed(3)})`; }}
-              />
-            </div>
-          ))
-        : stills.map((still, i) => (
-            <div key={still.src} className={cn('absolute inset-0 transition-opacity duration-[1200ms] ease-out', i === index ? 'opacity-100' : 'opacity-0')}>
-              <div className={cn('absolute inset-0', (i === index || i === leaving) && !reduced && 'nh-kb')}>
-                <Image
-                  src={still.src}
-                  alt={i === index ? still.alt : ''}
-                  fill
-                  sizes="(min-width: 1024px) 400px, 60vw"
-                  className="object-cover"
-                  style={{ objectPosition: still.focus }}
-                />
-              </div>
-            </div>
-          ))}
-
-      {/* Soft shade top and bottom so the clock and the button always show. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.38),transparent_18%,transparent_78%,rgba(0,0,0,0.45))]" />
+      {/* The clip-path is what keeps a playing video inside the rounded corners:
+          browsers can let a video layer escape a plain overflow-hidden radius. */}
+      <div className="absolute inset-0 overflow-hidden rounded-[inherit] [clip-path:inset(0_round_28px)]">
+        {layers}
+        {/* Soft shade top and bottom so the clock and the button always show. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.38),transparent_18%,transparent_78%,rgba(0,0,0,0.45))]" />
+      </div>
 
       {showClock && (
         <div aria-hidden className="absolute inset-x-4 top-4 flex gap-1.5">
