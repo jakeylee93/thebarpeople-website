@@ -1,26 +1,48 @@
 'use client';
 
-// A swipeable strip of real event photos, sized to fit one screen. Tap one and
-// it opens large in a modal: arrows, keyboard and swipe move through them, Esc
-// closes.
+// The gallery, laid out like an Instagram grid: same-shape cards, no titles,
+// and the videos play by themselves (silently, and only while on screen). It
+// always fits one screen. Tap a card and it opens large: arrows, keyboard and
+// swipe move through them, Esc closes.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { GALLERY } from './data';
+import { FEED, INSTAGRAM, type FeedItem } from './data';
 
 const ring = 'outline-none focus-visible:ring-2 focus-visible:ring-nh-ink focus-visible:ring-offset-2';
 const ringDark = 'outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black';
 
+const reducedQuery = '(prefers-reduced-motion: reduce)';
+const subscribeReduced = (cb: () => void) => {
+  const m = window.matchMedia(reducedQuery);
+  m.addEventListener('change', cb);
+  return () => m.removeEventListener('change', cb);
+};
+const getReduced = () => window.matchMedia(reducedQuery).matches;
+
+/** A silent, looping clip. Nothing is fetched until `play` is first true. */
+function Clip({ item, play }: { item: Extract<FeedItem, { kind: 'video' }>; play: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    if (play) void v.play().catch(() => {});
+    else v.pause();
+  }, [play]);
+  return <video ref={ref} src={item.src} poster={item.poster} muted loop playsInline preload="none" aria-label={item.alt} className="h-full w-full object-cover" />;
+}
+
 export default function GalleryCarousel() {
   const [open, setOpen] = useState<number | null>(null);
+  const [inView, setInView] = useState(false);
+  const reduced = useSyncExternalStore(subscribeReduced, getReduced, () => false);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const trackRef = useRef<HTMLUListElement>(null);
+  const gridRef = useRef<HTMLUListElement>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const swipeX = useRef<number | null>(null);
-  const n = GALLERY.length;
+  const n = FEED.length;
 
   useEffect(() => {
     const d = dialogRef.current;
@@ -29,66 +51,67 @@ export default function GalleryCarousel() {
     if (open === null && d.open) d.close();
   }, [open]);
 
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.25 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   const show = (i: number) => setOpen(((i % n) + n) % n);
   const close = () => {
     setOpen(null);
     openerRef.current?.focus();
   };
-  const scrollStrip = (dir: 1 | -1) => {
-    const t = trackRef.current;
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (t) t.scrollBy({ left: dir * t.clientWidth * 0.8, behavior: calm ? 'instant' : 'smooth' });
-  };
-
-  const item = open !== null ? GALLERY[open] : null;
+  const item = open !== null ? FEED[open] : null;
+  const playing = inView && !reduced && open === null;
 
   return (
     <section id="gallery" data-snap aria-labelledby="gallery-title" className="nh-section bg-nh-mist text-nh-ink">
-      <div className="flex h-full flex-col pb-[clamp(12px,2.6dvh,36px)] pt-[calc(var(--nh-head)+clamp(14px,3dvh,40px))]">
-        <div className="mx-auto flex w-full max-w-[1600px] shrink-0 items-end justify-between gap-6 px-[var(--nh-gutter)]">
+      <div className="mx-auto flex h-full max-w-[1600px] flex-col px-[var(--nh-gutter)] pb-[clamp(12px,2.6dvh,36px)] pt-[calc(var(--nh-head)+clamp(12px,2.6dvh,36px))]">
+        <div className="flex shrink-0 items-end justify-between gap-4">
           <div>
-            <p data-reveal="1" className="nh-eyebrow text-nh-ash">Our events</p>
-            <h2 id="gallery-title" data-reveal="2" className="nh-title mt-2 lg:mt-3">Real bars, real parties</h2>
+            <p data-reveal="1" className="nh-eyebrow text-nh-ash">On Instagram</p>
+            <h2 id="gallery-title" data-reveal="2" className="nh-title mt-1.5 max-sm:!text-[26px] lg:mt-3">{INSTAGRAM.handle}</h2>
           </div>
-          <div className="hidden items-center gap-2 lg:flex">
-            <button type="button" onClick={() => scrollStrip(-1)} aria-label="Scroll photos left"
-              className={cn('flex h-12 w-12 items-center justify-center rounded-full border border-nh-ink/20 transition hover:border-nh-ink', ring)}>
-              <ArrowLeft className="h-5 w-5" aria-hidden />
-            </button>
-            <button type="button" onClick={() => scrollStrip(1)} aria-label="Scroll photos right"
-              className={cn('flex h-12 w-12 items-center justify-center rounded-full border border-nh-ink/20 transition hover:border-nh-ink', ring)}>
-              <ArrowRight className="h-5 w-5" aria-hidden />
-            </button>
-          </div>
+          <a
+            data-reveal="2"
+            href={INSTAGRAM.href}
+            target="_blank"
+            rel="noreferrer"
+            className={cn('inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-nh-ink px-5 text-[15px] font-semibold text-white hover:bg-black', ring)}
+          >
+            Follow <ArrowRight className="h-4 w-4" aria-hidden />
+            <span className="sr-only">The Bar People on Instagram (opens in a new tab)</span>
+          </a>
         </div>
 
-        {/* The strip takes whatever height is left; each tile sizes itself from that (.nh-tile in home.css). */}
-        <div data-reveal="3" className="nh-media nh-fit mt-[clamp(12px,2.6dvh,32px)] min-h-0 flex-1">
-          <ul ref={trackRef} className="nh-strip nh-scroll-x flex h-full snap-x snap-mandatory scroll-px-[var(--nh-edge)] items-center gap-3 overflow-x-auto px-[var(--nh-edge)] lg:gap-4">
-            {GALLERY.map((g, i) => (
-              <li key={g.src} className="nh-tile shrink-0 snap-start">
+        {/* The grid takes whatever room is left; each card sizes itself from that (.nh-feed in home.css). */}
+        <div data-reveal="3" className="nh-media nh-media-tall nh-fit mt-[clamp(10px,2.2dvh,28px)] min-h-0 flex-1">
+          <ul ref={gridRef} className="nh-feed">
+            {FEED.map((g, i) => (
+              <li key={g.src} className="nh-feed-card">
                 <button
                   type="button"
                   onClick={(e) => { openerRef.current = e.currentTarget; show(i); }}
-                  className={cn('group block w-full rounded-[18px] text-left', ring)}
-                  aria-label={`Open photo: ${g.caption}`}
+                  className={cn('group relative block h-full w-full overflow-hidden rounded-[10px] bg-nh-line lg:rounded-[16px]', ring)}
+                  aria-label={`Open ${g.kind === 'video' ? 'video' : 'photo'}: ${g.alt}`}
                 >
-                  <span className="nh-tile-photo relative block overflow-hidden rounded-[18px] bg-nh-line">
-                    <Image src={g.src} alt="" fill sizes="(min-width: 1024px) 34vw, 74vw"
-                      className="object-cover transition duration-500 group-hover:scale-[1.04]" />
-                  </span>
-                  <span className="mt-2.5 block truncate text-[14px] font-semibold leading-tight">{g.caption}</span>
-                  <span className="mt-1 block text-[13px] leading-tight text-nh-ash">{g.category}</span>
+                  {g.kind === 'image' ? (
+                    <Image src={g.src} alt="" fill sizes="(min-width: 1024px) 16vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
+                  ) : (
+                    <>
+                      <Clip item={g} play={playing} />
+                      <span aria-hidden className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 text-white lg:right-2.5 lg:top-2.5">
+                        <Play className="h-3 w-3 fill-current" />
+                      </span>
+                    </>
+                  )}
                 </button>
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="mx-auto mt-[clamp(8px,1.8dvh,24px)] w-full max-w-[1600px] shrink-0 px-[var(--nh-gutter)]">
-          <Link href="/gallery" className={cn('inline-flex h-11 items-center gap-2 rounded text-[15px] font-semibold underline decoration-nh-ink/30 underline-offset-4 hover:decoration-nh-ink', ring)}>
-            See the full gallery <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
         </div>
       </div>
 
@@ -116,25 +139,25 @@ export default function GalleryCarousel() {
           >
             <div className="flex items-center justify-between px-4 py-3 sm:px-6">
               <p className="text-[14px] tabular-nums text-white/70" aria-live="polite">{open + 1} / {n}</p>
-              <button type="button" onClick={close} autoFocus aria-label="Close photo"
+              <button type="button" onClick={close} autoFocus aria-label="Close"
                 className={cn('flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20', ringDark)}>
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
-            <div className="relative min-h-0 flex-1">
-              <Image key={item.src} src={item.src} alt={item.caption} fill sizes="100vw" className="nh-pop select-none object-contain" draggable={false} />
-              <button type="button" onClick={() => show(open - 1)} aria-label="Previous photo"
+            <div className="relative min-h-0 flex-1 pb-6">
+              {item.kind === 'image' ? (
+                <Image key={item.src} src={item.src} alt={item.alt} fill sizes="100vw" className="nh-pop select-none object-contain" draggable={false} />
+              ) : (
+                <video key={item.src} src={item.src} poster={item.poster} muted loop playsInline autoPlay={!reduced} controls={reduced} aria-label={item.alt} className="nh-pop absolute inset-0 h-full w-full object-contain" />
+              )}
+              <button type="button" onClick={() => show(open - 1)} aria-label="Previous"
                 className={cn('absolute left-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20 sm:flex', ringDark)}>
                 <ChevronLeft className="h-6 w-6" aria-hidden />
               </button>
-              <button type="button" onClick={() => show(open + 1)} aria-label="Next photo"
+              <button type="button" onClick={() => show(open + 1)} aria-label="Next"
                 className={cn('absolute right-3 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20 sm:flex', ringDark)}>
                 <ChevronRight className="h-6 w-6" aria-hidden />
               </button>
-            </div>
-            <div className="px-4 pb-6 pt-4 text-center sm:px-6">
-              <p className="text-[16px] font-semibold">{item.caption}</p>
-              <p className="text-[13px] text-white/60">{item.category} · swipe or use the arrows</p>
             </div>
           </div>
         )}

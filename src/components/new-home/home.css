@@ -209,17 +209,16 @@ html:has(.nh-snap) body {
   height: min(100cqh, 100cqw * 16 / 9, 700px);
   aspect-ratio: 9 / 16;
 }
-/* Corporate: the photo fills its box on a phone; on a desktop it is a 4:3 card
-   sized to the room, set in from the left and bottom so the drawing card can
-   overhang that corner. */
-.nh-corp-visual { position: absolute; inset: 0; }
+/* Corporate: four branded bars. They fill the box on a phone; on a desktop
+   they are one 4:3 block, as big as the room allows. */
+.nh-corp-mosaic { position: absolute; inset: 0; }
 @media (min-width: 1024px) {
-  .nh-corp-visual {
+  .nh-corp-mosaic {
     inset: auto 0 auto auto;
     top: 50%;
-    width: min(100cqw - 40px, 760px, (100cqh - 56px) * 4 / 3);
+    width: min(100cqw, 820px, 100cqh * 4 / 3);
     aspect-ratio: 4 / 3;
-    transform: translateY(calc(-50% - 18px));
+    transform: translateY(-50%);
   }
 }
 /* Parties: the photo fills its box on a phone; on a desktop it is a tall 4:5
@@ -235,32 +234,55 @@ html:has(.nh-snap) body {
     transform: translate(-50%, -50%);
   }
 }
-/* The drawing card only shows when the photo is tall enough to carry it. */
-@container (max-height: 239px) {
-  .nh-inset { display: none; }
+/* Gallery: an Instagram-style grid of 4:5 cards that always fits its box.
+   3 x 4 on phones, 4 x 3 on tablets, 6 x 2 on desktops. */
+.nh-feed {
+  --cols: 3;
+  --rows: 4;
+  --gap: 6px;
+  --card-w: min(
+    (100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols),
+    (100cqh - (var(--rows) - 1) * var(--gap)) / var(--rows) * 0.8
+  );
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--card-w));
+  gap: var(--gap);
+  height: 100%;
+  justify-content: center;
+  align-content: center;
 }
-/* Gallery strip: each tile takes its size from the strip's height. A tall,
-   narrow strip (phones and tablets held upright) stacks the tiles two deep so
-   the photos stay landscape instead of stretching into thin columns. */
-.nh-tile {
-  --tile-h: calc(100cqh - 50px); /* 50px: the two caption lines under each photo */
-  --tile-w: min(74vw, var(--tile-h) * 0.8);
-  width: var(--tile-w);
+.nh-feed-card { aspect-ratio: 4 / 5; }
+@media (min-width: 640px) {
+  .nh-feed { --cols: 4; --rows: 3; --gap: 10px; }
 }
-.nh-tile-photo { height: min(var(--tile-h), var(--tile-w) * 1.5); }
-@container (min-height: 500px) and (max-width: 1023px) {
-  .nh-strip {
-    display: grid;
-    grid-template-rows: repeat(2, auto);
-    grid-auto-flow: column;
-    align-content: center;
-    row-gap: 14px;
-  }
-  .nh-tile {
-    --tile-h: calc((100cqh - 14px) / 2 - 50px);
-    --tile-w: min(74vw, var(--tile-h) * 1.4);
-  }
-  .nh-tile-photo { height: var(--tile-h); }
+@media (min-width: 1024px) {
+  .nh-feed { --cols: 6; --rows: 2; --gap: 14px; }
+}
+
+/* ─── Personality ────────────────────────────────────────────────────────── */
+/* Weddings: "big day." in an italic serif. */
+.nh-script {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+/* The wedding headline sits in a narrow card on desktop, so it is a little smaller there. */
+@media (min-width: 1024px) {
+  .nh-title-card { font-size: clamp(2rem, min(3vw + 0.6rem, 6.4dvh), 3.6rem); }
+}
+/* Parties: "our bar." glows like the neon sign in the photo. */
+.nh-neon {
+  color: #fff;
+  text-shadow:
+    0 0 6px rgb(255 255 255 / 0.9),
+    0 0 18px #ff4fa3,
+    0 0 42px #ff2d92,
+    0 0 80px rgb(255 45 146 / 0.7);
+}
+.nh-sticker {
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.45), 0 0 0 4px rgb(255 79 163 / 0.9);
 }
 
 /* Browsers without container units (Safari 15 and older) get plain screen-based
@@ -268,10 +290,10 @@ html:has(.nh-snap) body {
    above cannot. */
 @supports not (width: 1cqh) {
   .nh-video-card { height: min(52vh, 700px); }
-  .nh-tile { width: min(72vw, 340px); }
-  .nh-tile-photo { height: 42vh; }
+  .nh-feed { --card-w: min(30vw, 22vh); }
   @media (min-width: 1024px) {
-    .nh-corp-visual { width: min(44vw, 640px); }
+    .nh-corp-mosaic { width: min(44vw, 640px); }
+    .nh-feed { --card-w: min(13vw, 30vh); }
     .nh-party-photo { height: min(70vh, 760px); }
   }
 }

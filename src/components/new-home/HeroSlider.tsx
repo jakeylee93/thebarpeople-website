@@ -44,7 +44,7 @@ type VideoSlide = Extract<HeroSlide, { kind: 'video' }>;
  * it plays once from the top each time its slide comes round. With reduced
  * motion it never plays: the poster stands in as a photo.
  */
-function SlideVideo({ slide, active, near, playing }: { slide: VideoSlide; active: boolean; near: boolean; playing: boolean }) {
+function SlideVideo({ slide, active, near, playing, loop }: { slide: VideoSlide; active: boolean; near: boolean; playing: boolean; loop: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
   const awake = useAwake();
   const phone = useSyncExternalStore(subscribePhone, getPhone, () => false);
@@ -76,6 +76,7 @@ function SlideVideo({ slide, active, near, playing }: { slide: VideoSlide; activ
       src={awake ? file.src : undefined}
       poster={file.poster}
       muted
+      loop={loop}
       playsInline
       preload="none"
       aria-label={slide.alt}
@@ -97,6 +98,8 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const current = slides[index];
   const seconds = current.kind === 'video' ? current.seconds : IMAGE_SECONDS;
   const hasVideo = slides.some((s) => s.kind === 'video');
+  // A film on its own is the whole header: it loops, and there is no slide clock.
+  const solo = slides.length === 1;
 
   return (
     <section id="home" data-snap aria-label="Welcome" className={cn('nh-section flex flex-col bg-white', paused && 'nh-paused')}>
@@ -124,7 +127,8 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                   <SlideVideo
                     slide={s}
                     active={active}
-                    near={(index + 1) % slides.length === i}
+                    near={solo || (index + 1) % slides.length === i}
+                    loop={solo}
                     // Keeps running while it fades out, so it never freezes on screen.
                     playing={(active || i === leaving) && !reduced && !paused}
                   />
@@ -161,7 +165,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
 
         {/* Slide clock: thin lines, no arrows. */}
         <div className="absolute bottom-9 left-5 flex items-center gap-3 sm:left-6 md:bottom-[clamp(16px,3.5dvh,32px)] md:left-1/2 md:-translate-x-1/2">
-          <div className="flex items-center gap-1.5" aria-hidden>
+          <div className={cn('items-center gap-1.5', solo ? 'hidden' : 'flex')} aria-hidden>
             {slides.map((s, i) => (
               <span key={s.src} className="relative h-[3px] w-7 overflow-hidden rounded-full bg-white/30 md:w-10">
                 {i < index && <span className="absolute inset-0 bg-white/90" />}
@@ -170,7 +174,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                     key={index}
                     className="nh-progress absolute inset-0 bg-white"
                     style={{ '--nh-slide': `${seconds}s` } as CSSProperties}
-                    onAnimationEnd={advance}
+                    onAnimationEnd={solo ? undefined : advance}
                   />
                 )}
               </span>
@@ -180,8 +184,8 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             <button
               type="button"
               onClick={() => setPaused((p) => !p)}
-              className={cn('flex h-7 w-7 items-center justify-center rounded-full text-white/80 transition hover:text-white', nhFocus)}
-              aria-label={hasVideo ? (paused ? 'Play the slideshow' : 'Pause the slideshow') : paused ? 'Play the photos' : 'Pause the photos'}
+              className={cn('flex items-center justify-center rounded-full text-white/80 transition hover:text-white', solo ? 'h-10 w-10 bg-black/30 backdrop-blur-sm' : 'h-7 w-7', nhFocus)}
+              aria-label={solo ? (paused ? 'Play the film' : 'Pause the film') : hasVideo ? (paused ? 'Play the slideshow' : 'Pause the slideshow') : paused ? 'Play the photos' : 'Pause the photos'}
             >
               {paused ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
             </button>

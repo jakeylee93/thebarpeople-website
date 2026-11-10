@@ -20,14 +20,14 @@ swipe, keys, or the dots at the side on desktop).
 
 | # | Section | What it does |
 |---|---|---|
-| 1 | Hero | The martini and pineapple photo, then a 19 second film, then four more photos. No arrows; a thin line shows the time left, with a pause button. Headline and **Build your package**. |
+| 1 | Hero | A 19 second film on a loop (an upright cut on phones), with a pause button. Headline and **Build your package**. |
 | 2 | Christmas | A full-screen advert with falling snow. "Christmas parties, sorted." and **Build your Christmas package**. |
-| 3 | Corporate events | "A bar built around your brand." A real branded bar photo, the branded bar drawing, and the client logos. |
-| 4 | Weddings | "The bar for your big day." |
-| 5 | Birthdays and private parties | "Your party, our bar." |
+| 3 | Corporate events | "Your brand on the bar." Three numbered steps (send your logo, we brand the bar, we run the bar), four real branded bars, **Get a corporate quote**, Jake's number, and the client logos. |
+| 4 | Weddings | "The bar for your *big day*." The lawn photo fills the screen on desktop with the words on a white card and two small prints across the corner. |
+| 5 | Birthdays and private parties | Dark, with "our bar." glowing like the neon sign in the photo and a "Bars from £215 + VAT" sticker. |
 | 6 | See us in action | A tall video card: five clips that fade into each other. |
 | 7 | The marquee package | Marquee, bar, bartenders, drinks, glassware, ice and fridges in one quote. |
-| 8 | Gallery | Real event photos. Tap one to open it. |
+| 8 | Gallery | Laid out like an Instagram grid: same-shape cards, no titles, videos playing silently by themselves. Our own photos and clips for now (`FEED` in `data.ts`); to show the real Instagram feed in order it needs an Instagram access token from Jake's account. |
 | 9 | Footer | Headline, **Build your package**, phone numbers and links. |
 
 "How it works" (on Corporate, Weddings and Parties) opens one short pop-up: three steps and what

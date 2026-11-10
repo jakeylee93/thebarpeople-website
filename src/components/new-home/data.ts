@@ -2,7 +2,6 @@
 // the hero's first, second and fourth slides are 4K OpenArt clean-ups of real
 // photos (see docs/new-homepage/README.md).
 
-import { galleryImages } from '@/lib/constants';
 
 /** The page scrolls inside this element, not the document (see SnapPage). */
 export const SCROLLER_ID = 'nh-scroller';
@@ -13,7 +12,7 @@ export const SECTIONS = [
   { id: 'christmas', label: 'Christmas', tone: 'dark' },
   { id: 'corporate', label: 'Corporate', tone: 'dark' },
   { id: 'weddings', label: 'Weddings', tone: 'light' },
-  { id: 'parties', label: 'Parties', tone: 'light' },
+  { id: 'parties', label: 'Parties', tone: 'dark' },
   { id: 'video', label: 'See us in action', tone: 'dark' },
   { id: 'marquees', label: 'Marquees', tone: 'light' },
   { id: 'gallery', label: 'Gallery', tone: 'light' },
@@ -62,42 +61,16 @@ export type HeroSlide =
       phone?: { src: string; poster: string };
     };
 
-// The lawn photo is also the Weddings picture further down, so it comes late
-// in the hero's rotation.
+// The header is the film: eight shots from The Bar People's own promo films,
+// joined with soft fades (19 seconds), playing on a loop. Add photo slides
+// after it and the header goes back to a slideshow.
 export const HERO_SLIDES: HeroSlide[] = [
-  {
-    kind: 'image', src: '/images/new-home/hero-cocktails.jpg',
-    alt: 'A row of pink martinis with fresh pineapple wedges on a white bar',
-    focus: { desktop: '50% 50%', phone: '52% 50%' },
-  },
-  // Eight shots from The Bar People's own promo films, joined with soft fades
-  // (19 seconds). To open the page on the film instead, move it to the top.
   {
     kind: 'video', src: '/videos/new-home/hero-reel.mp4', poster: '/videos/new-home/hero-reel.jpg',
     phone: { src: '/videos/new-home/hero-reel-phone.mp4', poster: '/videos/new-home/hero-reel-phone.jpg' },
     alt: 'Bar People bartenders raising, pouring, shaking and serving cocktails',
     focus: { desktop: '50% 50%', phone: '50% 50%' },
     seconds: 18.5,
-  },
-  {
-    kind: 'image', src: '/images/new-home/hero-balloons.jpg',
-    alt: 'A white bar under big white balloons on a garden terrace',
-    focus: { desktop: '50% 58%', phone: '48% 62%' },
-  },
-  {
-    kind: 'image', src: '/images/film/shirt-pour.jpg',
-    alt: 'A Bar People bartender pouring cocktails at a garden bar',
-    focus: { desktop: '50% 40%', phone: '58% 45%' },
-  },
-  {
-    kind: 'image', src: '/images/new-home/hero-lawn.jpg',
-    alt: 'A white Bar People bar on a lawn, willow trees and a gazebo behind',
-    focus: { desktop: '50% 62%', phone: '50% 70%' },
-  },
-  {
-    kind: 'image', src: '/images/film/counter-copper.jpg',
-    alt: 'Champagne flutes and copper bar tools on a white bar at dusk',
-    focus: { desktop: '50% 55%', phone: '40% 60%' },
   },
 ];
 
@@ -140,50 +113,62 @@ export const CHRISTMAS = {
 
 export const CORPORATE = {
   eyebrow: 'Corporate events',
-  title: 'A bar built around your brand.',
-  body: 'Launches, staff parties and brand events. We put your artwork on the bar, then deliver it, set it up and serve.',
-  points: [
-    'Your brand on every panel, with a free artwork service',
-    'Any size, from a 1.5m bar to a full island',
-    'Bartenders and all-inclusive drinks',
+  title: 'Your brand on the bar.',
+  body: 'For launches, office parties and awards nights. We put your logo or a full wrap on the bar, then bring it, set it up and serve.',
+  /** What happens, in order. */
+  steps: [
+    { title: 'Send us your logo', detail: 'We set up the artwork for you, free.' },
+    { title: 'We brand the bar', detail: 'One logo panel or a full wrap, on any size of bar.' },
+    { title: 'We run the bar', detail: 'Bartenders, drinks and glassware, delivered and set up.' },
   ],
-  cta: 'Build your package',
+  cta: 'Get a corporate quote',
+  call: 'or call Jake on',
   trusted: 'Trusted by',
-  diagramCaption: 'Your artwork on every panel',
-  image: {
-    src: '/images/events/salesforce-bar.jpg',
-    alt: 'A white bar with the Salesforce logo across its front panel, set up in an office',
-    focus: { desktop: '48% 55%', phone: '48% 58%' },
-  } satisfies Photo,
+  /** Real branded bars: the first is the large photo. */
+  photos: [
+    { src: '/images/events/salesforce-bar.jpg', alt: 'A white bar with the Salesforce logo on its front, in an office', focus: '48% 55%' },
+    { src: '/images/events/porsche-custom.jpg', alt: 'Two bartenders behind a bar wrapped in bright Porsche artwork', focus: '50% 70%' },
+    { src: '/images/events/hp-bar.jpg', alt: 'A bar with the Hewlett Packard Enterprise logo at a conference', focus: '45% 60%' },
+    { src: '/images/film/cew-bar.jpg', alt: 'A chequerboard-wrapped champagne bar at an awards show', focus: '50% 55%' },
+  ],
 };
 
 export const WEDDINGS = {
   eyebrow: 'Weddings',
-  title: 'The bar for your big day.',
+  /** The second part is set in italic script. */
+  title: ['The bar for your', 'big day.'],
   body: 'A bar to suit your venue, the drinks you love and bartenders to serve them, in London and nationwide.',
   points: [
-    'Classic white or mirror finish',
+    'Classic white, mirror or the LOVE bar',
     'All-inclusive drinks, glassware and ice',
     'We deliver, set up and collect',
   ],
-  cta: 'Build your package',
+  cta: 'Build your wedding bar',
   image: {
     src: '/images/new-home/hero-lawn.jpg',
     alt: 'A white horseshoe bar on a lawn in front of a gazebo and willow trees',
-    focus: { desktop: '50% 74%', phone: '50% 72%' },
+    focus: { desktop: '60% 70%', phone: '50% 72%' },
   } satisfies Photo,
+  /** Small prints laid over the photo. */
+  prints: [
+    { src: '/images/film/love-marquee.jpg', alt: 'The LOVE bar in a clear marquee' },
+    { src: '/images/film/wedding-toast.jpg', alt: 'Wedding guests raising their glasses at the bar' },
+  ],
 };
 
 export const PARTIES = {
   eyebrow: 'Birthdays and private parties',
-  title: 'Your party, our bar.',
+  /** The second part glows like the neon sign in the photo. */
+  title: ['Your party,', 'our bar.'],
   body: 'Birthdays, garden parties and get-togethers. Start with a 1.5m bar and add whatever the night needs.',
   points: [
-    'Bars from a single 1.5m section',
+    'Shimmer, mirror or classic white bars',
     'Bartenders, drinks, glassware and ice',
     'Delivered, set up and collected for you',
   ],
-  cta: 'Build your package',
+  cta: 'Build your party bar',
+  /** A sticker on the photo. The price is the 1.5m bar in src/lib/quote/prices.ts. */
+  sticker: ['Bars from', '£215', '+ VAT'],
   image: {
     src: '/images/events/special-occasions.jpg',
     alt: 'A neon sign reading Sip Sip Hooray on a leafy wall above a bar set with copper cups, under party balloons',
@@ -280,14 +265,29 @@ export const HOW_IT_WORKS = {
   cta: 'Build your package',
 };
 
-export interface GalleryItem { src: string; caption: string; category: string }
+export type FeedItem =
+  | { kind: 'image'; src: string; alt: string }
+  | { kind: 'video'; src: string; poster: string; alt: string };
 
-/** The live site's gallery, plus a few more real photos. */
-export const GALLERY: GalleryItem[] = [
-  { src: '/images/film/love-marquee.jpg', caption: 'LOVE bar in a clear marquee', category: 'Weddings' },
-  ...galleryImages.map((g) => ({ src: g.src, caption: g.label, category: g.category })),
-  { src: '/images/film/wedding-toast.jpg', caption: 'Raising a glass', category: 'Weddings' },
-  { src: '/images/film/smoke-serve.jpg', caption: 'Smoke-gun serves', category: 'Private' },
-  { src: '/images/film/espresso-lawn.jpg', caption: 'Espresso martini on the lawn', category: 'Cocktails' },
-  { src: '/images/film/staff-cew.jpg', caption: 'Champagne bar team', category: 'Corporate' },
+/**
+ * The gallery, laid out like an Instagram grid: same-shape cards, no titles,
+ * videos playing by themselves. For now these are our own photos and clips in
+ * a hand-picked order. Once Instagram is connected, this list is replaced by
+ * the latest posts, newest first.
+ */
+export const INSTAGRAM = { handle: '@thebarpeople', href: 'https://www.instagram.com/thebarpeople/' };
+
+export const FEED: FeedItem[] = [
+  { kind: 'image', src: '/images/film/love-marquee.jpg', alt: 'The LOVE bar in a clear marquee' },
+  { kind: 'video', src: '/videos/new-home/feed-6-shake.mp4', poster: '/videos/new-home/feed-6-shake.jpg', alt: 'A bartender shaking a cocktail' },
+  { kind: 'image', src: '/images/events/alex.jpg', alt: 'A bartender holding out a pineapple cocktail' },
+  { kind: 'image', src: '/images/events/salesforce-bar.jpg', alt: 'A bar with the Salesforce logo, in an office' },
+  { kind: 'image', src: '/images/film/espresso-lawn.jpg', alt: 'An espresso martini on a lawn at a summer party' },
+  { kind: 'video', src: '/videos/new-home/feed-7-tray.mp4', poster: '/videos/new-home/feed-7-tray.jpg', alt: 'A bartender carrying a tray of cocktails' },
+  { kind: 'image', src: '/images/events/special-occasions.jpg', alt: 'A neon Sip Sip Hooray sign above a bar' },
+  { kind: 'image', src: '/images/events/porsche-custom.jpg', alt: 'A bar wrapped in bright Porsche artwork' },
+  { kind: 'image', src: '/images/film/wedding-toast.jpg', alt: 'Wedding guests raising their glasses' },
+  { kind: 'video', src: '/videos/new-home/feed-4-blue.mp4', poster: '/videos/new-home/feed-4-blue.jpg', alt: 'Blue cocktails with orange slices, from above' },
+  { kind: 'image', src: '/images/events/glody.jpg', alt: 'A bartender pouring champagne at an awards show' },
+  { kind: 'image', src: '/images/film/smoke-serve.jpg', alt: 'Three bartenders with a smoking cocktail' },
 ];
