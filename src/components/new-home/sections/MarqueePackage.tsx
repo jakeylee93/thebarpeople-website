@@ -1,9 +1,11 @@
-import { MARQUEE } from '../data';
+import type { HomeContent } from '@/content/new-home';
+import { MARQUEE_BUILD_HREF } from '../data';
 import MarqueeDrawing from '../MarqueeDrawing';
 import { BuildButton, Points } from '../parts';
+import { av } from '../av';
 
 // Packages: the marquee package. One quote for the marquee and everything in it.
-export default function MarqueePackage() {
+export default function MarqueePackage({ data: MARQUEE }: { data: HomeContent['marquee'] }) {
   return (
     <section id="marquees" data-snap aria-labelledby="marquees-title" className="nh-section bg-white text-nh-ink">
       <div className="mx-auto flex h-full max-w-[1600px] flex-col gap-[clamp(14px,2.6dvh,24px)] px-[var(--nh-gutter)] pb-[clamp(14px,3dvh,40px)] pt-[calc(var(--nh-head)+12px)] lg:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-center lg:gap-16 lg:pt-[calc(var(--nh-head)+clamp(16px,3dvh,40px))] xl:gap-24">
@@ -12,16 +14,16 @@ export default function MarqueePackage() {
         </div>
 
         <div className="shrink-0">
-          <p data-reveal="1" className="nh-eyebrow text-nh-ash">{MARQUEE.eyebrow}</p>
-          <h2 id="marquees-title" data-reveal="2" className="nh-title mt-2 lg:mt-4">{MARQUEE.title}</h2>
-          <p data-reveal="3" className="nh-lede nh-if-tall mt-2.5 max-w-[42ch] text-nh-ash lg:mt-5">{MARQUEE.body}</p>
+          <p data-reveal="1" {...av('nh_marquee.eyebrow')} className="nh-eyebrow text-nh-ash">{MARQUEE.eyebrow}</p>
+          <h2 id="marquees-title" data-reveal="2" {...av('nh_marquee.title')} className="nh-title mt-2 lg:mt-4">{MARQUEE.title}</h2>
+          <p data-reveal="3" {...av('nh_marquee.body')} className="nh-lede nh-if-tall mt-2.5 max-w-[42ch] text-nh-ash lg:mt-5">{MARQUEE.body}</p>
           <div data-reveal="3">
-            <Points items={MARQUEE.items} tone="light" columns className="mt-3.5 max-w-[440px] font-semibold lg:mt-7" />
+            <Points items={MARQUEE.items} list="nh_marquee.items" field="item" tone="light" columns className="mt-3.5 max-w-[440px] font-semibold lg:mt-7" />
           </div>
           <div data-reveal="4" className="mt-[clamp(14px,2.6dvh,32px)]">
-            <BuildButton tone="light" href={MARQUEE.href}>{MARQUEE.cta}</BuildButton>
+            <BuildButton tone="light" field="nh_marquee.cta_label" href={MARQUEE_BUILD_HREF}>{MARQUEE.cta}</BuildButton>
           </div>
-          <p data-reveal="5" className="nh-if-tall mt-3 max-w-[46ch] text-[13px] leading-snug text-nh-ash lg:mt-4 lg:text-[14px]">{MARQUEE.note}</p>
+          <p data-reveal="5" {...av('nh_marquee.note')} className="nh-if-tall mt-3 max-w-[46ch] text-[13px] leading-snug text-nh-ash lg:mt-4 lg:text-[14px]">{MARQUEE.note}</p>
         </div>
       </div>
     </section>

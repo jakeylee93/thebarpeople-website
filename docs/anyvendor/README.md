@@ -1,98 +1,177 @@
-# The Bar People × AnyVendor — website content handoff
+# The Bar People × AnyVendor — current-site packet
 
-Contract: **AnyVendor site content contract v1** (`anyvendor.site/v1`), as written in the AnyVendor
-owner workspace on 3 Nov 2026 (`docs/backend/SITE-CONTENT-CONTRACT-v1.md`). That contract is
-**source-only, not deployed**; slug `the-bar-people` is planned, pending the backend's tenancy migration.
+For the AnyVendor owner. From the Bar People site owner, 11 November 2026.
+Site repository `jakeylee93/thebarpeople-website`, branch `claude/loving-mendel-to07v2`.
 
-Branch `claude/loving-mendel-to07v2`. Nothing here is live, and nothing in AnyVendor or anyOS has
-been written to.
+This packet covers the **commissioned homepage (`/new`)** and its draft page (`/preview`), on
+the content contract `anyvendor.site/v1` and the editor bridge `anyvendor.bridge/v1`. It replaces the
+earlier packet, which only covered `/concepts`.
 
-## The two files AnyVendor asks for
+**Nothing is activated.** No editor origin is switched on, no content origin is set, nothing was written
+to AnyVendor or anyOS, and no credential was created. The live domain is unchanged.
 
-| File | What staff do with it |
+## 1. What to install
+
+| File | Use |
 |---|---|
-| [`the-bar-people.manifest.json`](the-bar-people.manifest.json) | Load with `set_site_manifest`. 24 sections, 134 fields, about 32 KB (limit 200 KB). |
-| [`the-bar-people.content.json`](the-bar-people.content.json) | Seed as draft v1, then publish v1. It is **exactly what the site shows today**, including the 15 strings anyOS live-edit currently serves. |
+| [`the-bar-people.manifest.json`](the-bar-people.manifest.json) | The site manifest: 36 sections, 220 fields, about 56 KB. |
+| [`the-bar-people.content.json`](the-bar-people.content.json) | Seed: draft v1, then publish v1. It is exactly what the pages show today. |
 
-Both are generated from the code (`src/content/`) with `pnpm content:export`. The tests fail if either drifts from the code, or if the seed stops matching the pages.
+Both are generated from the code with `pnpm content:export`; a test fails if either drifts.
 
-## What Jake can edit (sections)
+- Slug: `the-bar-people`. Kind: `bespoke`.
+- Site address (testing): `https://thebarpeople-website-git-claude-loving-mendel-to07v2-anyos.vercel.app`
+  (the branch preview; it answers without a Vercel login).
+- Public page: `{site address}/new`
+- Draft frame: `{site address}/preview?token=<token>&av_edit=1` (your standard form).
+- Revalidate (optional): `{site address}/api/revalidate`, `POST`, `Authorization: Bearer <secret>`,
+  body `{"slug":"the-bar-people","revision":"…"}`. It answers 404 until the secret is set here.
 
-| Section key | Drives | Live today? |
+## 2. Settings on the site (none set; Jake or the platform owner sets them)
+
+| Setting | Value | Effect |
 |---|---|---|
-| `business` | Name, registered name, company no., area, strapline, emails, phones, socials (footer, contact page, search) | Yes |
-| `seo` | Site title, description, sharing title/text/image | Yes |
-| `navigation` | Menu links and menu button | Yes |
-| `home_hero` | Current homepage hero: three anyOS-edited lines, buttons, numbers, background photo | Yes |
-| `opening` | New homepage opening (scene 1 → 2): words, both photos, their labels and framing | Prototype (`/concepts`) |
-| `quote_intro`, `quote_steps` | Quote builder wording: heading, intro, small print, buttons, 8 questions and hints | Prototype (`/concepts`) |
-| `services_intro`, `services` | Services intro and the five service cards/pages (no prices) | Yes |
-| `bars_intro`, `bars` | Bars intro and the bar cards (no prices) | Yes |
-| `testimonials_intro`, `testimonials` | Testimonials (with a "checked with the customer" tick) | Yes |
-| `brands` | Client logos with a permission setting | Yes |
-| `cta` | "Ready to build your perfect bar?" band | Yes |
-| `event_types` | Six event pages | Yes |
-| `gallery_page`, `gallery` | Gallery intro and photos with captions and categories | Yes |
-| `about_page`, `contact_page`, `our_bars_page` | Those pages' words, photos, team and values | Yes |
-| `privacy_page`, `terms_page` | Legal pages, section by section | Yes |
-| `footer` | Column headings and company links | Yes |
+| `ANYVENDOR_CONTENT_ORIGIN` | `https://anyvendor.co.uk` | The site reads published content and drafts. Unset: bundled content, and `/preview` is 404. (`ANYVENDOR_API_URL`, the earlier name, still works.) |
+| `ANYVENDOR_SITE_SLUG` | `the-bar-people` | Required with the above. |
+| `ANYVENDOR_EDITOR_ORIGINS` | `https://platform.anyvendor.co.uk` | **The activation switch for the editor link.** Listed origins may frame `/preview` and exchange bridge messages. Unset: nobody else can frame it and the bridge never starts. Needs a redeploy (the frame header is fixed at build). |
+| `ANYVENDOR_REVALIDATE_SECRET` | shared out of band, 24+ characters | Optional instant refresh on publish. |
 
-Images are `{ src, alt }`. Framing and honesty labels are separate small fields next to the image
-(`*_focus_desktop`, `*_focus_phone`, `*_note`), because v1 images carry only `src` and `alt`.
+Only exact `https://host` origins are accepted (no port, path, wildcard); anything else is dropped.
 
-## Kept out of AnyVendor on purpose (anyOS / code)
+## 3. The content model for `/new`
 
-- **Prices and the VAT rule**: service and bar card prices, the staff rate (£28/person/hour + VAT), package prices. The staff hint is written with a `{staff_rate}` placeholder, which the site fills from the catalogue.
-- **The catalogue**: bar layouts, glasses, ice, stock, catalogue ids. These are reconciled read-only with anyOS later.
-- **Availability, enquiries and quotes**: `/api/availability` and `/api/quote` → anyOS public-booking, plus the old quote builder and availability card.
-- **Party numbers** (3033 sequence design, not built).
-- **The WhatsApp contact.**
-- **anyOS live-edit itself** (`edit.js`) stays loaded and untouched until the switchover below.
+Twelve sections. Everything else in the manifest is the older live site and is unchanged.
 
-## The 17 anyOS live-edit keys
+| Section | What it holds |
+|---|---|
+| `page` | `chapters`: a list of `{ chapter (select), visible (boolean) }`, max 7, each chapter once. Same shape as `page.chapters` on your other bespoke sites. Chapters: `christmas`, `corporate`, `weddings`, `parties`, `team`, `marquees`, `gallery`. |
+| `nh_menu` | The name of each section in the menu, footer and side dots. |
+| `nh_hero` | Header: small heading, headline, line, button words, small print, phone panel headings, film and photos. |
+| `nh_christmas` | Words, button words, background photo and framing, the two shuffling snapshot sets. |
+| `nh_corporate` | Words, three steps, button words, phone label, four photos, client logos. |
+| `nh_weddings` | Words, tick points, button words, main photo and framing, two prints. |
+| `nh_parties` | Words, tick points, button words, sticker words, photo and framing. |
+| `nh_team` | Words, button words, photo and clip cards. |
+| `nh_marquee` | Words, the package list, button words, small print. |
+| `nh_gallery` | Heading, Follow link, photo and clip cards. |
+| `nh_how` | The "How it works" pop-up: steps, and the list for corporate, weddings and parties. |
+| `nh_footer` | Column headings, contacts, social links. |
 
-Mapped in `ANYOS_LIVE_EDIT_MAP` (`src/content/defaults.ts`). Each seed value is what anyOS serves today (read-only check, 3 Nov 2026).
+Rules the page applies, whatever is sent:
 
-| anyOS key | AnyVendor field | Seeded value | Note |
-|---|---|---|---|
-| `hero.eyebrow` | `home_hero.eyebrow` | Premium Mobile Bar Hire | same as code |
-| `hero.title` | `home_hero.title` | **Unforgettable events!** | anyOS edit; code says "Unforgettable Events Since 2014" |
-| `hero.subtitle` | `home_hero.subtitle` | **We bring the bar, the staff, the drinks, and the vibe. You just bring the gue** | ⚠ cut off mid-word in anyOS; code ends "…You just bring the guests." |
-| `services.eyebrow` / `.title` / `.subtitle` | `services_intro.*` | as code | |
-| `bars.eyebrow` / `.title` / `.subtitle` | `bars_intro.*` | as code | |
-| `testimonials.eyebrow` / `.title` | `testimonials_intro.*` | as code | |
-| `cta.eyebrow` / `.title` / `.subtitle` | `cta.*` | as code | |
-| `footer.strapline` | `business.strapline` | as code | |
-| `about.title` | `about_page.title` | About The Bar People | nothing saved in anyOS |
-| `contact.title` | `contact_page.title` | Contact Us | nothing saved in anyOS |
+- The header film is always first and the footer always last. They are not chapters.
+- A hidden row stays off the page. A chapter missing from the list is off the page. An **empty list
+  shows the header and footer only**. An unknown or repeated chapter is ignored.
+- A section the editor does not send at all keeps the bundled value. A required field left blank falls
+  back. An unusable photo, film or link is skipped, never rendered.
+- Select options are plain strings.
 
-## How the site reads AnyVendor (ready, switched off)
+## 4. Editable now, and what stays out
 
-- `src/content/anyvendor.ts` — server-only, read-only.
-  - **Published content:** `GET {ANYVENDOR_API_URL}/api/sites/{slug}/content`, cached 60s under the tag `anyvendor`.
-  - **Drafts:** `?preview=<uuid>`, never cached.
-  - **Checks:** schema, slug and mode, with a 4-second timeout.
-  - **Fallback:** a 404, an error or an unexpected shape returns the bundled content, so the site never goes blank.
-  - **No protection-bypass support, by design.**
-- `src/content/index.ts` — `getSiteContent({ preview })` cleans what AnyVendor sends against this site's manifest. A field AnyVendor doesn't send keeps the bundled value. A required field left blank falls back.
-- `src/app/api/revalidate/route.ts` — the optional publish webhook. It answers 404 until a per-site secret is set, then expires the `anyvendor` tag immediately.
-- `next.config.ts` — allows images from AnyVendor's `website-media` bucket only.
-- **Wired now:** `/concepts` (opening and quote builder) and the storyboard. Text and screenshots before and after are identical; the one exception is a storyboard frame that now shows the real intro instead of a paraphrase.
-- **Not wired yet:** the current public pages still render from code. The seed is tested against them line by line, so they can't drift. They switch to AnyVendor together with removing `edit.js` (see questions).
+**Editable from AnyVendor (draft, publish, preview):** all text above, every photo, the film and clip
+files, logos, contacts and social links, and section add, hide, remove and reorder.
 
-## Access actually needed (none requested or set)
+**Live in the editor frame before saving (bridge):** 104 marked fields. All headings, body text,
+button words, tick points, steps, menu names, footer headings and contact names, and these pictures:
+Christmas, weddings, parties, the four corporate photos, the client logos, the wedding prints, and the
+photo cards in Team and Gallery. Plus chapters.
 
-1. **A read host that doesn't need Vercel's protection bypass.** It must serve `GET /api/sites/the-bar-people/content` and `/manifest`. Published content is public by design, so this is AnyVendor's production or public API host. AnyVendor's testing origin stays protected, and its project-wide bypass secret is not wanted here.
-2. **Server-only environment variables on the Bar People Vercel project:** `ANYVENDOR_API_URL` (that host) and `ANYVENDOR_SITE_SLUG=the-bar-people`.
-3. **Optional, for instant refresh on publish:** a per-site `ANYVENDOR_REVALIDATE_SECRET` (at least 24 characters, shared out of band). AnyVendor staff then store the site URL and `/api/revalidate` URL with `set_site_kind`.
-4. **The URL the dashboard's "Preview draft" button should open.** Today that would be this branch's `/concepts` preview, which itself requires a Vercel login.
+**Editable, but shown after Save draft and reload (not live):**
 
-## Questions that block the switchover (not the seed)
+- Films and clips (`<video>`), the film still, the Christmas snapshot sets, photo framing fields.
+- Link fields (Follow, emails, phones, socials) and the logo width number. The bridge sends no live
+  value for `link`, `number`, `boolean` or `select` fields.
+- The "How it works" pop-up is marked, but it is built when opened, so an unsaved edit made while it
+  is closed shows after a save.
+- A list where the page skipped a row (an empty step, a card with no photo) loses its marks for that
+  page load, so a live edit can never land on the wrong row.
 
-1. **Who owns the 17 strings after the switchover: AnyVendor or anyOS live-edit?** If AnyVendor, the site removes `edit.js` at the same moment the pages start reading AnyVendor, so two editors never fight.
-2. **Seed the truncated hero subtitle exactly as anyOS serves it (current file), or the full sentence?**
+**Not content, by design. Stays in code and in anyOS:**
 
-## Small things noticed (not changed)
+- **Every price and the VAT rule.** The party sticker's amount comes from the quote builder's price
+  list; only its words are a field.
+- The quote builder: bars, styles, drinks, cocktails, glassware, marquee range, staff rules, the PDF.
+- Where buttons go (`#build…`), the WhatsApp link, the designs, motion and layout.
+- Availability, enquiries, quotes, catalogue ids, party numbers: the existing anyOS contracts,
+  untouched. This work sends nothing to them.
 
-- About, Our Bars and the old Quote page titles render "… | The Bar People | The Bar People". Each page title includes the suffix and the layout template adds it again.
-- Copy inherited from the earlier build makes claims Jake should check: "850+ events", "Trusted by Thousands", the five testimonials, gallery event names, "SIA-licensed security available", "APLH/Personal licence holders" and "Up to N guests". They're seeded as they are so nothing changes; AnyVendor is the place to correct them.
+## 5. One content owner
+
+| Surface | Owner | Editor |
+|---|---|---|
+| `/new` and `/preview` (the commissioned homepage) | **AnyVendor** | AnyVendor editor, sections in part 3 |
+| The current live pages (`/`, `/services`, `/about`, …) | **anyOS live-edit**, as today | `edit.js`, the 17 `data-anyos` keys |
+
+There is no field both can write:
+
+- `/new` and `/preview` carry no `data-anyos` hooks, and the live pages carry no `data-av-field` hooks.
+- `/preview` does not load the anyOS script at all. Every other page loads it exactly as before.
+- The older manifest sections (`home_hero`, `services_intro`, `cta`, …) still mirror the 17 anyOS
+  strings. They are in the seed so nothing is lost, but **the live pages do not read AnyVendor yet**.
+  Editing them in AnyVendor changes nothing on the site until a separate, agreed switchover.
+
+Overlaps to settle before `/new` goes live (no action taken):
+
+1. `/new` still loads the anyOS script (it finds nothing to edit there). Suggest dropping it from `/new`
+   when `/new` becomes the homepage.
+2. Contacts: `/new` uses `nh_footer.contacts` (Jake only). The older `business.contacts` still lists
+   Kim, for the current live pages.
+3. `nh_gallery` and `nh_corporate.logos` do the same job as the older `gallery` and `brands` sections.
+4. When `/new` replaces `/`, the 17 anyOS keys and the older sections retire together.
+
+**Please confirm AnyVendor as the owner of the `/new` content before `ANYVENDOR_EDITOR_ORIGINS` is set.**
+
+## 6. The editor bridge on this site
+
+- `public/anyvendor-bridge.js` is your file, **unchanged** (a test pins its SHA-256,
+  `0a4f3433…dd1f43df`). It is loaded only by `/preview`, only with `av_edit=1`, only when an editor
+  origin is switched on, and it starts only inside a frame.
+- Started with `capabilities: { text: true, image: true, chapters: true }` and `onChapters`.
+  Chapter order and visibility are applied through React state, so the menu, footer and side dots
+  follow. No `keepVisible`.
+- In edit mode the server renders all seven chapters, hidden ones included, so a hidden or removed
+  chapter can be shown again without a reload. `ready.chapters` therefore always lists all seven.
+- The bridge starts after hydration. Unsaved text survives a change of chapter order.
+- There are no timed re-applies on this page.
+- Forms: the capture-phase submit cancel is enough. The quote builder makes no network request
+  (the PDF is built in the browser), so no enquiry can leave an editing session.
+
+`/preview` itself:
+
+- A missing, malformed or wrong token is a **404**. It never falls back to published or bundled
+  content. A malformed token is not sent to AnyVendor.
+- Headers: `Content-Security-Policy: frame-ancestors 'self' <editor origins>`,
+  `Cache-Control: private, no-store, max-age=0`, `Referrer-Policy: no-referrer`,
+  `X-Robots-Tag: noindex, nofollow, noarchive`; also `noindex` and `no-referrer` in the page, and
+  `/preview` is disallowed in `robots.txt`. No other page's headers changed.
+- No third-party script and no request to any other host. The token is in the address only: it is
+  never put in a message, a prop or a link. `/new?preview=<token>` redirects to `/preview`.
+
+## 7. What was checked (cloud, 11 November 2026)
+
+- `pnpm test`: 110 pass. Includes your script run against a stand-in page (origin, source, slug,
+  schema and nonce rejection; text never HTML; picture addresses re-checked; cleaned chapter list;
+  no token in any message), every page mark checked against the manifest, the strict draft read, the
+  origin allow-list and the `/preview` headers.
+- TypeScript and ESLint clean on the changed files. Production build passes.
+- Browser round trip, with a stand-in editor served at `https://platform.anyvendor.co.uk` by the test
+  rig (your real platform was not contacted) and a stand-in content endpoint: 34 checks pass.
+  Handshake, `ready` (104 fields, 7 chapters, all in the manifest), select, highlight, live text and
+  picture, refused `javascript:` picture, reorder, hide, remove and bring back, `reload`, an unlisted
+  origin refused by the frame header, no third-party request, at desktop, 375, 390 and tablet.
+- `/new` is visually unchanged at six screen sizes; the quote builder regression suite passes.
+
+**Not yet run:** the real round trip against `platform.anyvendor.co.uk` and `anyvendor.co.uk`. It needs
+the binding and the settings in part 2.
+
+## 8. For the platform owner to do
+
+1. Store the manifest and seed for `the-bar-people` (`bespoke`), with the site address in part 1.
+2. Confirm the content owner (part 5).
+3. Confirm the editor recognises `page.chapters` on this manifest, and that reporting all seven
+   chapters in `ready` (hidden ones included) is acceptable.
+4. Then Jake sets the three settings in part 2 on the Vercel project and redeploys. Remove any testing
+   alias from `ANYVENDOR_EDITOR_ORIGINS` before go-live.
+
+Recorded, not started here: newer Instagram posts and films for the gallery and header, staff photos,
+drink brand logos, real Christmas party photos, marquee prices from Tom.

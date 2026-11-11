@@ -3,8 +3,12 @@
 // AnyVendor workspace). READ-ONLY: this site never writes to AnyVendor.
 //
 // Inert until both are set on the server (never NEXT_PUBLIC_):
-//   ANYVENDOR_API_URL     https origin that serves /api/sites/{slug}/content
-//   ANYVENDOR_SITE_SLUG   the-bar-people
+//   ANYVENDOR_CONTENT_ORIGIN  https origin that serves /api/sites/{slug}/content
+//                             (ANYVENDOR_API_URL, the earlier name, still works)
+//   ANYVENDOR_SITE_SLUG       the-bar-people
+// The in-page editor link is a separate switch, off until it is set:
+//   ANYVENDOR_EDITOR_ORIGINS  the editor origin(s) allowed to frame /preview and
+//                             talk to it, comma separated, exact https origins
 // Until then — and on any error, timeout, 404 or unexpected shape — callers
 // get null and render the bundled content, so the site can never go blank.
 //
@@ -35,10 +39,23 @@ export interface SiteV1 {
 }
 
 export function anyVendorConfig(env: Record<string, string | undefined> = process.env): { base: string; slug: string } | null {
-  const base = (env.ANYVENDOR_API_URL ?? '').trim().replace(/\/+$/, '');
+  const base = (env.ANYVENDOR_CONTENT_ORIGIN ?? env.ANYVENDOR_API_URL ?? '').trim().replace(/\/+$/, '');
   const slug = (env.ANYVENDOR_SITE_SLUG ?? '').trim();
   if (!/^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(base) || !SLUG.test(slug)) return null;
   return { base, slug };
+}
+
+/** The same test the bridge script applies: a plain https origin, no port, path, credentials or wildcard. */
+const EDITOR_ORIGIN = /^https:\/\/[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
+
+/** Editor origins allowed to frame the draft page and exchange bridge messages. Empty (the default) means none. */
+export function editorOrigins(env: Record<string, string | undefined> = process.env): string[] {
+  const seen = new Set<string>();
+  for (const raw of (env.ANYVENDOR_EDITOR_ORIGINS ?? '').split(',')) {
+    const o = raw.trim();
+    if (EDITOR_ORIGIN.test(o)) seen.add(o);
+  }
+  return [...seen].slice(0, 4);
 }
 
 /** True when the preview value has the shape of an AnyVendor preview token. */

@@ -4,6 +4,7 @@
 import { ArrowRight, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BUILD_HREF } from './data';
+import { av, avRow } from './av';
 
 export type Tone = 'light' | 'dark';
 
@@ -20,8 +21,11 @@ export function BuildButton({
   href = BUILD_HREF,
   className,
   onClick,
+  field,
 }: {
   children: React.ReactNode;
+  /** The content field the words come from, for the editor (see av.ts). */
+  field?: string;
   /** The background the button sits on. */
   tone: Tone;
   href?: string;
@@ -40,7 +44,7 @@ export function BuildButton({
         className,
       )}
     >
-      {children}
+      {field ? <span {...av(field)}>{children}</span> : children}
       <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
     </a>
   );
@@ -48,8 +52,11 @@ export function BuildButton({
 
 /** Short points, each with a tick: a list, or two columns for a checklist. */
 export function Points({
-  items, tone, columns = false, compact = false, className,
+  items, tone, columns = false, compact = false, className, list, field,
 }: {
+  /** The content list and the field in each row, for the editor (see av.ts). */
+  list?: string;
+  field?: string;
   items: readonly string[];
   tone: Tone;
   columns?: boolean;
@@ -66,7 +73,7 @@ export function Points({
         className,
       )}
     >
-      {items.map((item) => (
+      {items.map((item, i) => (
         <li key={item} className="flex items-start gap-3">
           <span
             aria-hidden
@@ -77,7 +84,7 @@ export function Points({
           >
             <Check className="h-[0.8em] w-[0.8em]" strokeWidth={3} />
           </span>
-          {item}
+          <span {...(list && field ? avRow(list, i, field) : {})}>{item}</span>
         </li>
       ))}
     </ul>

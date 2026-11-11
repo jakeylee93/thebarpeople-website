@@ -10,14 +10,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import SiteHeader from './SiteHeader';
-import { SCROLLER_ID, SECTIONS } from './data';
+import type { HomeContent } from '@/content/new-home';
+import { SCROLLER_ID } from './data';
 
-const LAST = SECTIONS.length - 1;
 /** Matches the fallback in home.css: too short to snap, so the page scrolls freely. */
 const TOO_SHORT = '(max-height: 539px)';
 const REDUCED = '(prefers-reduced-motion: reduce)';
 
-export default function SnapPage({ children }: { children: React.ReactNode }) {
+export default function SnapPage({ sections: SECTIONS, contacts, cta, children }: {
+  /** The sections on the page, in order (content decides which and in what order). */
+  sections: HomeContent['sections']; contacts: HomeContent['footer']['contacts']; cta: string; children: React.ReactNode;
+}) {
+  const LAST = SECTIONS.length - 1;
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   /** Where a keyboard, wheel or dot scroll is heading, so quick repeats add up. */
@@ -105,7 +109,7 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
     }, { root: scroller, threshold: [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1] });
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, []);
+  }, [SECTIONS]);
 
   // Keyboard paging, mouse wheel and in-page links.
   useEffect(() => {
@@ -182,12 +186,12 @@ export default function SnapPage({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <SiteHeader activeId={SECTIONS[active].id} />
+      <SiteHeader activeId={SECTIONS[Math.min(active, LAST)].id} sections={SECTIONS} contacts={contacts} cta={cta} />
       <div ref={scrollerRef} id={SCROLLER_ID} className="nh-snap">
         {children}
       </div>
 
-      <nav aria-label="Sections" data-tone={SECTIONS[active].tone} className="nh-dots fixed right-1.5 top-1/2 z-30 hidden -translate-y-1/2 lg:block">
+      <nav aria-label="Sections" data-tone={SECTIONS[Math.min(active, LAST)].tone} className="nh-dots fixed right-1.5 top-1/2 z-30 hidden -translate-y-1/2 lg:block">
         <ul>
           {SECTIONS.map((s, i) => (
             <li key={s.id}>

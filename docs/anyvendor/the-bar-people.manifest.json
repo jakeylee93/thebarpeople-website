@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "name": "The Bar People website · manifest 2026-11-03.1",
+  "name": "The Bar People website · manifest 2026-11-11.2",
   "sections": [
     {
       "key": "business",
@@ -1324,6 +1324,911 @@
           "label": "Terms link text",
           "type": "text",
           "max": 30
+        }
+      ]
+    },
+    {
+      "key": "page",
+      "label": "New homepage · sections",
+      "help": "Add, hide and reorder the sections of the new homepage. The header film is always first and the footer always last.",
+      "fields": [
+        {
+          "key": "chapters",
+          "label": "Sections, in page order",
+          "type": "list",
+          "max": 7,
+          "fields": [
+            {
+              "key": "chapter",
+              "label": "Section",
+              "type": "select",
+              "options": [
+                "christmas",
+                "corporate",
+                "weddings",
+                "parties",
+                "team",
+                "marquees",
+                "gallery"
+              ]
+            },
+            {
+              "key": "visible",
+              "label": "Show on the page",
+              "type": "boolean"
+            }
+          ],
+          "help": "Move to reorder. Hide a section without losing it. Remove a row to take it off; add it back at any time."
+        }
+      ]
+    },
+    {
+      "key": "nh_menu",
+      "label": "New homepage · menu names",
+      "help": "What each section is called in the menu, the footer and the dots at the side.",
+      "fields": [
+        {
+          "key": "christmas_label",
+          "label": "Christmas",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "corporate_label",
+          "label": "Corporate",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "weddings_label",
+          "label": "Weddings",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "parties_label",
+          "label": "Parties",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "team_label",
+          "label": "Our team",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "marquees_label",
+          "label": "Marquees",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "gallery_label",
+          "label": "Gallery",
+          "type": "text",
+          "max": 30
+        }
+      ]
+    },
+    {
+      "key": "nh_hero",
+      "label": "New homepage · header",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 80
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "max": 80,
+          "required": true
+        },
+        {
+          "key": "sub",
+          "label": "Line under the headline",
+          "type": "textarea",
+          "max": 200
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. Where it goes is fixed: it opens the quote builder."
+        },
+        {
+          "key": "small",
+          "label": "Small print under the button",
+          "type": "text",
+          "max": 80
+        },
+        {
+          "key": "sheet_eyebrow",
+          "label": "Phone panel: small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "sheet_title",
+          "label": "Phone panel: heading",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "slides",
+          "label": "Film and photos",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "kind",
+              "label": "Photo or film",
+              "type": "select",
+              "options": [
+                "image",
+                "video"
+              ]
+            },
+            {
+              "key": "picture",
+              "label": "Photo (or the still shown before a film plays)",
+              "type": "image"
+            },
+            {
+              "key": "video_file",
+              "label": "Film file (films only)",
+              "type": "text",
+              "max": 300,
+              "help": "A site file path starting with / or an https:// link to an MP4. No sound is played."
+            },
+            {
+              "key": "phone_video_file",
+              "label": "Upright film for phones (optional)",
+              "type": "text",
+              "max": 300,
+              "help": "A site file path starting with / or an https:// link to an MP4. No sound is played."
+            },
+            {
+              "key": "phone_picture",
+              "label": "Still for the phone film (optional)",
+              "type": "image"
+            },
+            {
+              "key": "seconds",
+              "label": "Film length in seconds",
+              "type": "number",
+              "help": "How long the film stays up before the next slide. Ignored when the film is the only slide."
+            },
+            {
+              "key": "focus_desktop",
+              "label": "Framing on desktop",
+              "type": "text",
+              "max": 20,
+              "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+            },
+            {
+              "key": "focus_phone",
+              "label": "Framing on phones",
+              "type": "text",
+              "max": 20,
+              "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+            }
+          ],
+          "required": true,
+          "help": "One film on its own plays on a loop. Add photos after it and the header becomes a slideshow."
+        }
+      ]
+    },
+    {
+      "key": "nh_christmas",
+      "label": "New homepage · Christmas",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "title_line_1",
+          "label": "Headline, first line",
+          "type": "text",
+          "max": 40,
+          "required": true
+        },
+        {
+          "key": "title_line_2",
+          "label": "Headline, second line",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "textarea",
+          "max": 240
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. It opens the quote builder dressed for Christmas."
+        },
+        {
+          "key": "small",
+          "label": "Line at the foot",
+          "type": "text",
+          "max": 60
+        },
+        {
+          "key": "picture",
+          "label": "Background photo",
+          "type": "image",
+          "required": true
+        },
+        {
+          "key": "focus_desktop",
+          "label": "Framing on desktop",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "focus_phone",
+          "label": "Framing on phones",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "prints_left",
+          "label": "Left snapshot: photos it shuffles through",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "photo",
+              "label": "Photo",
+              "type": "image"
+            }
+          ]
+        },
+        {
+          "key": "prints_right",
+          "label": "Right snapshot: photos it shuffles through",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "photo",
+              "label": "Photo",
+              "type": "image"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "nh_corporate",
+      "label": "New homepage · Corporate",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "title",
+          "label": "Headline",
+          "type": "text",
+          "max": 60,
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "textarea",
+          "max": 300
+        },
+        {
+          "key": "steps",
+          "label": "Steps",
+          "type": "list",
+          "max": 4,
+          "fields": [
+            {
+              "key": "title",
+              "label": "Step",
+              "type": "text",
+              "max": 40
+            },
+            {
+              "key": "detail",
+              "label": "Detail",
+              "type": "text",
+              "max": 100
+            }
+          ]
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. Where it goes is fixed: it opens the quote builder."
+        },
+        {
+          "key": "call_label",
+          "label": "Words before the phone number",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "trusted_label",
+          "label": "Heading beside the client logos",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "photos",
+          "label": "Photos: the first is the large one",
+          "type": "list",
+          "max": 4,
+          "fields": [
+            {
+              "key": "photo",
+              "label": "Photo",
+              "type": "image"
+            },
+            {
+              "key": "focus",
+              "label": "Framing",
+              "type": "text",
+              "max": 20,
+              "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "logos",
+          "label": "Client logos",
+          "type": "list",
+          "max": 16,
+          "fields": [
+            {
+              "key": "name",
+              "label": "Client",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "logo",
+              "label": "Logo (a one-colour SVG works best)",
+              "type": "image"
+            },
+            {
+              "key": "ratio",
+              "label": "Logo width ÷ height",
+              "type": "number",
+              "help": "For example 2.4 for a wide logo. Keeps the logos looking the same weight."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "nh_weddings",
+      "label": "New homepage · Weddings",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "title_lead",
+          "label": "Headline, first part",
+          "type": "text",
+          "max": 40,
+          "required": true
+        },
+        {
+          "key": "title_accent",
+          "label": "Headline, part in italic script",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "textarea",
+          "max": 300
+        },
+        {
+          "key": "points",
+          "label": "Tick points",
+          "type": "list",
+          "max": 4,
+          "fields": [
+            {
+              "key": "point",
+              "label": "Line",
+              "type": "text",
+              "max": 80
+            }
+          ]
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. Where it goes is fixed: it opens the quote builder."
+        },
+        {
+          "key": "picture",
+          "label": "Main photo",
+          "type": "image",
+          "required": true
+        },
+        {
+          "key": "focus_desktop",
+          "label": "Framing on desktop",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "focus_phone",
+          "label": "Framing on phones",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "prints",
+          "label": "Small prints across the corner",
+          "type": "list",
+          "max": 2,
+          "fields": [
+            {
+              "key": "photo",
+              "label": "Photo",
+              "type": "image"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "nh_parties",
+      "label": "New homepage · Parties",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "title_lead",
+          "label": "Headline, first part",
+          "type": "text",
+          "max": 30,
+          "required": true
+        },
+        {
+          "key": "title_accent",
+          "label": "Headline, part that glows",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "textarea",
+          "max": 300
+        },
+        {
+          "key": "points",
+          "label": "Tick points",
+          "type": "list",
+          "max": 4,
+          "fields": [
+            {
+              "key": "point",
+              "label": "Line",
+              "type": "text",
+              "max": 80
+            }
+          ]
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. Where it goes is fixed: it opens the quote builder."
+        },
+        {
+          "key": "sticker_label",
+          "label": "Words on the sticker",
+          "type": "text",
+          "max": 20,
+          "help": "The amount on the sticker is not edited here: it is always the smallest bar in the quote builder."
+        },
+        {
+          "key": "picture",
+          "label": "Photo",
+          "type": "image",
+          "required": true
+        },
+        {
+          "key": "focus_desktop",
+          "label": "Framing on desktop",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        },
+        {
+          "key": "focus_phone",
+          "label": "Framing on phones",
+          "type": "text",
+          "max": 20,
+          "help": "Which part of the photo to keep in frame, e.g. \"50% 30%\" (across, down). Leave blank for the centre."
+        }
+      ]
+    },
+    {
+      "key": "nh_team",
+      "label": "New homepage · Team",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "title",
+          "label": "Headline",
+          "type": "text",
+          "max": 60,
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Text (desktop only)",
+          "type": "textarea",
+          "max": 160
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. Where it goes is fixed: it opens the quote builder."
+        },
+        {
+          "key": "cards",
+          "label": "Team photos and clips",
+          "type": "list",
+          "max": 12,
+          "fields": [
+            {
+              "key": "kind",
+              "label": "Photo or video",
+              "type": "select",
+              "options": [
+                "image",
+                "video"
+              ]
+            },
+            {
+              "key": "picture",
+              "label": "Photo (or the still shown before a video plays)",
+              "type": "image"
+            },
+            {
+              "key": "video_file",
+              "label": "Video file (videos only)",
+              "type": "text",
+              "max": 300,
+              "help": "A site file path starting with / or an https:// link to an MP4. No sound is played."
+            }
+          ],
+          "help": "Shown in this order. Every card is cropped to the same upright shape."
+        }
+      ]
+    },
+    {
+      "key": "nh_marquee",
+      "label": "New homepage · Marquee packages",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "title",
+          "label": "Headline",
+          "type": "text",
+          "max": 60,
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "textarea",
+          "max": 240
+        },
+        {
+          "key": "items",
+          "label": "What a package can include",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "item",
+              "label": "Item",
+              "type": "text",
+              "max": 40
+            }
+          ]
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. It starts a quote with a marquee switched on."
+        },
+        {
+          "key": "note",
+          "label": "Small print",
+          "type": "textarea",
+          "max": 200
+        }
+      ]
+    },
+    {
+      "key": "nh_gallery",
+      "label": "New homepage · Gallery",
+      "fields": [
+        {
+          "key": "eyebrow",
+          "label": "Small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "handle",
+          "label": "Headline",
+          "type": "text",
+          "max": 40,
+          "required": true
+        },
+        {
+          "key": "follow_link",
+          "label": "Follow button",
+          "type": "link"
+        },
+        {
+          "key": "cards",
+          "label": "Gallery photos and clips",
+          "type": "list",
+          "max": 12,
+          "fields": [
+            {
+              "key": "kind",
+              "label": "Photo or video",
+              "type": "select",
+              "options": [
+                "image",
+                "video"
+              ]
+            },
+            {
+              "key": "picture",
+              "label": "Photo (or the still shown before a video plays)",
+              "type": "image"
+            },
+            {
+              "key": "video_file",
+              "label": "Video file (videos only)",
+              "type": "text",
+              "max": 300,
+              "help": "A site file path starting with / or an https:// link to an MP4. No sound is played."
+            }
+          ],
+          "help": "Shown in this order. Every card is cropped to the same upright shape."
+        }
+      ]
+    },
+    {
+      "key": "nh_how",
+      "label": "New homepage · \"How it works\" pop-up",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "max": 40,
+          "required": true
+        },
+        {
+          "key": "steps",
+          "label": "Steps",
+          "type": "list",
+          "max": 4,
+          "fields": [
+            {
+              "key": "title",
+              "label": "Step",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "body",
+              "label": "Detail",
+              "type": "text",
+              "max": 140
+            }
+          ]
+        },
+        {
+          "key": "included_title",
+          "label": "Heading above the list",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "cta_label",
+          "label": "Button",
+          "type": "text",
+          "max": 40,
+          "required": true,
+          "help": "The words on the button. Where it goes is fixed: it opens the quote builder."
+        },
+        {
+          "key": "corporate_label",
+          "label": "Corporate: small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "corporate_included",
+          "label": "Corporate: what you can include",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "item",
+              "label": "Line",
+              "type": "text",
+              "max": 100
+            }
+          ]
+        },
+        {
+          "key": "weddings_label",
+          "label": "Weddings: small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "weddings_included",
+          "label": "Weddings: what you can include",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "item",
+              "label": "Line",
+              "type": "text",
+              "max": 100
+            }
+          ]
+        },
+        {
+          "key": "parties_label",
+          "label": "Parties: small heading",
+          "type": "text",
+          "max": 40
+        },
+        {
+          "key": "parties_included",
+          "label": "Parties: what you can include",
+          "type": "list",
+          "max": 8,
+          "fields": [
+            {
+              "key": "item",
+              "label": "Line",
+              "type": "text",
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "nh_footer",
+      "label": "New homepage · Footer",
+      "fields": [
+        {
+          "key": "explore_heading",
+          "label": "Menu column heading",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "contact_heading",
+          "label": "Contact column heading",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "follow_heading",
+          "label": "Social column heading",
+          "type": "text",
+          "max": 30
+        },
+        {
+          "key": "contacts",
+          "label": "Who to contact",
+          "type": "list",
+          "max": 4,
+          "fields": [
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "text",
+              "max": 60
+            },
+            {
+              "key": "email",
+              "label": "Email (mailto:)",
+              "type": "link"
+            },
+            {
+              "key": "phone",
+              "label": "Phone (tel:)",
+              "type": "link"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "socials",
+          "label": "Social links",
+          "type": "list",
+          "max": 6,
+          "fields": [
+            {
+              "key": "link",
+              "label": "Link",
+              "type": "link"
+            }
+          ]
         }
       ]
     }

@@ -24,10 +24,14 @@ export type SectionId = (typeof SECTIONS)[number]['id'];
 const NAV_IDS: SectionId[] = ['corporate', 'weddings', 'parties', 'marquees', 'gallery'];
 
 /** Header and footer links: jumps to sections of this page. */
-export const NAV = SECTIONS.filter((s) => NAV_IDS.includes(s.id)).map((s) => ({ id: s.id, href: `#${s.id}`, label: s.label }));
+export const navOf = (sections: readonly { id: string; label: string }[]) =>
+  sections.filter((s) => (NAV_IDS as string[]).includes(s.id)).map((s) => ({ id: s.id, href: `#${s.id}`, label: s.label }));
 
 /** Every "Build your package" button links here; the builder opens on this hash. */
 export const BUILD_HREF = '#build';
+/** The Christmas advert's button and the marquee section's button (builder/route.ts). Fixed in code, not content. */
+export const CHRISTMAS_BUILD_HREF = '#build/christmas';
+export const MARQUEE_BUILD_HREF = '#build/marquee-package';
 
 export const CONTACTS = [
   { name: 'Jake', email: 'jake@thebarpeople.co.uk', phone: '07557 402200', tel: '+447557402200' },
@@ -105,8 +109,6 @@ export const CHRISTMAS = {
   titleLines: ['Christmas parties,', 'sorted.'],
   body: 'We bring the bar, the bartenders and the festive cocktails. You just bring the guests.',
   cta: 'Build your Christmas package',
-  /** Opens the builder in its Christmas dress (builder/route.ts: CHRISTMAS_HREF). */
-  href: '#build/christmas',
   /** Snapshots that shuffle on the advert. Party photos for now: swap in real Christmas parties. */
   prints: {
     left: ['/images/events/boux-avenue.jpg', '/images/film/staff-cew.jpg', '/images/events/cocktails.jpg'],
@@ -176,8 +178,8 @@ export const PARTIES = {
     'Delivered, set up and collected for you',
   ],
   cta: 'Build your party bar',
-  /** A sticker on the photo. The price is the 1.5m bar in src/lib/quote/prices.ts. */
-  sticker: ['Bars from', '£215', '+ VAT'],
+  /** The words on the photo's sticker. The amount under them is the 1.5m bar price, from src/lib/quote/prices.ts. */
+  stickerLabel: 'Bars from',
   image: {
     src: '/images/events/special-occasions.jpg',
     alt: 'A neon sign reading Sip Sip Hooray on a leafy wall above a bar set with copper cups, under party balloons',
@@ -198,8 +200,6 @@ export const MARQUEE = {
   body: 'One quote for the marquee, the bar and everything that goes with it.',
   items: ['Marquee', 'Bar', 'Bartenders', 'Drinks', 'Glassware', 'Ice and fridges'],
   cta: 'Build a marquee package',
-  // Starts the quote at step 1 with the marquee switched on (builder/route.ts: MARQUEE_PACKAGE_HREF).
-  href: '#build/marquee-package',
   note: 'Furniture, flooring, lighting and crockery can be added with a marquee.',
 };
 

@@ -4,7 +4,9 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BUILD_HREF, CONTACTS, NAV, SCROLLER_ID, WHATSAPP_HREF, type SectionId } from './data';
+import type { HomeContent } from '@/content/new-home';
+import { BUILD_HREF, SCROLLER_ID, WHATSAPP_HREF, navOf } from './data';
+import { av } from './av';
 
 // The page scrolls inside the snap box (SnapPage), not the window, so the
 // header watches that box to know when to turn solid.
@@ -36,7 +38,10 @@ function WhatsApp({ className }: { className?: string }) {
   );
 }
 
-export default function SiteHeader({ activeId }: { activeId?: SectionId }) {
+export default function SiteHeader({ activeId, sections, contacts: CONTACTS, cta }: {
+  activeId?: string; sections: HomeContent['sections']; contacts: HomeContent['footer']['contacts']; cta: string;
+}) {
+  const NAV = navOf(sections);
   const scrolled = useSyncExternalStore(subscribeScroll, isScrolled, () => false);
   const [menuOpen, setMenuOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -79,6 +84,7 @@ export default function SiteHeader({ activeId }: { activeId?: SectionId }) {
             <a
               key={l.id}
               href={l.href}
+              {...av(`nh_menu.${l.id}_label`)}
               aria-current={l.id === activeId ? 'location' : undefined}
               className={cn(
                 'rounded text-[15px] font-semibold text-white/80 underline-offset-[10px] transition hover:text-white aria-[current]:text-white aria-[current]:underline',
@@ -91,8 +97,9 @@ export default function SiteHeader({ activeId }: { activeId?: SectionId }) {
           <a
             href={BUILD_HREF}
             className={cn('rounded-full bg-white px-5 py-2.5 text-[15px] font-semibold text-nh-ink transition hover:bg-white/90', nhFocus)}
+            {...av('nh_hero.cta_label')}
           >
-            Build your package
+            {cta}
           </a>
           <WhatsApp className="-ml-3 h-10 w-10 xl:-ml-4" />
         </nav>
@@ -138,6 +145,7 @@ export default function SiteHeader({ activeId }: { activeId?: SectionId }) {
               <a
                 key={l.id}
                 href={l.href}
+                {...av(`nh_menu.${l.id}_label`)}
                 onClick={() => setMenuOpen(false)}
                 className={cn('rounded py-1.5 font-nh-display text-[clamp(26px,5.2dvh,34px)] font-bold tracking-tight', nhFocus)}
               >
@@ -150,7 +158,7 @@ export default function SiteHeader({ activeId }: { activeId?: SectionId }) {
             onClick={() => setMenuOpen(false)}
             className={cn('mt-7 flex h-14 shrink-0 items-center justify-center rounded-full bg-white text-[17px] font-semibold text-nh-ink', nhFocus)}
           >
-            Build your package
+            {cta}
           </a>
           <div className="mt-auto space-y-1 pt-6 text-[15px] text-white/70">
             {CONTACTS.map((c) => (

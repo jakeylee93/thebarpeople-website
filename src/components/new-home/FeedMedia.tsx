@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import type { FeedItem } from './data';
+import { av } from './av';
 
 export function AutoClip({ item, play }: { item: Extract<FeedItem, { kind: 'video' }>; play: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -20,9 +21,9 @@ export function AutoClip({ item, play }: { item: Extract<FeedItem, { kind: 'vide
 }
 
 /** The picture inside a card. `showAlt` is for cards that aren't buttons with their own label. */
-export default function FeedMedia({ item, play, sizes, showAlt = false }: { item: FeedItem; play: boolean; sizes: string; showAlt?: boolean }) {
+export default function FeedMedia({ item, play, sizes, showAlt = false, field }: { item: FeedItem; play: boolean; sizes: string; showAlt?: boolean; /** The picture's content field, for the editor (see av.ts). Photos only. */ field?: string }) {
   if (item.kind === 'image') {
-    return <Image src={item.src} alt={showAlt ? item.alt : ''} fill sizes={sizes} className="object-cover transition duration-500 group-hover:scale-[1.04]" />;
+    return <Image src={item.src} alt={showAlt ? item.alt : ''} fill sizes={sizes} className="object-cover transition duration-500 group-hover:scale-[1.04]" {...(field ? av(field) : {})} />;
   }
   return (
     <>

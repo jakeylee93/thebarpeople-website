@@ -10,8 +10,10 @@ import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties }
 import Image from 'next/image';
 import { ArrowRight, Pause, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BUILD_HREF, HERO_COPY, type HeroSlide } from './data';
+import type { HomeContent } from '@/content/new-home';
+import { BUILD_HREF, type HeroSlide } from './data';
 import { nhFocus } from './SiteHeader';
+import { av, avRow } from './av';
 
 const IMAGE_SECONDS = 6.5;
 
@@ -85,7 +87,8 @@ function SlideVideo({ slide, active, near, playing, loop }: { slide: VideoSlide;
   );
 }
 
-export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
+export default function HeroSlider({ data: HERO_COPY }: { data: HomeContent['hero'] }) {
+  const slides = HERO_COPY.slides;
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
@@ -122,6 +125,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                     sizes="100vw"
                     preload={i === 0}
                     className="object-cover [object-position:var(--fp)] md:[object-position:var(--fd)]"
+                    {...avRow('nh_hero.slides', i, 'picture')}
                   />
                 ) : (
                   <SlideVideo
@@ -143,11 +147,11 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
         <div aria-hidden className="absolute inset-0 hidden bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.35),transparent_65%)] md:block" />
 
         <div className="absolute inset-x-0 bottom-0 px-5 pb-[78px] text-white sm:px-6 md:inset-0 md:flex md:flex-col md:items-center md:justify-center md:px-6 md:pb-0 md:text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/85 md:text-[13px]">{HERO_COPY.eyebrow}</p>
-          <h1 className="nh-hero-title mt-3 max-w-[13ch] font-extrabold leading-[1.02] tracking-[-0.025em] md:mt-5 md:max-w-[15ch]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/85 md:text-[13px]" {...av('nh_hero.eyebrow')}>{HERO_COPY.eyebrow}</p>
+          <h1 {...av('nh_hero.headline')} className="nh-hero-title mt-3 max-w-[13ch] font-extrabold leading-[1.02] tracking-[-0.025em] md:mt-5 md:max-w-[15ch]">
             {HERO_COPY.headline}
           </h1>
-          <p className="mt-[clamp(14px,2.6dvh,24px)] hidden max-w-[50ch] text-[18px] leading-relaxed text-white/85 md:block">{HERO_COPY.sub}</p>
+          <p className="mt-[clamp(14px,2.6dvh,24px)] hidden max-w-[50ch] text-[18px] leading-relaxed text-white/85 md:block" {...av('nh_hero.sub')}>{HERO_COPY.sub}</p>
           <div className="mt-[clamp(18px,4dvh,36px)] hidden flex-col items-center gap-3 md:flex">
             <a
               href={BUILD_HREF}
@@ -156,10 +160,10 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                 nhFocus,
               )}
             >
-              {HERO_COPY.cta}
+              <span {...av('nh_hero.cta_label')}>{HERO_COPY.cta}</span>
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" aria-hidden />
             </a>
-            <p className="text-[13px] text-white/75">{HERO_COPY.small}</p>
+            <p className="text-[13px] text-white/75" {...av('nh_hero.small')}>{HERO_COPY.small}</p>
           </div>
         </div>
 
@@ -195,19 +199,19 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
 
       {/* Phone: the quote starts in a white sheet under the photo. */}
       <div className="relative z-10 -mt-6 shrink-0 rounded-t-[28px] bg-white px-5 pb-6 pt-6 sm:px-6 md:hidden">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-nh-ash">Instant quote</p>
-        <h2 className="mt-2 text-[28px] font-extrabold leading-tight tracking-[-0.02em]">Get an instant quote</h2>
-        <p className="mt-2 text-[15px] leading-relaxed text-nh-ash">{HERO_COPY.sub}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-nh-ash" {...av('nh_hero.sheet_eyebrow')}>{HERO_COPY.sheetEyebrow}</p>
+        <h2 className="mt-2 text-[28px] font-extrabold leading-tight tracking-[-0.02em]" {...av('nh_hero.sheet_title')}>{HERO_COPY.sheetTitle}</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-nh-ash" {...av('nh_hero.sub')}>{HERO_COPY.sub}</p>
         <a
           href={BUILD_HREF}
           className="mt-5 flex h-14 items-center justify-between rounded-full bg-nh-ink pl-6 pr-2 text-[17px] font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-nh-ink focus-visible:ring-offset-2"
         >
-          {HERO_COPY.cta}
+          <span {...av('nh_hero.cta_label')}>{HERO_COPY.cta}</span>
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-nh-ink">
             <ArrowRight className="h-5 w-5" aria-hidden />
           </span>
         </a>
-        <p className="mt-3 text-center text-[13px] text-nh-ash">{HERO_COPY.small}</p>
+        <p className="mt-3 text-center text-[13px] text-nh-ash" {...av('nh_hero.small')}>{HERO_COPY.small}</p>
       </div>
     </section>
   );

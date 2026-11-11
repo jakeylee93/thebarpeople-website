@@ -1,13 +1,15 @@
 import Image from 'next/image';
-import { CHRISTMAS } from '../data';
+import type { HomeContent } from '@/content/new-home';
+import { CHRISTMAS_BUILD_HREF } from '../data';
 import { BuildButton } from '../parts';
+import { av } from '../av';
 import ChristmasPrints from '../ChristmasPrints';
 import Snow from '../Snow';
 
 // The Christmas advert: one full-screen poster. The photo runs edge to edge,
 // a thin keyline frames it like a magazine page, and snow drifts down behind
 // the words.
-export default function Christmas() {
+export default function Christmas({ data: CHRISTMAS }: { data: HomeContent['christmas'] }) {
   const { image } = CHRISTMAS;
   return (
     <section id="christmas" data-snap aria-labelledby="christmas-title" className="nh-section nh-poster bg-nh-ink text-white">
@@ -18,6 +20,7 @@ export default function Christmas() {
         sizes="100vw"
         className="object-cover [object-position:var(--fp)] lg:[object-position:var(--fd)]"
         style={{ '--fp': image.focus.phone, '--fd': image.focus.desktop } as React.CSSProperties}
+        {...av('nh_christmas.picture')}
       />
       {/* Darkened for white words: an even wash, then a deeper pool behind the headline. */}
       <div aria-hidden className="absolute inset-0 bg-black/45" />
@@ -40,7 +43,7 @@ export default function Christmas() {
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
             <p data-reveal="1" className="nh-eyebrow flex items-center gap-4 text-white/90">
               <span aria-hidden className="h-px w-8 bg-white/50 lg:w-12" />
-              {CHRISTMAS.eyebrow}
+              <span {...av('nh_christmas.eyebrow')}>{CHRISTMAS.eyebrow}</span>
               <span aria-hidden className="h-px w-8 bg-white/50 lg:w-12" />
             </p>
             <h2
@@ -48,18 +51,18 @@ export default function Christmas() {
               data-reveal="2"
               className="mt-[clamp(12px,2.4dvh,24px)] max-w-[11ch] text-[clamp(2.5rem,min(9.5vw+0.5rem,13dvh),5.25rem)] font-extrabold leading-[0.98] tracking-[-0.03em] [text-shadow:0_2px_30px_rgba(0,0,0,0.35)] lg:max-w-none lg:text-[clamp(3.5rem,min(7.6vw,13dvh),9rem)]"
             >
-              {CHRISTMAS.titleLines[0]} <br className="hidden lg:block" />
-              {CHRISTMAS.titleLines[1]}
+              <span {...av('nh_christmas.title_line_1')}>{CHRISTMAS.titleLines[0]}</span> <br className="hidden lg:block" />
+              <span {...av('nh_christmas.title_line_2')}>{CHRISTMAS.titleLines[1]}</span>
             </h2>
-            <p data-reveal="3" className="nh-lede mt-[clamp(12px,2.6dvh,28px)] max-w-[40ch] text-white/90">
+            <p data-reveal="3" {...av('nh_christmas.body')} className="nh-lede mt-[clamp(12px,2.6dvh,28px)] max-w-[40ch] text-white/90">
               {CHRISTMAS.body}
             </p>
             <div data-reveal="4" className="mt-[clamp(18px,3.6dvh,36px)]">
-              <BuildButton tone="dark" href={CHRISTMAS.href} className="shadow-[0_10px_40px_rgba(0,0,0,0.3)]">{CHRISTMAS.cta}</BuildButton>
+              <BuildButton tone="dark" field="nh_christmas.cta_label" href={CHRISTMAS_BUILD_HREF} className="shadow-[0_10px_40px_rgba(0,0,0,0.3)]">{CHRISTMAS.cta}</BuildButton>
             </div>
           </div>
 
-          <p data-reveal="5" className="nh-eyebrow text-white/80">{CHRISTMAS.small}</p>
+          <p data-reveal="5" {...av('nh_christmas.small')} className="nh-eyebrow text-white/80">{CHRISTMAS.small}</p>
         </div>
       </div>
     </section>

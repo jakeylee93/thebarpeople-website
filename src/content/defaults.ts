@@ -13,6 +13,7 @@
 // the first AnyVendor read shows exactly the current site (ANYOS_LIVE_EDIT_MAP).
 
 import type { SiteContent } from './contract.ts';
+import { homeSeed } from './new-home.ts';
 
 export const TBP_DEFAULT_CONTENT: SiteContent = {
   business: {
@@ -747,6 +748,9 @@ export const TBP_DEFAULT_CONTENT: SiteContent = {
     privacy_label: 'Privacy',
     terms_label: 'Terms',
   },
+  // The commissioned homepage (/new), generated from the page's own bundled
+  // content so the seed is exactly what the page shows (src/content/new-home.ts).
+  ...homeSeed(),
 };
 
 /**

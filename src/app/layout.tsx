@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
+import AnyOsLiveEdit from '@/components/AnyOsLiveEdit';
 import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 
@@ -62,9 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(BUSINESS_JSON_LD) }}
         />
         {children}
-        {/* anyOS live-edit: hydrates data-anyos text with saved content, and turns
-            on click-to-edit when opened from the anyOS Website module. */}
-        <Script src="https://platform.anyos.co.uk/edit.js" data-site="the-bar-people" strategy="afterInteractive" />
+        <AnyOsLiveEdit />
       </body>
     </html>
   );

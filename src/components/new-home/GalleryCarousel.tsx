@@ -9,8 +9,9 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { ArrowRight, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FEED, INSTAGRAM } from './data';
+import type { HomeContent } from '@/content/new-home';
 import FeedMedia from './FeedMedia';
+import { av } from './av';
 
 const ring = 'outline-none focus-visible:ring-2 focus-visible:ring-nh-ink focus-visible:ring-offset-2';
 const ringDark = 'outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black';
@@ -23,7 +24,8 @@ const subscribeReduced = (cb: () => void) => {
 };
 const getReduced = () => window.matchMedia(reducedQuery).matches;
 
-export default function GalleryCarousel() {
+export default function GalleryCarousel({ data }: { data: HomeContent['gallery'] }) {
+  const FEED = data.cards;
   const [open, setOpen] = useState<number | null>(null);
   const [inView, setInView] = useState(false);
   const reduced = useSyncExternalStore(subscribeReduced, getReduced, () => false);
@@ -61,19 +63,19 @@ export default function GalleryCarousel() {
       <div className="mx-auto flex h-full max-w-[1600px] flex-col px-[var(--nh-gutter)] pb-[clamp(12px,2.6dvh,36px)] pt-[calc(var(--nh-head)+clamp(12px,2.6dvh,36px))]">
         <div className="flex shrink-0 items-end justify-between gap-4">
           <div>
-            <p data-reveal="1" className="nh-eyebrow text-nh-ash">On Instagram</p>
-            <h2 id="gallery-title" data-reveal="2" className="nh-title mt-1.5 max-sm:!text-[26px] lg:mt-3">{INSTAGRAM.handle}</h2>
+            <p data-reveal="1" {...av('nh_gallery.eyebrow')} className="nh-eyebrow text-nh-ash">{data.eyebrow}</p>
+            <h2 id="gallery-title" data-reveal="2" {...av('nh_gallery.handle')} className="nh-title mt-1.5 max-sm:!text-[26px] lg:mt-3">{data.handle}</h2>
           </div>
-          <a
+          {data.follow.href && <a
             data-reveal="2"
-            href={INSTAGRAM.href}
+            href={data.follow.href}
             target="_blank"
             rel="noreferrer"
             className={cn('inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-nh-ink px-5 text-[15px] font-semibold text-white hover:bg-black', ring)}
           >
-            Follow <ArrowRight className="h-4 w-4" aria-hidden />
-            <span className="sr-only">The Bar People on Instagram (opens in a new tab)</span>
-          </a>
+            {data.follow.label} <ArrowRight className="h-4 w-4" aria-hidden />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>}
         </div>
 
         {/* The grid takes whatever room is left; each card sizes itself from that (.nh-feed in home.css). */}
@@ -87,7 +89,7 @@ export default function GalleryCarousel() {
                   className={cn('group relative block h-full w-full overflow-hidden rounded-[10px] bg-nh-line lg:rounded-[16px]', ring)}
                   aria-label={`Open ${g.kind === 'video' ? 'video' : 'photo'}: ${g.alt}`}
                 >
-                  <FeedMedia item={g} play={playing} sizes="(min-width: 1024px) 16vw, 70vw" />
+                  <FeedMedia item={g} play={playing} sizes="(min-width: 1024px) 16vw, 70vw" field={`nh_gallery.cards.${i}.picture`} />
                 </button>
               </li>
             ))}

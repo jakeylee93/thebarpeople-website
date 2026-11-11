@@ -10,7 +10,7 @@ import type { FieldValue, Manifest, SiteContent } from './contract.ts';
 import { normaliseByManifest, withRequiredDefaults } from './contract.ts';
 import { TBP_MANIFEST, MANIFEST_REVISION } from './manifest.ts';
 import { TBP_DEFAULT_CONTENT } from './defaults.ts';
-import { fetchSiteV1 } from './anyvendor.ts';
+import { fetchSiteV1, isPreviewToken } from './anyvendor.ts';
 
 export type ContentSource = 'bundled' | 'published' | 'draft';
 
@@ -49,4 +49,16 @@ export async function getSiteContent(opts: { preview?: string | null } = {}): Pr
     source: 'bundled',
     revision: `bundled-${MANIFEST_REVISION}`,
   };
+}
+
+/**
+ * A draft, strictly: null unless AnyVendor served this token's draft for this
+ * site. The draft page answers 404 on null; it never shows published or
+ * bundled content in a draft's place.
+ */
+export async function getDraftContent(token: string, deps: Parameters<typeof fetchSiteV1>[1] = {}): Promise<LoadedContent | null> {
+  if (!isPreviewToken(token)) return null;
+  const remote = await fetchSiteV1(token, deps);
+  if (!remote || remote.mode !== 'draft') return null;
+  return { content: mergeRemote(TBP_MANIFEST, remote.content, TBP_DEFAULT_CONTENT), source: 'draft', revision: remote.revision };
 }

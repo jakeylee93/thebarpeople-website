@@ -9,9 +9,12 @@ import { isEmptyValue, manifestProblems, normaliseByManifest, safeUrl, withRequi
 import { TBP_MANIFEST } from './manifest.ts';
 import { ANYOS_LIVE_EDIT_MAP, TBP_DEFAULT_CONTENT } from './defaults.ts';
 import { MEDIA } from './media.ts';
-import { anyVendorConfig, fetchSiteV1 } from './anyvendor.ts';
-import { mergeRemote } from './index.ts';
+import { anyVendorConfig, editorOrigins, fetchSiteV1 } from './anyvendor.ts';
+import { getDraftContent, mergeRemote } from './index.ts';
 import { focusOf, openingView, quoteView } from './views.ts';
+import { BUNDLED_HOME, MARKED_LIST_KEYS, MOVABLE_SECTIONS, NEW_HOME_SECTION_KEYS, homeSeed, homeView, shiftedLists } from './new-home.ts';
+import { createHash } from 'node:crypto';
+import { PRICES } from '../lib/quote/prices.ts';
 import { bars, brandLogos, brands, eventTypes, galleryImages, navLinks, services, testimonials } from '../lib/constants.ts';
 
 const C = TBP_DEFAULT_CONTENT;
@@ -239,4 +242,200 @@ test('revalidate check: off without a secret; needs the exact bearer and this si
   assert.equal(checkRevalidate(null, { slug: 'the-bar-people' }, env).ok, false);
   assert.deepEqual(checkRevalidate(`Bearer ${'x'.repeat(32)}`, { slug: 'floriography-studio' }, env), { ok: false, status: 400, error: 'wrong_site' });
   assert.deepEqual(checkRevalidate(`Bearer ${'x'.repeat(32)}`, { slug: 'the-bar-people', revision: 'r1' }, env), { ok: true, revision: 'r1' });
+});
+
+// ─── The commissioned homepage (/new) ────────────────────────────────────────
+
+const home = () => homeView(mergeRemote(TBP_MANIFEST, clone(C), C));
+
+test('/new: rendering the seed through the adapter gives exactly the page the code ships', () => {
+  assert.deepEqual(homeView(C), BUNDLED_HOME);
+  // …and it survives the journey to AnyVendor and back (cleaning, then merging).
+  assert.deepEqual(homeView(normaliseByManifest(TBP_MANIFEST, C)), BUNDLED_HOME);
+  assert.deepEqual(home(), BUNDLED_HOME);
+  assert.deepEqual(homeSeed(BUNDLED_HOME), Object.fromEntries(NEW_HOME_SECTION_KEYS.map((k) => [k, C[k]])));
+});
+
+test('/new: sections can be hidden, reordered, removed and added back; header and footer stay put', () => {
+  const view = (chapters: unknown, menu: Record<string, string> = {}) =>
+    homeView(mergeRemote(TBP_MANIFEST, { ...clone(C), page: { chapters }, nh_menu: { ...clone(C.nh_menu), ...menu } } as SiteContent, C));
+  const edit = (chapters: unknown) => view(chapters).sections.map((s) => s.id);
+  assert.deepEqual(edit(C.page.chapters), ['home', ...MOVABLE_SECTIONS, 'contact']);
+  // The list has the shape AnyVendor's editor treats as chapters: one choice per row and a visible switch.
+  const field = TBP_MANIFEST.sections.find((s) => s.key === 'page')?.fields.find((f) => f.key === 'chapters');
+  assert.deepEqual(field?.fields?.map((f) => [f.key, f.type]), [['chapter', 'select'], ['visible', 'boolean']]);
+  assert.deepEqual(field?.fields?.[0].options, [...MOVABLE_SECTIONS]);
+  assert.equal(field?.max, MOVABLE_SECTIONS.length);
+  // Reorder and rename.
+  const moved = view([{ chapter: 'weddings', visible: true }, { chapter: 'corporate', visible: true }], { weddings_label: 'Wedding bars', corporate_label: '' });
+  assert.deepEqual(moved.sections.map((s) => [s.id, s.label]), [['home', 'Home'], ['weddings', 'Wedding bars'], ['corporate', 'Corporate'], ['contact', 'Contact']]);
+  // Every movable section is still known to the editing preview: listed ones first, the rest hidden.
+  assert.deepEqual(moved.chapters.map((c) => c.id).sort(), [...MOVABLE_SECTIONS].sort());
+  assert.deepEqual(moved.chapters.slice(0, 2).map((c) => [c.id, c.visible]), [['weddings', true], ['corporate', true]]);
+  assert.ok(moved.chapters.slice(2).every((c) => !c.visible));
+  // Hidden rows stay off the page; unknown and repeated sections are ignored.
+  assert.deepEqual(edit([{ chapter: 'christmas', visible: false }, { chapter: 'gallery', visible: true },
+    { chapter: 'gallery', visible: true }, { chapter: 'made_up', visible: true }, { chapter: 'home', visible: true }]), ['home', 'gallery', 'contact']);
+  // Every section removed: the header film and the footer are still a page.
+  assert.deepEqual(edit([]), ['home', 'contact']);
+});
+
+test('/new: edits show, and nothing an editor sends can blank or break the page', () => {
+  const draft = clone(C);
+  draft.nh_hero.headline = 'A new headline';
+  draft.nh_corporate.title = '';
+  (draft.nh_hero.slides as Record<string, FieldValue>[])[0].video_file = 'javascript:alert(1)';
+  draft.nh_weddings.picture = { src: 'http://insecure.example/x.jpg', alt: 'x' };
+  (draft.nh_team.cards as Record<string, FieldValue>[]).push({ kind: 'video', picture: { src: '', alt: '' }, video_file: '/videos/new-home/feed-4-blue.mp4' });
+  draft.nh_footer.contacts = [];
+  const h = homeView(mergeRemote(TBP_MANIFEST, draft, C));
+  assert.equal(h.hero.headline, 'A new headline');
+  assert.equal(h.corporate.title, BUNDLED_HOME.corporate.title, 'a required heading falls back');
+  assert.equal(h.hero.slides[0].kind, 'image', 'a film without a usable file is shown as its still');
+  assert.deepEqual(h.weddings.image, BUNDLED_HOME.weddings.image, 'an unusable photo falls back');
+  assert.equal(h.team.cards.length, BUNDLED_HOME.team.cards.length, 'a clip with no still is skipped');
+  assert.deepEqual(h.footer.contacts, BUNDLED_HOME.footer.contacts);
+  // Rubbish in, a whole page out.
+  for (const junk of [{}, { page: 7, nh_hero: [] }, { nh_hero: { slides: [{ kind: 'video' }] } }]) {
+    const page = homeView(mergeRemote(TBP_MANIFEST, junk as SiteContent, C));
+    assert.ok(page.hero.slides.length > 0 && page.sections.length >= 2 && page.hero.headline.length > 0);
+  }
+});
+
+test('/new: no price is content. The party sticker has words only, and the amount comes from the price list', () => {
+  for (const key of NEW_HOME_SECTION_KEYS) for (const v of walk(C[key])) if (typeof v === 'string') assert.doesNotMatch(v, /£|\bVAT\b/, v);
+  assert.equal(BUNDLED_HOME.parties.stickerLabel, 'Bars from');
+  assert.equal(PRICES.barOneSection, 21500);
+  const text = readFileSync('src/components/new-home/HomeDocument.tsx', 'utf8');
+  assert.match(text, /PRICES\.barOneSection/);
+});
+
+test('/new: the page reads its content through the adapter, and no section still imports page copy', () => {
+  assert.match(readFileSync('src/app/new/page.tsx', 'utf8'), /<HomeDocument loaded=\{await getSiteContent\(\)\} \/>/);
+  assert.match(readFileSync('src/components/new-home/HomeDocument.tsx', 'utf8'), /homeView\(loaded\.content\)/);
+  const copy = /\b(HERO_COPY|HERO_SLIDES|CHRISTMAS|CORPORATE|WEDDINGS|PARTIES|TEAM|TEAM_FEED|MARQUEE|FEED|INSTAGRAM|HOW_IT_WORKS|CONTACTS|SOCIALS|CLIENT_LOGOS|SECTIONS)\b[^;]*from '\.\.?\/data'/;
+  for (const f of readdirSync('src/components/new-home', { recursive: true }) as string[]) {
+    if (!/\.tsx$/.test(f) || f.startsWith('builder') || f.startsWith('package')) continue;
+    const src = readFileSync(join('src/components/new-home', f), 'utf8');
+    for (const line of src.split('\n')) if (line.startsWith('import')) assert.doesNotMatch(line, copy, `${f} still imports page copy: ${line}`);
+  }
+});
+
+// ─── The editing preview (/preview) and AnyVendor's editor link ──────────────
+
+const ROOT = 'src/components/new-home';
+const homeSources = () => (readdirSync(ROOT, { recursive: true }) as string[])
+  .filter((f) => /\.tsx$/.test(f) && !f.startsWith('builder') && !f.startsWith('package'))
+  .map((f) => [f, readFileSync(join(ROOT, f), 'utf8')] as const);
+const fieldOf = (path: string) => {
+  const [section, field, , sub] = path.split('.');
+  const f = TBP_MANIFEST.sections.find((s) => s.key === section)?.fields.find((x) => x.key === field);
+  return sub === undefined ? f : f?.type === 'list' ? f.fields?.find((x) => x.key === sub) : undefined;
+};
+
+test('editor marks: every mark on the page is a text or picture field this manifest declares', () => {
+  const LIVE = ['text', 'textarea', 'richtext', 'image'];
+  const marks = new Set<string>();
+  for (const [, src] of homeSources()) {
+    for (const m of src.matchAll(/\bav\('([a-z0-9_.]+)'\)/g)) marks.add(m[1]);
+    for (const m of src.matchAll(/\bfield="([a-z0-9_]+\.[a-z0-9_]+)"/g)) marks.add(m[1]);
+    for (const m of src.matchAll(/\bavRow\('([a-z0-9_.]+)', [a-z0-9 +]+, '([a-z0-9_]+)'\)/g)) marks.add(`${m[1]}.0.${m[2]}`);
+    for (const m of src.matchAll(/\blist="([a-z0-9_.]+)" field="([a-z0-9_]+)"/g)) marks.add(`${m[1]}.0.${m[2]}`);
+    for (const m of src.matchAll(/field=\{`([a-z0-9_.]+)\.\$\{i\}\.([a-z0-9_]+)`\}/g)) marks.add(`${m[1]}.0.${m[2]}`);
+    // Marks built from a section or topic name: every value they can take.
+    if (/av\(`nh_menu\.\$\{l\.id\}_label`\)/.test(src)) for (const id of MOVABLE_SECTIONS) marks.add(`nh_menu.${id}_label`);
+    if (/av\(`nh_how\.\$\{topic\}_label`\)/.test(src)) for (const t of ['corporate', 'weddings', 'parties']) { marks.add(`nh_how.${t}_label`); marks.add(`nh_how.${t}_included.0.item`); }
+  }
+  assert.ok(marks.size >= 70, `only ${marks.size} marks found`);
+  const FIELD = /^[a-z][a-z0-9_]{0,39}\.[a-z][a-z0-9_]{0,39}(\.\d{1,2}\.[a-z][a-z0-9_]{0,39})?$/; // the bridge's own test
+  for (const m of marks) {
+    assert.match(m, FIELD, m);
+    const f = fieldOf(m);
+    assert.ok(f, `${m} is not in the manifest`);
+    assert.ok(LIVE.includes(f.type), `${m} is a ${f.type} field: the editor never sends those live`);
+    // A marked list must be one the page checks for skipped rows.
+    if (m.split('.').length === 4) assert.ok(MARKED_LIST_KEYS.includes(m.split('.').slice(0, 2).join('.')), `${m}: list not in MARKED_LISTS`);
+  }
+  // Nothing outside the commissioned page is bound, and no price, link or builder field is.
+  for (const m of marks) assert.match(m, /^(nh_[a-z]+)\./, m);
+  // No template mark was missed by the scan above.
+  for (const [f, src] of homeSources()) {
+    const templated = [...src.matchAll(/av(?:Row)?\(`[^`]*`/g)].map((x) => x[0]);
+    for (const t of templated) assert.match(t, /nh_menu\.\$\{l\.id\}_label|nh_how\.\$\{topic\}_label/, `${f}: unchecked mark ${t}`);
+  }
+});
+
+test('editor marks: a list where the page skipped a row loses its marks, so a live edit cannot land on the wrong row', () => {
+  assert.deepEqual(shiftedLists(C, homeView(C)), []);
+  const draft = clone(C);
+  (draft.nh_corporate.steps as Record<string, FieldValue>[])[0].title = '';
+  (draft.nh_gallery.cards as Record<string, FieldValue>[])[1].picture = { src: '', alt: '' };
+  const cleaned = mergeRemote(TBP_MANIFEST, draft, C);
+  assert.deepEqual(shiftedLists(cleaned, homeView(cleaned)).sort(), ['nh_corporate.steps', 'nh_gallery.cards']);
+});
+
+test("editor link: AnyVendor's bridge script is installed unchanged, and only the draft page can start it", () => {
+  const hash = createHash('sha256').update(readFileSync('public/anyvendor-bridge.js')).digest('hex');
+  assert.equal(hash, '0a4f34338806c9e2604135165182280346f7a342c19d017278d3b909dd1f43df', 'public/anyvendor-bridge.js differs from the file AnyVendor supplied');
+  const users = ['src/app', 'src/components'].flatMap((dir) => (readdirSync(dir, { recursive: true }) as string[]).map((f) => join(dir, f)))
+    .filter((f) => /\.tsx?$/.test(f) && /anyvendor-bridge\.js|AnyVendorBridge/.test(readFileSync(f, 'utf8')));
+  assert.deepEqual(users, ['src/components/new-home/HomePage.tsx']);
+  // Only /preview passes the switch that loads it; /new never does.
+  assert.doesNotMatch(readFileSync('src/app/new/page.tsx', 'utf8'), /edit=/);
+  const preview = readFileSync('src/app/preview/page.tsx', 'utf8');
+  assert.match(preview, /if \(!isPreviewToken\(token\)\) notFound\(\);/);
+  assert.match(preview, /if \(!loaded\) notFound\(\);/);
+  assert.match(preview, /avEdit === '1' && origins\.length > 0 && cfg/);
+  // The token never reaches the browser's scripts: it is not a prop of anything rendered.
+  assert.doesNotMatch(preview, /token=\{|token\}/);
+  // The anyOS live-edit script is not on the draft page; it is still on every other page.
+  const anyos = readFileSync('src/components/AnyOsLiveEdit.tsx', 'utf8');
+  assert.match(anyos, /path === '\/preview'/);
+  assert.match(anyos, /platform\.anyos\.co\.uk\/edit\.js/);
+  assert.match(readFileSync('src/app/layout.tsx', 'utf8'), /<AnyOsLiveEdit \/>/);
+});
+
+test('editor link: off by default; only exact https editor origins are ever allowed', () => {
+  assert.deepEqual(editorOrigins({}), []);
+  assert.deepEqual(editorOrigins({ ANYVENDOR_EDITOR_ORIGINS: 'https://platform.anyvendor.co.uk' }), ['https://platform.anyvendor.co.uk']);
+  assert.deepEqual(editorOrigins({ ANYVENDOR_EDITOR_ORIGINS: [
+    '*', 'https://*.anyvendor.co.uk', 'http://platform.anyvendor.co.uk', 'https://platform.anyvendor.co.uk:8443', 'https://platform.anyvendor.co.uk/path',
+    'https://user:pw@platform.anyvendor.co.uk', 'https://localhost', "https://a.b 'unsafe-inline'", ' https://platform.anyvendor.co.uk ', 'https://platform.anyvendor.co.uk',
+  ].join(',') }), ['https://platform.anyvendor.co.uk']);
+});
+
+test('draft page: strict. A draft is shown only when AnyVendor serves that token\'s draft for this site', async () => {
+  const env = { ANYVENDOR_CONTENT_ORIGIN: 'https://anyvendor.co.uk', ANYVENDOR_SITE_SLUG: 'the-bar-people' };
+  assert.deepEqual(anyVendorConfig(env), { base: 'https://anyvendor.co.uk', slug: 'the-bar-people' });
+  const token = '3f2b6c1e-8a44-4f0b-9c1d-2e5a7b9c0d11';
+  const body = (mode: string, slug = 'the-bar-people') => ({ schema: 'anyvendor.site/v1', mode, business: { name: 'x', slug }, kind: 'bespoke', manifestVersion: 1, revision: 'r9', content: clone(C) });
+  const calls: { url: string; init: RequestInit }[] = [];
+  const reply = (status: number, json: unknown) => (async (url: string, init: RequestInit) => { calls.push({ url, init }); return new Response(JSON.stringify(json), { status }); }) as never;
+  const ok = await getDraftContent(token, { env, fetch: reply(200, body('draft')) });
+  assert.equal(ok?.source, 'draft');
+  assert.equal(calls[0].url, `https://anyvendor.co.uk/api/sites/the-bar-people/content?preview=${token}`);
+  assert.equal(calls[0].init.cache, 'no-store');
+  // No fallback to published or bundled content, whatever goes wrong.
+  assert.equal(await getDraftContent(token, { env, fetch: reply(404, { error: 'not_found' }) }), null);
+  assert.equal(await getDraftContent(token, { env, fetch: reply(200, body('published')) }), null);
+  assert.equal(await getDraftContent(token, { env, fetch: reply(200, body('draft', 'tl-executive-cars')) }), null);
+  assert.equal(await getDraftContent(token, { env: {}, fetch: reply(200, body('draft')) }), null);
+  const before = calls.length;
+  assert.equal(await getDraftContent('not-a-token', { env, fetch: reply(200, body('draft')) }), null);
+  assert.equal(await getDraftContent(`${token}&x=1`, { env, fetch: reply(200, body('draft')) }), null);
+  assert.equal(calls.length, before, 'a malformed token is never sent anywhere');
+});
+
+test('draft page headers: framed by listed editor origins only, never cached, indexed or referred', async () => {
+  process.env.ANYVENDOR_EDITOR_ORIGINS = "https://platform.anyvendor.co.uk, https://evil.example/x, *";
+  const config = (await import('../../next.config.ts')).default;
+  delete process.env.ANYVENDOR_EDITOR_ORIGINS;
+  const rules = await config.headers!();
+  assert.deepEqual(rules.map((r) => r.source), ['/preview'], 'no other page is made frameable');
+  const h = Object.fromEntries(rules[0].headers.map((x) => [x.key, x.value]));
+  assert.equal(h['Content-Security-Policy'], "frame-ancestors 'self' https://platform.anyvendor.co.uk");
+  assert.match(h['Cache-Control'], /no-store/);
+  assert.equal(h['Referrer-Policy'], 'no-referrer');
+  assert.match(h['X-Robots-Tag'], /noindex/);
+  assert.equal(rules[0].headers.some((x) => x.key.toLowerCase() === 'x-frame-options'), false);
 });

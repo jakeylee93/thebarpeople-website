@@ -8,12 +8,14 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { HOW_IT_WORKS, type HowTopic } from './data';
+import type { HomeContent } from '@/content/new-home';
+import type { HowTopic } from './data';
 import { BuildButton, Points, ring, type Tone } from './parts';
+import { av, avRow } from './av';
 
-const OpenContext = createContext<(topic: HowTopic) => void>(() => {});
+const OpenContext = createContext<{ open: (topic: HowTopic) => void; title: string }>({ open: () => {}, title: '' });
 
-export function HowItWorksProvider({ children }: { children: React.ReactNode }) {
+export function HowItWorksProvider({ how: HOW_IT_WORKS, children }: { how: HomeContent['how']; children: React.ReactNode }) {
   const [topic, setTopic] = useState<HowTopic | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -28,7 +30,7 @@ export function HowItWorksProvider({ children }: { children: React.ReactNode }) 
   const info = topic ? HOW_IT_WORKS.topics[topic] : null;
 
   return (
-    <OpenContext.Provider value={setTopic}>
+    <OpenContext.Provider value={{ open: setTopic, title: HOW_IT_WORKS.title }}>
       {children}
       <dialog
         ref={dialogRef}
@@ -43,8 +45,8 @@ export function HowItWorksProvider({ children }: { children: React.ReactNode }) 
             <div className="nh-sheet-in pointer-events-auto flex max-h-[92dvh] w-full flex-col overflow-y-auto rounded-t-[28px] bg-white px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-5 shadow-2xl sm:max-w-[560px] sm:rounded-[28px] sm:px-8 sm:pb-8 sm:pt-7">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="nh-eyebrow text-nh-ash">{info.label}</p>
-                  <h2 id="how-title" className="mt-1.5 text-[28px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[34px]">
+                  <p {...av(`nh_how.${topic}_label`)} className="nh-eyebrow text-nh-ash">{info.label}</p>
+                  <h2 id="how-title" {...av('nh_how.title')} className="mt-1.5 text-[28px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[34px]">
                     {HOW_IT_WORKS.title}
                   </h2>
                 </div>
@@ -66,20 +68,20 @@ export function HowItWorksProvider({ children }: { children: React.ReactNode }) 
                       {i + 1}
                     </span>
                     <div>
-                      <h3 className="text-[16px] font-bold leading-snug sm:text-[17px]">{step.title}</h3>
-                      <p className="mt-0.5 text-[14.5px] leading-snug text-nh-ash sm:text-[15px]">{step.body}</p>
+                      <h3 {...avRow('nh_how.steps', i, 'title')} className="text-[16px] font-bold leading-snug sm:text-[17px]">{step.title}</h3>
+                      <p {...avRow('nh_how.steps', i, 'body')} className="mt-0.5 text-[14.5px] leading-snug text-nh-ash sm:text-[15px]">{step.body}</p>
                     </div>
                   </li>
                 ))}
               </ol>
 
               <div className="mt-5 rounded-[18px] bg-nh-mist p-4 sm:mt-6 sm:p-5">
-                <h3 className="nh-eyebrow text-nh-ash">{HOW_IT_WORKS.includedTitle}</h3>
-                <Points items={info.included} tone="light" compact className="mt-3 lg:space-y-2" />
+                <h3 {...av('nh_how.included_title')} className="nh-eyebrow text-nh-ash">{HOW_IT_WORKS.includedTitle}</h3>
+                <Points items={info.included} list={`nh_how.${topic}_included`} field="item" tone="light" compact className="mt-3 lg:space-y-2" />
               </div>
 
               {/* Closing first leaves one dialog open at a time: the builder opens on the hash. */}
-              <BuildButton tone="light" onClick={close} className="mt-5 w-full sm:mt-6">
+              <BuildButton tone="light" field="nh_how.cta_label" onClick={close} className="mt-5 w-full sm:mt-6">
                 {HOW_IT_WORKS.cta}
               </BuildButton>
             </div>
@@ -92,7 +94,7 @@ export function HowItWorksProvider({ children }: { children: React.ReactNode }) 
 
 /** The quiet "How it works" link under a section's main button. */
 export function HowItWorksLink({ topic, tone, className }: { topic: HowTopic; tone: Tone; className?: string }) {
-  const open = useContext(OpenContext);
+  const { open, title } = useContext(OpenContext);
   return (
     <button
       type="button"
@@ -106,7 +108,7 @@ export function HowItWorksLink({ topic, tone, className }: { topic: HowTopic; to
         className,
       )}
     >
-      {HOW_IT_WORKS.title}
+      {title}
     </button>
   );
 }

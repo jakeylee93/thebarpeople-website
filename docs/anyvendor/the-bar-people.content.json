@@ -898,5 +898,655 @@
     ],
     "privacy_label": "Privacy",
     "terms_label": "Terms"
+  },
+  "page": {
+    "chapters": [
+      {
+        "chapter": "christmas",
+        "visible": true
+      },
+      {
+        "chapter": "corporate",
+        "visible": true
+      },
+      {
+        "chapter": "weddings",
+        "visible": true
+      },
+      {
+        "chapter": "parties",
+        "visible": true
+      },
+      {
+        "chapter": "team",
+        "visible": true
+      },
+      {
+        "chapter": "marquees",
+        "visible": true
+      },
+      {
+        "chapter": "gallery",
+        "visible": true
+      }
+    ]
+  },
+  "nh_menu": {
+    "christmas_label": "Christmas",
+    "corporate_label": "Corporate",
+    "weddings_label": "Weddings",
+    "parties_label": "Parties",
+    "team_label": "Our team",
+    "marquees_label": "Marquees",
+    "gallery_label": "Gallery"
+  },
+  "nh_hero": {
+    "eyebrow": "Mobile bar hire · London & nationwide",
+    "headline": "You bring the guests, we’ll bring the rest.",
+    "sub": "Pick your bar, glassware, ice, fridges and staff, and watch your quote build as you go.",
+    "cta_label": "Build your package",
+    "small": "Takes about a minute · No obligation",
+    "sheet_eyebrow": "Instant quote",
+    "sheet_title": "Get an instant quote",
+    "slides": [
+      {
+        "kind": "video",
+        "picture": {
+          "src": "/videos/new-home/hero-reel.jpg",
+          "alt": "Bar People bartenders raising, pouring, shaking and serving cocktails"
+        },
+        "video_file": "/videos/new-home/hero-reel.mp4",
+        "phone_video_file": "/videos/new-home/hero-reel-phone.mp4",
+        "phone_picture": {
+          "src": "/videos/new-home/hero-reel-phone.jpg",
+          "alt": "Bar People bartenders raising, pouring, shaking and serving cocktails"
+        },
+        "seconds": 18.5,
+        "focus_desktop": "50% 50%",
+        "focus_phone": "50% 50%"
+      }
+    ]
+  },
+  "nh_christmas": {
+    "eyebrow": "Christmas 2026",
+    "title_line_1": "Christmas parties,",
+    "title_line_2": "sorted.",
+    "body": "We bring the bar, the bartenders and the festive cocktails. You just bring the guests.",
+    "cta_label": "Build your Christmas package",
+    "small": "Book early for December.",
+    "picture": {
+      "src": "/images/new-home/christmas.jpg",
+      "alt": "A white bar dressed for Christmas with a garland, fairy lights and festive cocktails"
+    },
+    "focus_desktop": "50% 45%",
+    "focus_phone": "32% 50%",
+    "prints_left": [
+      {
+        "photo": {
+          "src": "/images/events/boux-avenue.jpg",
+          "alt": "Snapshot from a Bar People event"
+        }
+      },
+      {
+        "photo": {
+          "src": "/images/film/staff-cew.jpg",
+          "alt": "Snapshot from a Bar People event"
+        }
+      },
+      {
+        "photo": {
+          "src": "/images/events/cocktails.jpg",
+          "alt": "Snapshot from a Bar People event"
+        }
+      }
+    ],
+    "prints_right": [
+      {
+        "photo": {
+          "src": "/images/film/smoke-serve.jpg",
+          "alt": "Snapshot from a Bar People event"
+        }
+      },
+      {
+        "photo": {
+          "src": "/images/events/bar-event.jpg",
+          "alt": "Snapshot from a Bar People event"
+        }
+      },
+      {
+        "photo": {
+          "src": "/images/events/martini-daiquiri.jpg",
+          "alt": "Snapshot from a Bar People event"
+        }
+      }
+    ]
+  },
+  "nh_corporate": {
+    "eyebrow": "Corporate events",
+    "title": "Your brand on the bar.",
+    "body": "For launches, office parties and awards nights. We put your logo or a full wrap on the bar, then bring it, set it up and serve.",
+    "steps": [
+      {
+        "title": "Send us your logo",
+        "detail": "We set up the artwork for you, free."
+      },
+      {
+        "title": "We brand the bar",
+        "detail": "One logo panel or a full wrap, on any size of bar."
+      },
+      {
+        "title": "We run the bar",
+        "detail": "Bartenders, drinks and glassware, delivered and set up."
+      }
+    ],
+    "cta_label": "Get a corporate quote",
+    "call_label": "or call Jake on",
+    "trusted_label": "Trusted by",
+    "photos": [
+      {
+        "photo": {
+          "src": "/images/events/salesforce-bar.jpg",
+          "alt": "A white bar with the Salesforce logo on its front, in an office"
+        },
+        "focus": "48% 55%"
+      },
+      {
+        "photo": {
+          "src": "/images/events/porsche-custom.jpg",
+          "alt": "Two bartenders behind a bar wrapped in bright Porsche artwork"
+        },
+        "focus": "50% 70%"
+      },
+      {
+        "photo": {
+          "src": "/images/events/hp-bar.jpg",
+          "alt": "A bar with the Hewlett Packard Enterprise logo at a conference"
+        },
+        "focus": "45% 60%"
+      },
+      {
+        "photo": {
+          "src": "/images/film/cew-bar.jpg",
+          "alt": "A chequerboard-wrapped champagne bar at an awards show"
+        },
+        "focus": "50% 55%"
+      }
+    ],
+    "logos": [
+      {
+        "name": "O2",
+        "logo": {
+          "src": "/images/clients/o2.svg",
+          "alt": "O2 logo"
+        },
+        "ratio": 1.02
+      },
+      {
+        "name": "Sky",
+        "logo": {
+          "src": "/images/clients/sky.svg",
+          "alt": "Sky logo"
+        },
+        "ratio": 1.63
+      },
+      {
+        "name": "Salesforce",
+        "logo": {
+          "src": "/images/clients/salesforce.svg",
+          "alt": "Salesforce logo"
+        },
+        "ratio": 1.43
+      },
+      {
+        "name": "Hewlett Packard Enterprise",
+        "logo": {
+          "src": "/images/clients/hpe.svg",
+          "alt": "Hewlett Packard Enterprise logo"
+        },
+        "ratio": 2.39
+      },
+      {
+        "name": "ITV2",
+        "logo": {
+          "src": "/images/clients/itv2.svg",
+          "alt": "ITV2 logo"
+        },
+        "ratio": 3.03
+      },
+      {
+        "name": "Boux Avenue",
+        "logo": {
+          "src": "/images/clients/boux-avenue.svg",
+          "alt": "Boux Avenue logo"
+        },
+        "ratio": 2.13
+      },
+      {
+        "name": "Batiste",
+        "logo": {
+          "src": "/images/clients/batiste.svg",
+          "alt": "Batiste logo"
+        },
+        "ratio": 2.34
+      },
+      {
+        "name": "Bulb",
+        "logo": {
+          "src": "/images/clients/bulb.svg",
+          "alt": "Bulb logo"
+        },
+        "ratio": 2.63
+      },
+      {
+        "name": "Superdrug",
+        "logo": {
+          "src": "/images/clients/superdrug.svg",
+          "alt": "Superdrug logo"
+        },
+        "ratio": 4.51
+      }
+    ]
+  },
+  "nh_weddings": {
+    "eyebrow": "Weddings",
+    "title_lead": "The bar for your",
+    "title_accent": "big day.",
+    "body": "A bar to suit your venue, the drinks you love and bartenders to serve them, in London and nationwide.",
+    "points": [
+      {
+        "point": "Classic white, mirror or the LOVE bar"
+      },
+      {
+        "point": "All-inclusive drinks, glassware and ice"
+      },
+      {
+        "point": "We deliver, set up and collect"
+      }
+    ],
+    "cta_label": "Build your wedding bar",
+    "picture": {
+      "src": "/images/new-home/hero-lawn.jpg",
+      "alt": "A white horseshoe bar on a lawn in front of a gazebo and willow trees"
+    },
+    "focus_desktop": "60% 70%",
+    "focus_phone": "50% 72%",
+    "prints": [
+      {
+        "photo": {
+          "src": "/images/film/love-marquee.jpg",
+          "alt": "The LOVE bar in a clear marquee"
+        }
+      },
+      {
+        "photo": {
+          "src": "/images/film/wedding-toast.jpg",
+          "alt": "Wedding guests raising their glasses at the bar"
+        }
+      }
+    ]
+  },
+  "nh_parties": {
+    "eyebrow": "Birthdays and private parties",
+    "title_lead": "Your party,",
+    "title_accent": "our bar.",
+    "body": "Birthdays, garden parties and get-togethers. Start with a 1.5m bar and add whatever the night needs.",
+    "points": [
+      {
+        "point": "Shimmer, mirror or classic white bars"
+      },
+      {
+        "point": "Bartenders, drinks, glassware and ice"
+      },
+      {
+        "point": "Delivered, set up and collected for you"
+      }
+    ],
+    "cta_label": "Build your party bar",
+    "sticker_label": "Bars from",
+    "picture": {
+      "src": "/images/events/special-occasions.jpg",
+      "alt": "A neon sign reading Sip Sip Hooray on a leafy wall above a bar set with copper cups, under party balloons"
+    },
+    "focus_desktop": "50% 42%",
+    "focus_phone": "50% 45%"
+  },
+  "nh_team": {
+    "eyebrow": "Our team",
+    "title": "The people behind the bar.",
+    "body": "Friendly, fast and properly trained. At least two on every job.",
+    "cta_label": "Build your package",
+    "cards": [
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/alex.jpg",
+          "alt": "A bartender holding out a pineapple cocktail"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "video",
+        "picture": {
+          "src": "/videos/new-home/card-1-toast.jpg",
+          "alt": "A bartender tasting a cocktail under fairy lights"
+        },
+        "video_file": "/videos/new-home/card-1-toast.mp4"
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/glody.jpg",
+          "alt": "A bartender pouring champagne at an awards show"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/jake-corporate.jpg",
+          "alt": "A bartender mixing a drink at a corporate event"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/staff-cew.jpg",
+          "alt": "Two bartenders behind a champagne bar"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "video",
+        "picture": {
+          "src": "/videos/new-home/feed-6-shake.jpg",
+          "alt": "A bartender shaking a cocktail"
+        },
+        "video_file": "/videos/new-home/feed-6-shake.mp4"
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/staff-pouring.jpg",
+          "alt": "Three bartenders pouring drinks"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/porsche-staff.jpg",
+          "alt": "Two bartenders behind a branded bar"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/smoke-serve.jpg",
+          "alt": "Three bartenders with a smoking cocktail"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "video",
+        "picture": {
+          "src": "/videos/new-home/feed-7-tray.jpg",
+          "alt": "A bartender carrying a tray of cocktails"
+        },
+        "video_file": "/videos/new-home/feed-7-tray.mp4"
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/shirt-martinis.jpg",
+          "alt": "A bartender holding two cocktails"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/shirt-pour.jpg",
+          "alt": "A bartender pouring into a row of martini glasses"
+        },
+        "video_file": ""
+      }
+    ]
+  },
+  "nh_marquee": {
+    "eyebrow": "Packages",
+    "title": "Marquee packages",
+    "body": "One quote for the marquee, the bar and everything that goes with it.",
+    "items": [
+      {
+        "item": "Marquee"
+      },
+      {
+        "item": "Bar"
+      },
+      {
+        "item": "Bartenders"
+      },
+      {
+        "item": "Drinks"
+      },
+      {
+        "item": "Glassware"
+      },
+      {
+        "item": "Ice and fridges"
+      }
+    ],
+    "cta_label": "Build a marquee package",
+    "note": "Furniture, flooring, lighting and crockery can be added with a marquee."
+  },
+  "nh_gallery": {
+    "eyebrow": "On Instagram",
+    "handle": "@thebarpeople",
+    "follow_link": {
+      "href": "https://www.instagram.com/thebarpeople/",
+      "label": "Follow"
+    },
+    "cards": [
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/love-marquee.jpg",
+          "alt": "The LOVE bar in a clear marquee"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "video",
+        "picture": {
+          "src": "/videos/new-home/feed-4-blue.jpg",
+          "alt": "Blue cocktails with orange slices, from above"
+        },
+        "video_file": "/videos/new-home/feed-4-blue.mp4"
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/salesforce-bar.jpg",
+          "alt": "A bar with the Salesforce logo, in an office"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/espresso-lawn.jpg",
+          "alt": "An espresso martini on a lawn at a summer party"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "video",
+        "picture": {
+          "src": "/videos/new-home/card-5-shimmer.jpg",
+          "alt": "Cocktails lined up on a shimmer bar"
+        },
+        "video_file": "/videos/new-home/card-5-shimmer.mp4"
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/special-occasions.jpg",
+          "alt": "A neon Sip Sip Hooray sign above a bar"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/porsche-custom.jpg",
+          "alt": "A bar wrapped in bright Porsche artwork"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/wedding-toast.jpg",
+          "alt": "Wedding guests raising their glasses"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "video",
+        "picture": {
+          "src": "/videos/new-home/card-4-bubbles.jpg",
+          "alt": "Champagne flutes fizzing in the sun"
+        },
+        "video_file": "/videos/new-home/card-4-bubbles.mp4"
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/boux-avenue.jpg",
+          "alt": "A busy bar at a launch party"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/film/counter-copper.jpg",
+          "alt": "Champagne flutes and copper bar tools on a white bar"
+        },
+        "video_file": ""
+      },
+      {
+        "kind": "image",
+        "picture": {
+          "src": "/images/events/martini-daiquiri.jpg",
+          "alt": "A strawberry daiquiri beside copper shakers"
+        },
+        "video_file": ""
+      }
+    ]
+  },
+  "nh_how": {
+    "title": "How it works",
+    "steps": [
+      {
+        "title": "Build your package",
+        "body": "Pick your bar, drinks, glassware and team, and see the price as you go."
+      },
+      {
+        "title": "We confirm the details",
+        "body": "We get in touch and go through everything with you."
+      },
+      {
+        "title": "We deliver, set up, serve and collect",
+        "body": "You just bring the guests."
+      }
+    ],
+    "included_title": "What you can include",
+    "cta_label": "Build your package",
+    "corporate_label": "Corporate events",
+    "corporate_included": [
+      {
+        "item": "A bar in your branding, with a free artwork service"
+      },
+      {
+        "item": "Any size, from a 1.5m bar to a full island"
+      },
+      {
+        "item": "Bartenders"
+      },
+      {
+        "item": "All-inclusive drinks: beer, wine, spirits and soft drinks"
+      },
+      {
+        "item": "Glassware, ice and fridges"
+      }
+    ],
+    "weddings_label": "Weddings",
+    "weddings_included": [
+      {
+        "item": "A bar in classic white or mirror"
+      },
+      {
+        "item": "Bartenders"
+      },
+      {
+        "item": "All-inclusive drinks: beer, wine, spirits and soft drinks"
+      },
+      {
+        "item": "Glassware, ice and fridges"
+      },
+      {
+        "item": "A marquee, through our marquee partner"
+      }
+    ],
+    "parties_label": "Birthdays and private parties",
+    "parties_included": [
+      {
+        "item": "A bar, from a single 1.5m section upwards"
+      },
+      {
+        "item": "Bartenders"
+      },
+      {
+        "item": "All-inclusive drinks: beer, wine, spirits and soft drinks"
+      },
+      {
+        "item": "Glassware, ice and fridges"
+      }
+    ]
+  },
+  "nh_footer": {
+    "explore_heading": "Explore",
+    "contact_heading": "Talk to us",
+    "follow_heading": "Follow",
+    "contacts": [
+      {
+        "name": "Jake",
+        "email": {
+          "href": "mailto:jake@thebarpeople.co.uk",
+          "label": "jake@thebarpeople.co.uk"
+        },
+        "phone": {
+          "href": "tel:+447557402200",
+          "label": "07557 402200"
+        }
+      }
+    ],
+    "socials": [
+      {
+        "link": {
+          "href": "https://www.instagram.com/thebarpeople/",
+          "label": "Instagram"
+        }
+      },
+      {
+        "link": {
+          "href": "https://www.facebook.com/thebarpeople",
+          "label": "Facebook"
+        }
+      }
+    ]
   }
 }

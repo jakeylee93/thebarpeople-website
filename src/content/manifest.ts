@@ -13,8 +13,9 @@
 // can tell which shape a saved draft was made against.
 
 import type { Field, Manifest } from './contract.ts';
+import { NEW_HOME_SECTIONS } from './new-home.ts';
 
-export const MANIFEST_REVISION = '2026-11-03.1';
+export const MANIFEST_REVISION = '2026-11-11.2';
 export const SITE_KEY_IN_ANYOS_LIVE_EDIT = 'the-bar-people';
 
 // ─── Field helpers ──────────────────────────────────────────────────────────
@@ -327,6 +328,9 @@ export const TBP_MANIFEST: Manifest = {
         text('terms_label', 'Terms link text', 30),
       ],
     },
+    // The commissioned homepage (/new): its own sections, defined beside the
+    // code that turns them into the page (src/content/new-home.ts).
+    ...NEW_HOME_SECTIONS,
   ],
 };
 
