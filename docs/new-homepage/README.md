@@ -25,8 +25,8 @@ swipe, keys, or the dots at the side on desktop).
 | 3 | Corporate events | "Your brand on the bar." Three numbered steps (send your logo, we brand the bar, we run the bar), four real branded bars, **Get a corporate quote**, Jake's number, and the client logos. |
 | 4 | Weddings | "The bar for your *big day*." The lawn photo fills the screen on desktop with the words on a white card and two small prints across the corner. |
 | 5 | Birthdays and private parties | Dark, with "our bar." glowing like the neon sign in the photo and a "Bars from £215 + VAT" sticker. |
-| 6 | See us in action | A tall video card: five clips that fade into each other. |
-| 7 | The marquee package | Marquee, bar, bartenders, drinks, glassware, ice and fridges in one quote. |
+| 6 | Our team | A grid of our own bartenders: photos and silent clips in same-shape cards. |
+| 7 | Marquee packages | Marquee, bar, bartenders, drinks, glassware, ice and fridges in one quote. |
 | 8 | Gallery | Laid out like an Instagram grid: same-shape cards, no titles, videos playing silently by themselves. Our own photos and clips for now (`FEED` in `data.ts`); to show the real Instagram feed in order it needs an Instagram access token from Jake's account. |
 | 9 | Footer | Headline, **Build your package**, phone numbers and links. |
 
@@ -155,6 +155,25 @@ used. To change a price, edit the Majestic figure in `src/lib/quote/drinks.ts`.
 - The date must be from tomorrow onwards. Sooner than that, the page asks them to call.
 - On the two nights a year the clocks change, drinks and staff are charged on the real hours (a
   7pm to 2am bar is 8 hours in October and 6 in March), and the quote says so in words.
+
+## Changes on 11 Nov (Jake, by voice)
+
+- **Mirror** is plain polished silver. **Custom branded** is its own style card, on any shape, never
+  with mirror or shimmer. The **island** has two 4ft sections on the back with a gap (the way in).
+- Bar and Style steps fit one view on desktop.
+- **Glassware**: every glass in one grid, with photos from our glassware supplier's listing.
+  Premium flute £1, large wine glass 90p, gin bowl £1, the rest 80p.
+- **Drinks**: Coca-Cola and 7UP standard. Eighteen more brands (Malibu, Archers and others) are
+  listed as "Price to confirm" until Jake sets terms. A new **Cocktails** step: up to four, free
+  with all-inclusive (the limit of four is ours, to confirm). The menu shows on the drinks step,
+  the quote and the PDF.
+- **Marquee**: two pages, choose the marquee and then its extras under tabs.
+- **Homepage**: team grid in place of the video card; gallery is one row on phones; WhatsApp
+  button in the header; Kim removed; shuffling prints on the Christmas advert (party photos for
+  now, not Christmas ones); the Christmas button opens the builder dressed for Christmas.
+- Not done, needs Instagram access: latest posts in the gallery, staff photos and newer videos
+  from Instagram. Brand logos for each drink are not added (each needs the brand's permission
+  or a licensed source).
 
 ## Assumptions for Jake to confirm
 

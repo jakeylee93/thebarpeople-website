@@ -4,7 +4,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
 import { formatPence } from '../visual-quote/money.ts';
 import { formatDate, formatDuration, formatTime } from '../visual-quote/time.ts';
-import { DRINK_CATEGORIES, findDrink } from './drinks.ts';
+
 import { GROUP_LABELS, type LineGroup, type Quote, type QuoteState } from './quote.ts';
 
 export interface QuotePdfInput {
@@ -220,10 +220,7 @@ export async function buildQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
 
   // ── Drinks menu ──
   if (state.drinksMode === 'all-inclusive') {
-    const chosen = [...new Set(state.menu)].map(findDrink).filter((d): d is NonNullable<typeof d> => d !== null && d.terms.kind !== 'bottle');
-    const byCategory = DRINK_CATEGORIES
-      .map((c) => ({ name: c.name, drinks: chosen.filter((d) => d.category === c.id).map((d) => d.name) }))
-      .filter((c) => c.drinks.length > 0);
+    const byCategory = quote.menu;
     if (byCategory.length > 0) {
       ensure(40 + byCategory.length * 13);
       text('YOUR DRINKS MENU', MARGIN, y, 7.5, bold, ASH);

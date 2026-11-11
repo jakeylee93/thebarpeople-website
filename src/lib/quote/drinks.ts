@@ -21,7 +21,7 @@ export function drinksPerHead(minutes: number): Pence {
   return PRICES.drinksAtFiveHours + (halfHours - 10) * PRICES.drinksPerHalfHourOverFive;
 }
 
-export type DrinkCategory = 'beer' | 'wine' | 'fizz' | 'vodka' | 'gin' | 'rum' | 'whiskey' | 'soft' | 'champagne';
+export type DrinkCategory = 'beer' | 'wine' | 'fizz' | 'vodka' | 'gin' | 'rum' | 'whiskey' | 'tequila' | 'liqueur' | 'soft' | 'champagne';
 
 export const DRINK_CATEGORIES: { id: DrinkCategory; name: string }[] = [
   { id: 'beer', name: 'Beer' },
@@ -31,6 +31,8 @@ export const DRINK_CATEGORIES: { id: DrinkCategory; name: string }[] = [
   { id: 'gin', name: 'Gin' },
   { id: 'rum', name: 'Rum' },
   { id: 'whiskey', name: 'Bourbon & whiskey' },
+  { id: 'tequila', name: 'Tequila' },
+  { id: 'liqueur', name: 'Liqueurs & aperitifs' },
   { id: 'soft', name: 'Soft drinks & mixers' },
   { id: 'champagne', name: 'Champagne, by the bottle' },
 ];
@@ -116,11 +118,71 @@ export const MENU: Drink[] = [
   { id: 'dom-perignon', name: 'Dom Pérignon', detail: 'Vintage champagne, 75cl', category: 'champagne', terms: bottle('Dom Pérignon Brut Vintage Champagne 2017', 21500, '2026-11-10'), source: 'jake', keywords: 'dom perignon champagne vintage fizz' },
 
   // Soft drinks
-  { id: 'soft-drinks', name: 'Soft drinks and mixers', detail: 'Cola, lemonade, tonic, soda and juices', category: 'soft', terms: standard, source: 'jake', keywords: 'coke cola lemonade tonic juice water' },
+  // Jake, 11 Nov 2026: Coca-Cola and 7UP free as standard.
+  { id: 'coca-cola', name: 'Coca-Cola', detail: 'Classic cola', category: 'soft', terms: standard, source: 'jake', keywords: 'coke cola' },
+  { id: 'seven-up', name: '7UP', detail: 'Lemon and lime', category: 'soft', terms: standard, source: 'jake', keywords: 'seven up 7 up lemonade sprite' },
+  { id: 'soft-drinks', name: 'Mixers and juices', detail: 'Tonic, soda and fruit juices', category: 'soft', terms: standard, source: 'jake', keywords: 'tonic soda juice water orange cranberry mixer' },
+
+  // More brands people ask for (Jake, 11 Nov 2026: "build our catalogue to be
+  // bigger, like Malibu, Archers"). He has not set terms for these yet, so
+  // each reads "Price to confirm" until he does.
+  { id: 'malibu', name: 'Malibu', detail: 'Coconut rum liqueur', category: 'liqueur', terms: ask, source: 'suggested' },
+  { id: 'archers', name: 'Archers', detail: 'Peach schnapps', category: 'liqueur', terms: ask, source: 'suggested', keywords: 'peach schnapps' },
+  { id: 'baileys', name: 'Baileys', detail: 'Irish cream', category: 'liqueur', terms: ask, source: 'suggested', keywords: 'irish cream' },
+  { id: 'aperol', name: 'Aperol', detail: 'Italian aperitif, for spritzes', category: 'liqueur', terms: ask, source: 'suggested', keywords: 'spritz' },
+  { id: 'disaronno', name: 'Disaronno', detail: 'Amaretto', category: 'liqueur', terms: ask, source: 'suggested', keywords: 'amaretto' },
+  { id: 'jagermeister', name: 'Jägermeister', detail: 'Herbal liqueur', category: 'liqueur', terms: ask, source: 'suggested', keywords: 'jager jagermeister shots' },
+  { id: 'smirnoff', name: 'Smirnoff', detail: 'Vodka', category: 'vodka', terms: ask, source: 'suggested' },
+  { id: 'gordons', name: 'Gordon’s', detail: 'London dry gin', category: 'gin', terms: ask, source: 'suggested', keywords: 'gordons pink' },
+  { id: 'tanqueray', name: 'Tanqueray', detail: 'London dry gin', category: 'gin', terms: ask, source: 'suggested' },
+  { id: 'captain-morgan', name: 'Captain Morgan Spiced', detail: 'Spiced rum', category: 'rum', terms: ask, source: 'suggested', keywords: 'morgan spice spiced' },
+  { id: 'havana-club', name: 'Havana Club', detail: 'Cuban rum', category: 'rum', terms: ask, source: 'suggested' },
+  { id: 'jameson', name: 'Jameson', detail: 'Irish whiskey', category: 'whiskey', terms: ask, source: 'suggested', keywords: 'whisky irish' },
+  { id: 'patron', name: 'Patrón Silver', detail: 'Premium tequila', category: 'tequila', terms: ask, source: 'suggested', keywords: 'patron tequila' },
+  { id: 'olmeca', name: 'Olmeca', detail: 'Tequila', category: 'tequila', terms: ask, source: 'suggested', keywords: 'tequila shots' },
+  { id: 'heineken', name: 'Heineken', detail: 'Lager', category: 'beer', terms: ask, source: 'suggested' },
+  { id: 'stella-artois', name: 'Stella Artois', detail: 'Belgian lager', category: 'beer', terms: ask, source: 'suggested', keywords: 'stella' },
+  { id: 'guinness', name: 'Guinness', detail: 'Stout', category: 'beer', terms: ask, source: 'suggested', keywords: 'stout' },
+  { id: 'peroni-zero', name: 'Peroni 0.0', detail: 'Alcohol-free lager', category: 'beer', terms: ask, source: 'suggested', keywords: 'alcohol free zero non alcoholic' },
 ];
 // MENU-DATA-END
 
 export const findDrink = (id: string) => MENU.find((d) => d.id === id) ?? null;
+
+// ─── Cocktails ───────────────────────────────────────────────────────────────
+// Jake, 11 Nov 2026: with all-inclusive drinks, guests choose cocktails at no
+// extra cost. How many is not settled: four is our working limit, to confirm.
+
+export interface Cocktail { id: string; name: string; detail: string }
+
+export const MAX_COCKTAILS = 4;
+
+export const COCKTAILS: Cocktail[] = [
+  { id: 'pornstar-martini', name: 'Pornstar Martini', detail: 'Vanilla vodka, passion fruit, prosecco on the side' },
+  { id: 'espresso-martini', name: 'Espresso Martini', detail: 'Vodka, coffee liqueur, fresh espresso' },
+  { id: 'mojito', name: 'Mojito', detail: 'White rum, lime, mint, soda' },
+  { id: 'aperol-spritz', name: 'Aperol Spritz', detail: 'Aperol, prosecco, soda, orange' },
+  { id: 'margarita', name: 'Margarita', detail: 'Tequila, triple sec, lime' },
+  { id: 'cosmopolitan', name: 'Cosmopolitan', detail: 'Vodka, triple sec, cranberry, lime' },
+  { id: 'strawberry-daiquiri', name: 'Strawberry Daiquiri', detail: 'White rum, strawberry, lime' },
+  { id: 'pina-colada', name: 'Piña Colada', detail: 'White rum, coconut, pineapple' },
+  { id: 'old-fashioned', name: 'Old Fashioned', detail: 'Bourbon, sugar, bitters, orange' },
+  { id: 'gin-fizz', name: 'Gin Fizz', detail: 'Gin, lemon, sugar, soda' },
+  { id: 'negroni', name: 'Negroni', detail: 'Gin, vermouth, bitter orange' },
+  { id: 'virgin-mojito', name: 'Virgin Mojito', detail: 'Lime, mint, soda. No alcohol' },
+];
+export const findCocktail = (id: string) => COCKTAILS.find((c) => c.id === id) ?? null;
+
+/** The chosen drinks as a menu: one row for each kind of drink, cocktails last. Bottles are not on the menu. */
+export function menuOf(menu: readonly string[], cocktails: readonly string[]): { name: string; drinks: string[] }[] {
+  const chosen = [...new Set(menu)].map(findDrink).filter((d): d is Drink => d !== null && d.terms.kind !== 'bottle');
+  const rows = DRINK_CATEGORIES
+    .map((c) => ({ name: c.name, drinks: chosen.filter((d) => d.category === c.id).map((d) => d.name) }))
+    .filter((c) => c.drinks.length > 0);
+  const mixed = [...new Set(cocktails)].map(findCocktail).filter((c): c is Cocktail => c !== null).slice(0, MAX_COCKTAILS).map((c) => c.name);
+  if (mixed.length > 0) rows.push({ name: 'Cocktails', drinks: mixed });
+  return rows;
+}
 
 /** The menu every all-inclusive package starts with. */
 export function standardMenu(): string[] {

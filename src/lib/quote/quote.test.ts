@@ -489,6 +489,29 @@ test('the standard menu has a red, a white, a rosé and a prosecco, and no champ
   assert.ok(searchMenu('moet').some((d) => d.id === 'moet'));
 });
 
+test('soft drinks: Coca-Cola and 7UP are on the standard menu; new brands wait for a price', () => {
+  const std = standardMenu();
+  for (const id of ['coca-cola', 'seven-up', 'soft-drinks']) assert.ok(std.includes(id), id);
+  for (const id of ['malibu', 'archers']) {
+    assert.equal(MENU.find((d) => d.id === id)?.terms.kind, 'ask', id);
+    assert.equal(std.includes(id), false);
+  }
+  assert.ok(searchMenu('malibu').length === 1 && searchMenu('peach schnapps')[0]?.id === 'archers');
+});
+
+test('cocktails are free with all-inclusive drinks, up to four, and appear on the menu', () => {
+  const base = buildQuote(state({ drinksMode: 'all-inclusive' }));
+  const q = buildQuote(state({ drinksMode: 'all-inclusive', cocktails: ['mojito', 'espresso-martini'] }));
+  assert.equal(q.subtotal, base.subtotal);
+  assert.deepEqual(q.menu.at(-1), { name: 'Cocktails', drinks: ['Mojito', 'Espresso Martini'] });
+  assert.ok(q.menu.some((row) => row.name === 'Beer' && row.drinks.includes('Corona Extra')));
+  // Own drinks: no menu.
+  assert.deepEqual(buildQuote(state({ drinksMode: 'own', cocktails: ['mojito'] })).menu, []);
+  // Saved choices keep only cocktails we list, and no more than four.
+  const kept = parseState({ ...DEFAULT_STATE, cocktails: ['mojito', 'gone', 'negroni', 'margarita', 'cosmopolitan', 'pina-colada'] });
+  assert.deepEqual(kept?.cocktails, ['mojito', 'negroni', 'margarita', 'cosmopolitan']);
+});
+
 // ─── Marquee ────────────────────────────────────────────────────────────────
 
 test('marquee extras only count once a marquee is in the quote', () => {

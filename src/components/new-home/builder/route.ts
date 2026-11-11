@@ -14,6 +14,7 @@ export const STEPS = [
   { id: 'bar', label: 'Bar', title: 'Choose your bar' },
   { id: 'style', label: 'Style', title: 'Choose your style' },
   { id: 'drinks', label: 'Drinks', title: 'Drinks' },
+  { id: 'cocktails', label: 'Cocktails', title: 'Choose your cocktails' },
   { id: 'glassware', label: 'Glassware', title: 'Glassware' },
   { id: 'ice', label: 'Ice & fridges', title: 'Ice and fridges' },
   { id: 'staff', label: 'Bartenders', title: 'Your bartenders' },

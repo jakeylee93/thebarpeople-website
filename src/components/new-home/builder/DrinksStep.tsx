@@ -11,6 +11,7 @@ import { formatPence, formatPenceCompact } from '@/lib/visual-quote/money';
 import { formatDuration } from '@/lib/visual-quote/time';
 import { DRINK_CATEGORIES, MENU, drinksPerHead, searchMenu, standardMenu, termsLabel, upgradesPerHead, type Drink } from '@/lib/quote/drinks';
 import { MAX_REQUESTS } from '@/lib/quote/quote';
+import MenuCard from './MenuCard';
 import { Badge, Counter, Note, RadioCard, ring } from './ui';
 import type { StepProps } from './steps';
 
@@ -71,6 +72,7 @@ export default function DrinksStep({ state, set, quote }: StepProps) {
               <p className="text-[15px]">Add your bar times to see the price per guest.</p>
             )}
           </div>
+          <MenuCard quote={quote} className="mt-4" />
           <MenuEditor state={state} set={set} />
         </>
       )}

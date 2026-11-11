@@ -11,7 +11,7 @@ import {
   BAR_SHAPES, barName, barPrice, barSizeLabel, findFinish, findShape, normaliseBar, recommendBar, recommendStaff,
   type BarChoice, type BarShapeId, type FinishId,
 } from './bars.ts';
-import { drinksPerHead, findDrink, standardMenu } from './drinks.ts';
+import { MAX_COCKTAILS, drinksPerHead, findCocktail, findDrink, menuOf, standardMenu } from './drinks.ts';
 import { findMarqueeItem, hasStructure, marqueeGroupOf } from './marquee.ts';
 import { PRICES } from './prices.ts';
 import {
@@ -40,6 +40,8 @@ export interface QuoteState {
   drinksMode: DrinksMode | null;
   /** Drinks ticked on the all-inclusive menu. */
   menu: string[];
+  /** Cocktails chosen for the all-inclusive menu (no extra cost). */
+  cocktails: string[];
   /** Champagne by the bottle: drink id → bottles. */
   bottles: Record<string, number>;
   /** Drinks the guest asked for that aren't on our list. */
@@ -70,6 +72,7 @@ export const DEFAULT_STATE: QuoteState = {
   barPicked: false,
   drinksMode: null,
   menu: standardMenu(),
+  cocktails: [],
   bottles: {},
   requests: [],
   glasses: {},
@@ -184,6 +187,8 @@ export interface Quote {
   recommended: Recommendation;
   /** The all-inclusive price per guest for these hours, when it applies. */
   drinksPerHead: Pence | null;
+  /** The all-inclusive menu as chosen, by kind of drink. Empty unless drinks are all-inclusive. */
+  menu: { name: string; drinks: string[] }[];
   /** Short notes for the guest, in order. */
   notes: string[];
   /** What the clocks changing does to the hours that night, in words. Null on an ordinary night. */
@@ -408,6 +413,7 @@ export function buildQuote(state: QuoteState): Quote {
     lines, subtotal, vat, total: sumPence([subtotal, vat]),
     toConfirm: lines.filter((l) => l.price.kind === 'pending').length,
     schedule, scheduleIssue, recommended, drinksPerHead: perHead, notes, clockNote,
+    menu: state.drinksMode === 'all-inclusive' ? menuOf(state.menu, state.cocktails) : [],
   };
 }
 
@@ -436,6 +442,7 @@ const StateSchema = z.object({
   barPicked: z.boolean().catch(false),
   drinksMode: z.enum(['all-inclusive', 'own']).nullable().catch(null),
   menu: z.array(z.string().max(40)).max(80).catch(D.menu),
+  cocktails: z.array(z.string().max(40)).max(20).catch([]),
   bottles: z.record(z.string().max(40), count(500)).catch({}),
   requests: z.array(z.string().max(160)).max(MAX_REQUESTS).catch([]),
   glasses: z.record(z.string().max(40), count(5000)).catch({}),
@@ -467,6 +474,7 @@ export function parseState(value: unknown): QuoteState | null {
     barPicked: s.bar !== null && s.barPicked,
     staffPicked: s.staffCount !== null && s.staffPicked,
     menu: [...new Set(s.menu)].filter((id) => findDrink(id) !== null),
+    cocktails: [...new Set(s.cocktails)].filter((id) => findCocktail(id) !== null).slice(0, MAX_COCKTAILS),
     bottles: known(s.bottles, (id) => findDrink(id)?.terms.kind === 'bottle'),
     glasses: known(s.glasses, (id) => GLASSES.some((g) => g.id === id)),
     marqueeItems: known(s.marqueeItems, (id) => findMarqueeItem(id) !== null),

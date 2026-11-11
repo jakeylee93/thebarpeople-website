@@ -10,6 +10,7 @@ import { formatDate, formatDuration, formatTime } from '@/lib/visual-quote/time'
 import { looksLikeEmail, submitLead } from '@/lib/quote/leads';
 import { usableDate } from '@/lib/quote/schedule';
 import BarDiagram from '../package/BarDiagram';
+import MenuCard from './MenuCard';
 import { QuoteLines, QuoteTotals } from './QuotePanel';
 import { goToStep, shareLink } from './route';
 import { useToday, type StepProps } from './steps';
@@ -152,6 +153,7 @@ export default function QuoteStep({ state, quote, ledColour }: StepProps) {
 
       <div className="mt-6"><QuoteLines quote={quote} /></div>
       <div className="mt-5"><QuoteTotals quote={quote} tone="light" /></div>
+      <MenuCard quote={quote} className="mt-5" />
 
       {quote.notes.length > 0 && (
         <ul className="mt-4 space-y-1.5 text-[13.5px] leading-relaxed text-nh-ash">

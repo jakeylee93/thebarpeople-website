@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, ChevronUp, Snowflake, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatPenceCompact } from '@/lib/visual-quote/money';
 import { DEFAULT_STATE, buildQuote, reach, type QuoteState } from '@/lib/quote/quote';
+import CocktailsStep from './CocktailsStep';
 import DrinksStep from './DrinksStep';
 import MarqueeStep from './MarqueeStep';
 import QuotePanel from './QuotePanel';
@@ -84,7 +85,7 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
 }
 
 const BODIES: Record<StepId, React.ComponentType<StepProps>> = {
-  event: EventStep, bar: BarStep, style: StyleStep, drinks: DrinksStep, glassware: GlasswareStep,
+  event: EventStep, bar: BarStep, style: StyleStep, drinks: DrinksStep, cocktails: CocktailsStep, glassware: GlasswareStep,
   ice: IceStep, staff: StaffStep, delivery: DeliveryStep, marquee: MarqueeStep, quote: QuoteStep,
 };
 
