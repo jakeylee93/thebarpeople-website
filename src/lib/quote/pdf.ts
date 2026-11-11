@@ -22,7 +22,6 @@ export interface QuotePdfInput {
 
 export const QUOTE_CONTACTS = [
   'Jake  07557 402200  jake@thebarpeople.co.uk',
-  'Kim  07724 601256  kim@thebarpeople.co.uk',
 ];
 
 const A4: [number, number] = [595.28, 841.89];

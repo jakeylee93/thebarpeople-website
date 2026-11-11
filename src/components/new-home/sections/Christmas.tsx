@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { CHRISTMAS } from '../data';
 import { BuildButton } from '../parts';
+import ChristmasPrints from '../ChristmasPrints';
 import Snow from '../Snow';
 
 // The Christmas advert: one full-screen poster. The photo runs edge to edge,
@@ -22,6 +23,7 @@ export default function Christmas() {
       <div aria-hidden className="absolute inset-0 bg-black/45" />
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_55%,rgba(0,0,0,0.5),transparent)]" />
       <Snow className="nh-snow absolute inset-0 h-full w-full" />
+      <ChristmasPrints left={CHRISTMAS.prints.left} right={CHRISTMAS.prints.right} />
 
       <div className="absolute inset-x-3 bottom-3 top-[calc(var(--nh-head)+12px)] rounded-[4px] border border-white/45 sm:inset-x-5 sm:bottom-5 sm:top-[calc(var(--nh-head)+20px)] lg:inset-x-7 lg:bottom-7 lg:top-[calc(var(--nh-head)+28px)]">
         <div className="flex h-full flex-col items-center px-5 py-[clamp(16px,3.2dvh,36px)] text-center sm:px-10">
@@ -53,7 +55,7 @@ export default function Christmas() {
               {CHRISTMAS.body}
             </p>
             <div data-reveal="4" className="mt-[clamp(18px,3.6dvh,36px)]">
-              <BuildButton tone="dark" className="shadow-[0_10px_40px_rgba(0,0,0,0.3)]">{CHRISTMAS.cta}</BuildButton>
+              <BuildButton tone="dark" href={CHRISTMAS.href} className="shadow-[0_10px_40px_rgba(0,0,0,0.3)]">{CHRISTMAS.cta}</BuildButton>
             </div>
           </div>
 

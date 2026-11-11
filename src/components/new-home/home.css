@@ -258,6 +258,24 @@ html:has(.nh-snap) body {
 @media (min-width: 1024px) {
   .nh-feed { --cols: 6; --rows: 2; --gap: 14px; }
 }
+/* Phones: the gallery is one row of tall cards to swipe through, edge to edge. */
+@media (max-width: 639px) {
+  .nh-feed-row {
+    --card-w: min(84cqw, 100cqh * 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-inline: calc(var(--nh-gutter) * -1);
+    padding-inline: var(--nh-gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--nh-gutter);
+    scrollbar-width: none;
+  }
+  .nh-feed-row::-webkit-scrollbar { display: none; }
+  .nh-feed-row .nh-feed-card { flex: none; width: var(--card-w); scroll-snap-align: start; }
+}
 
 /* ─── Personality ────────────────────────────────────────────────────────── */
 /* Weddings: "big day." in an italic serif. */

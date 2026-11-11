@@ -6,7 +6,7 @@ import Christmas from '@/components/new-home/sections/Christmas';
 import Corporate from '@/components/new-home/sections/Corporate';
 import Weddings from '@/components/new-home/sections/Weddings';
 import Parties from '@/components/new-home/sections/Parties';
-import Video from '@/components/new-home/sections/Video';
+import Team from '@/components/new-home/sections/Team';
 import MarqueePackage from '@/components/new-home/sections/MarqueePackage';
 import GalleryCarousel from '@/components/new-home/GalleryCarousel';
 import SiteFooter from '@/components/new-home/SiteFooter';
@@ -27,7 +27,7 @@ export default function NewHomePage() {
             <Corporate />
             <Weddings />
             <Parties />
-            <Video />
+            <Team />
             <MarqueePackage />
             <GalleryCarousel />
           </main>

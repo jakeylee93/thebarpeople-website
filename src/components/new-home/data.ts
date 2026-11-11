@@ -13,7 +13,7 @@ export const SECTIONS = [
   { id: 'corporate', label: 'Corporate', tone: 'dark' },
   { id: 'weddings', label: 'Weddings', tone: 'light' },
   { id: 'parties', label: 'Parties', tone: 'dark' },
-  { id: 'video', label: 'See us in action', tone: 'dark' },
+  { id: 'team', label: 'Our team', tone: 'dark' },
   { id: 'marquees', label: 'Marquees', tone: 'light' },
   { id: 'gallery', label: 'Gallery', tone: 'light' },
   { id: 'contact', label: 'Contact', tone: 'dark' },
@@ -31,8 +31,10 @@ export const BUILD_HREF = '#build';
 
 export const CONTACTS = [
   { name: 'Jake', email: 'jake@thebarpeople.co.uk', phone: '07557 402200', tel: '+447557402200' },
-  { name: 'Kim', email: 'kim@thebarpeople.co.uk', phone: '07724 601256', tel: '+447724601256' },
 ] as const;
+
+/** Opens a WhatsApp chat with Jake. It is only a link: nothing is sent by the site. */
+export const WHATSAPP_HREF = 'https://wa.me/447557402200';
 
 export const SOCIALS = [
   { href: 'https://www.instagram.com/thebarpeople/', label: 'Instagram' },
@@ -103,6 +105,13 @@ export const CHRISTMAS = {
   titleLines: ['Christmas parties,', 'sorted.'],
   body: 'We bring the bar, the bartenders and the festive cocktails. You just bring the guests.',
   cta: 'Build your Christmas package',
+  /** Opens the builder in its Christmas dress (builder/route.ts: CHRISTMAS_HREF). */
+  href: '#build/christmas',
+  /** Snapshots that shuffle on the advert. Party photos for now: swap in real Christmas parties. */
+  prints: {
+    left: ['/images/events/boux-avenue.jpg', '/images/film/staff-cew.jpg', '/images/events/cocktails.jpg'],
+    right: ['/images/film/smoke-serve.jpg', '/images/events/bar-event.jpg', '/images/events/martini-daiquiri.jpg'],
+  },
   small: 'Book early for December.',
   image: {
     src: '/images/new-home/christmas.jpg',
@@ -176,42 +185,16 @@ export const PARTIES = {
   } satisfies Photo,
 };
 
-export interface VideoClip { src: string; poster: string; alt: string }
-export interface Still { src: string; alt: string; /** CSS object-position inside the tall card */ focus: string }
-
-/**
- * Clips for the "See us in action" card: tall (9:16) videos, played one after
- * another with no sound. Cut from The Bar People's own promo films. To swap
- * one, replace its file or add a line here.
- */
-export const VIDEO_CLIPS: VideoClip[] = [
-  { src: '/videos/new-home/card-1-toast.mp4', poster: '/videos/new-home/card-1-toast.jpg', alt: 'A Bar People bartender tasting a cocktail under fairy lights' },
-  { src: '/videos/new-home/card-2-pour.mp4', poster: '/videos/new-home/card-2-pour.jpg', alt: 'A cocktail being poured into a martini glass' },
-  { src: '/videos/new-home/card-4-bubbles.mp4', poster: '/videos/new-home/card-4-bubbles.jpg', alt: 'Champagne flutes fizzing in the sun' },
-  { src: '/videos/new-home/card-5-shimmer.mp4', poster: '/videos/new-home/card-5-shimmer.jpg', alt: 'Cocktails lined up on a shimmer bar on a terrace' },
-  { src: '/videos/new-home/card-6-shaker.mp4', poster: '/videos/new-home/card-6-shaker.jpg', alt: 'A bartender shaking a cocktail' },
-];
-
-/** Shown in the card if there are no clips. */
-export const VIDEO_STILLS: Still[] = [
-  { src: '/images/film/shirt-pour.jpg', alt: 'A Bar People bartender pouring a cocktail into a row of martini glasses', focus: '82% 50%' },
-  { src: '/images/events/martini-daiquiri.jpg', alt: 'A strawberry daiquiri beside copper cocktail shakers', focus: '64% 50%' },
-  { src: '/images/events/alex.jpg', alt: 'A Bar People bartender holding out a pineapple cocktail', focus: '50% 50%' },
-  { src: '/images/events/pina-colada.jpg', alt: 'A bartender finishing two tall piña coladas', focus: '56% 50%' },
-];
-
-export const VIDEO = {
-  eyebrow: 'See us in action',
-  title: 'Shaken, poured and served.',
-  body: 'A look behind the bar with our bartenders.',
+export const TEAM = {
+  eyebrow: 'Our team',
+  title: 'The people behind the bar.',
+  body: 'Friendly, fast and properly trained. At least two on every job.',
   cta: 'Build your package',
-  /** A soft, black-and-white backdrop behind the card; too blurred to pick anyone out. */
-  backdrop: '/images/events/boux-avenue.jpg',
 };
 
 export const MARQUEE = {
   eyebrow: 'Packages',
-  title: 'The marquee package',
+  title: 'Marquee packages',
   body: 'One quote for the marquee, the bar and everything that goes with it.',
   items: ['Marquee', 'Bar', 'Bartenders', 'Drinks', 'Glassware', 'Ice and fridges'],
   cta: 'Build a marquee package',
@@ -279,15 +262,31 @@ export const INSTAGRAM = { handle: '@thebarpeople', href: 'https://www.instagram
 
 export const FEED: FeedItem[] = [
   { kind: 'image', src: '/images/film/love-marquee.jpg', alt: 'The LOVE bar in a clear marquee' },
-  { kind: 'video', src: '/videos/new-home/feed-6-shake.mp4', poster: '/videos/new-home/feed-6-shake.jpg', alt: 'A bartender shaking a cocktail' },
-  { kind: 'image', src: '/images/events/alex.jpg', alt: 'A bartender holding out a pineapple cocktail' },
+  { kind: 'video', src: '/videos/new-home/feed-4-blue.mp4', poster: '/videos/new-home/feed-4-blue.jpg', alt: 'Blue cocktails with orange slices, from above' },
   { kind: 'image', src: '/images/events/salesforce-bar.jpg', alt: 'A bar with the Salesforce logo, in an office' },
   { kind: 'image', src: '/images/film/espresso-lawn.jpg', alt: 'An espresso martini on a lawn at a summer party' },
-  { kind: 'video', src: '/videos/new-home/feed-7-tray.mp4', poster: '/videos/new-home/feed-7-tray.jpg', alt: 'A bartender carrying a tray of cocktails' },
+  { kind: 'video', src: '/videos/new-home/card-5-shimmer.mp4', poster: '/videos/new-home/card-5-shimmer.jpg', alt: 'Cocktails lined up on a shimmer bar' },
   { kind: 'image', src: '/images/events/special-occasions.jpg', alt: 'A neon Sip Sip Hooray sign above a bar' },
   { kind: 'image', src: '/images/events/porsche-custom.jpg', alt: 'A bar wrapped in bright Porsche artwork' },
   { kind: 'image', src: '/images/film/wedding-toast.jpg', alt: 'Wedding guests raising their glasses' },
-  { kind: 'video', src: '/videos/new-home/feed-4-blue.mp4', poster: '/videos/new-home/feed-4-blue.jpg', alt: 'Blue cocktails with orange slices, from above' },
+  { kind: 'video', src: '/videos/new-home/card-4-bubbles.mp4', poster: '/videos/new-home/card-4-bubbles.jpg', alt: 'Champagne flutes fizzing in the sun' },
+  { kind: 'image', src: '/images/events/boux-avenue.jpg', alt: 'A busy bar at a launch party' },
+  { kind: 'image', src: '/images/film/counter-copper.jpg', alt: 'Champagne flutes and copper bar tools on a white bar' },
+  { kind: 'image', src: '/images/events/martini-daiquiri.jpg', alt: 'A strawberry daiquiri beside copper shakers' },
+];
+
+/** The team grid: our own bartenders at work. */
+export const TEAM_FEED: FeedItem[] = [
+  { kind: 'image', src: '/images/events/alex.jpg', alt: 'A bartender holding out a pineapple cocktail' },
+  { kind: 'video', src: '/videos/new-home/card-1-toast.mp4', poster: '/videos/new-home/card-1-toast.jpg', alt: 'A bartender tasting a cocktail under fairy lights' },
   { kind: 'image', src: '/images/events/glody.jpg', alt: 'A bartender pouring champagne at an awards show' },
+  { kind: 'image', src: '/images/events/jake-corporate.jpg', alt: 'A bartender mixing a drink at a corporate event' },
+  { kind: 'image', src: '/images/film/staff-cew.jpg', alt: 'Two bartenders behind a champagne bar' },
+  { kind: 'video', src: '/videos/new-home/feed-6-shake.mp4', poster: '/videos/new-home/feed-6-shake.jpg', alt: 'A bartender shaking a cocktail' },
+  { kind: 'image', src: '/images/film/staff-pouring.jpg', alt: 'Three bartenders pouring drinks' },
+  { kind: 'image', src: '/images/events/porsche-staff.jpg', alt: 'Two bartenders behind a branded bar' },
   { kind: 'image', src: '/images/film/smoke-serve.jpg', alt: 'Three bartenders with a smoking cocktail' },
+  { kind: 'video', src: '/videos/new-home/feed-7-tray.mp4', poster: '/videos/new-home/feed-7-tray.jpg', alt: 'A bartender carrying a tray of cocktails' },
+  { kind: 'image', src: '/images/film/shirt-martinis.jpg', alt: 'A bartender holding two cocktails' },
+  { kind: 'image', src: '/images/film/shirt-pour.jpg', alt: 'A bartender pouring into a row of martini glasses' },
 ];

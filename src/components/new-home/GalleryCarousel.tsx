@@ -1,15 +1,16 @@
 'use client';
 
-// The gallery, laid out like an Instagram grid: same-shape cards, no titles,
-// and the videos play by themselves (silently, and only while on screen). It
-// always fits one screen. Tap a card and it opens large: arrows, keyboard and
+// The gallery: same-shape cards, no titles, and the videos play by themselves
+// (silently, and only while on screen). Phones: one row to swipe through.
+// Desktop: two rows. It always fits one screen. Tap a card and it opens large: arrows, keyboard and
 // swipe move through them, Esc closes.
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
-import { ArrowRight, ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FEED, INSTAGRAM, type FeedItem } from './data';
+import { FEED, INSTAGRAM } from './data';
+import FeedMedia from './FeedMedia';
 
 const ring = 'outline-none focus-visible:ring-2 focus-visible:ring-nh-ink focus-visible:ring-offset-2';
 const ringDark = 'outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black';
@@ -21,18 +22,6 @@ const subscribeReduced = (cb: () => void) => {
   return () => m.removeEventListener('change', cb);
 };
 const getReduced = () => window.matchMedia(reducedQuery).matches;
-
-/** A silent, looping clip. Nothing is fetched until `play` is first true. */
-function Clip({ item, play }: { item: Extract<FeedItem, { kind: 'video' }>; play: boolean }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-    if (play) void v.play().catch(() => {});
-    else v.pause();
-  }, [play]);
-  return <video ref={ref} src={item.src} poster={item.poster} muted loop playsInline preload="none" aria-label={item.alt} className="h-full w-full object-cover" />;
-}
 
 export default function GalleryCarousel() {
   const [open, setOpen] = useState<number | null>(null);
@@ -89,7 +78,7 @@ export default function GalleryCarousel() {
 
         {/* The grid takes whatever room is left; each card sizes itself from that (.nh-feed in home.css). */}
         <div data-reveal="3" className="nh-media nh-media-tall nh-fit mt-[clamp(10px,2.2dvh,28px)] min-h-0 flex-1">
-          <ul ref={gridRef} className="nh-feed">
+          <ul ref={gridRef} className="nh-feed nh-feed-row">
             {FEED.map((g, i) => (
               <li key={g.src} className="nh-feed-card">
                 <button
@@ -98,16 +87,7 @@ export default function GalleryCarousel() {
                   className={cn('group relative block h-full w-full overflow-hidden rounded-[10px] bg-nh-line lg:rounded-[16px]', ring)}
                   aria-label={`Open ${g.kind === 'video' ? 'video' : 'photo'}: ${g.alt}`}
                 >
-                  {g.kind === 'image' ? (
-                    <Image src={g.src} alt="" fill sizes="(min-width: 1024px) 16vw, 33vw" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
-                  ) : (
-                    <>
-                      <Clip item={g} play={playing} />
-                      <span aria-hidden className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 text-white lg:right-2.5 lg:top-2.5">
-                        <Play className="h-3 w-3 fill-current" />
-                      </span>
-                    </>
-                  )}
+                  <FeedMedia item={g} play={playing} sizes="(min-width: 1024px) 16vw, 70vw" />
                 </button>
               </li>
             ))}

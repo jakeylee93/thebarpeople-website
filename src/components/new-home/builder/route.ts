@@ -46,22 +46,37 @@ function subscribe(cb: () => void) {
  */
 export const MARQUEE_PACKAGE_HREF = '#build/marquee-package';
 
+/** The Christmas advert's button: opens the builder in its Christmas dress. Used once, like the marquee link. */
+export const CHRISTMAS_HREF = '#build/christmas';
+
 export interface BuildRoute {
   open: boolean;
   step: StepId;
   shared: string | null;
   /** True only while the address is the marquee package link. */
   marqueePackage: boolean;
+  /** True only while the address is the Christmas link. */
+  christmas: boolean;
+}
+
+// Whether this visit is building a Christmas party. Kept for the browser tab only.
+const OCCASION_KEY = 'tbp-occasion';
+export function isChristmasVisit(): boolean {
+  try { return window.sessionStorage.getItem(OCCASION_KEY) === 'christmas'; } catch { return false; }
+}
+export function setChristmasVisit(on: boolean) {
+  try { if (on) window.sessionStorage.setItem(OCCASION_KEY, 'christmas'); else window.sessionStorage.removeItem(OCCASION_KEY); } catch { /* ignore */ }
 }
 
 export function parseRoute(hash: string): BuildRoute {
   // A link pasted from a sentence often picks up a full stop or bracket: ignore it.
   const shared = /^#quote=([A-Za-z0-9_-]+)[.,;:!?)\]'"]*$/.exec(hash);
-  if (shared) return { open: true, step: 'quote', shared: shared[1], marqueePackage: false };
-  if (hash === MARQUEE_PACKAGE_HREF) return { open: true, step: 'event', shared: null, marqueePackage: true };
+  if (shared) return { open: true, step: 'quote', shared: shared[1], marqueePackage: false, christmas: false };
+  if (hash === MARQUEE_PACKAGE_HREF) return { open: true, step: 'event', shared: null, marqueePackage: true, christmas: false };
+  if (hash === CHRISTMAS_HREF) return { open: true, step: 'event', shared: null, marqueePackage: false, christmas: true };
   const m = /^#build(?:\/([a-z-]+))?$/.exec(hash);
   const step = m?.[1];
-  return { open: m !== null, step: isStepId(step) ? step : 'event', shared: null, marqueePackage: false };
+  return { open: m !== null, step: isStepId(step) ? step : 'event', shared: null, marqueePackage: false, christmas: false };
 }
 
 export function useBuildRoute(): BuildRoute {

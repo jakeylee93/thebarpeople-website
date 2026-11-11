@@ -7,7 +7,7 @@
 // anywhere; choices are kept in this browser only.
 
 import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, ChevronUp, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronUp, Snowflake, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatPenceCompact } from '@/lib/visual-quote/money';
 import { DEFAULT_STATE, buildQuote, reach, type QuoteState } from '@/lib/quote/quote';
@@ -16,13 +16,13 @@ import MarqueeStep from './MarqueeStep';
 import QuotePanel from './QuotePanel';
 import QuoteStep from './QuoteStep';
 import {
-  STEPS, clearState, closeBuilder, goToStep, loadState, replaceStep, saveState, stepIndex, useBuildRoute, type StepId,
+  STEPS, clearState, closeBuilder, goToStep, isChristmasVisit, loadState, replaceStep, saveState, setChristmasVisit, stepIndex, useBuildRoute, type StepId,
 } from './route';
 import { BarStep, DeliveryStep, EventStep, GlasswareStep, IceStep, StaffStep, StyleStep, type StepProps } from './steps';
 import { closeTopLayer, ring } from './ui';
 
 export default function QuoteBuilder() {
-  const { open, step, shared, marqueePackage } = useBuildRoute();
+  const { open, step, shared, marqueePackage, christmas } = useBuildRoute();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function QuoteBuilder() {
       {open && (
         <Boundary>
           {/* A different shared link is a different quote: start it afresh. */}
-          <Builder key={shared ?? 'local'} step={step} shared={shared} marqueePackage={marqueePackage} />
+          <Builder key={shared ?? 'local'} step={step} shared={shared} marqueePackage={marqueePackage} christmasLink={christmas} />
         </Boundary>
       )}
     </dialog>
@@ -107,7 +107,10 @@ const localToday = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-function Builder({ step, shared, marqueePackage }: { step: StepId; shared: string | null; marqueePackage: boolean }) {
+function Builder({ step, shared, marqueePackage, christmasLink }: { step: StepId; shared: string | null; marqueePackage: boolean; christmasLink: boolean }) {
+  // Arriving from the Christmas advert dresses the builder for Christmas for the rest of this visit.
+  const [festive, setFestive] = useState(() => christmasLink || isChristmasVisit());
+  useEffect(() => { if (christmasLink) { setChristmasVisit(true); replaceStep('event'); } }, [christmasLink]);
   const [start] = useState(() => {
     const loaded = loadState(shared);
     let state = loaded.state;
@@ -162,13 +165,26 @@ function Builder({ step, shared, marqueePackage }: { step: StepId; shared: strin
             <button type="button" onClick={back} className={cn('flex h-11 w-11 items-center justify-center rounded-full hover:bg-nh-mist', ring)} aria-label={idx > 0 ? 'Back a step' : 'Close'}>
               <ArrowLeft className="h-5 w-5" aria-hidden />
             </button>
-            <p id="qb-title" className="font-nh-display text-[16px] font-bold">Build your package</p>
+            <p id="qb-title" className="flex items-center gap-1.5 font-nh-display text-[16px] font-bold">
+              {festive && <Snowflake className="h-4 w-4 text-[#b3122f]" aria-hidden />}
+              {festive ? 'Build your Christmas party' : 'Build your package'}
+            </p>
             <button type="button" onClick={closeBuilder} className={cn('flex h-11 items-center gap-1 rounded-full px-3 text-[15px] font-semibold hover:bg-nh-mist', ring)}>
               <span className="hidden sm:inline">Close</span>
               <X className="h-5 w-5 sm:hidden" aria-hidden />
               <span className="sr-only sm:hidden">Close</span>
             </button>
           </div>
+
+          {festive && (
+            <p className="mx-4 mt-2 flex items-center justify-between gap-3 rounded-full bg-[#0f3d2e] py-1 pl-4 pr-1 text-[13px] font-semibold text-white sm:mx-6 lg:mx-8">
+              <span>Christmas parties: December dates go first, so book early.</span>
+              <button type="button" onClick={() => { setChristmasVisit(false); setFestive(false); }}
+                className={cn('flex h-8 shrink-0 items-center rounded-full px-3 text-[12px] text-white/80 hover:text-white', ring)}>
+                Not for Christmas
+              </button>
+            </p>
+          )}
 
           <nav aria-label="Steps" className="px-4 sm:px-6 lg:px-8">
             <ol className="mt-3 grid gap-1" style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}>
