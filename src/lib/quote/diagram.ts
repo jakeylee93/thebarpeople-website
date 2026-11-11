@@ -129,7 +129,7 @@ interface Segment {
 }
 
 const START_HEADING: Record<BarChoice['shapeId'], number> = {
-  straight: 0, 'l-shape': 0, horseshoe: -90, island: 0, curved: -90, round: 0,
+  straight: 0, 'l-shape': 0, horseshoe: -90, island: 180, curved: -90, round: 0,
 };
 
 function walk(choice: BarChoice): { segments: Segment[]; closed: boolean; moduleWidths: number[] } {
@@ -146,8 +146,9 @@ function walk(choice: BarChoice): { segments: Segment[]; closed: boolean; module
   };
   modules.forEach((m, i) => {
     if (m.kind === 'section') {
-      step(BAR_DIMS.section, i, 'section', 0);
-      moduleWidths.push(BAR_DIMS.section);
+      const width = m.width ?? BAR_DIMS.section;
+      step(width, i, 'section', 0);
+      moduleWidths.push(width);
     } else if (m.kind === 'corner') {
       heading += 45;
       step(BAR_DIMS.corner, i, 'corner', 0);

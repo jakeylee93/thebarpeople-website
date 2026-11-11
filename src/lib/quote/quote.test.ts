@@ -46,8 +46,32 @@ test('L-shape adds one corner; island is eight sections and four corners; round 
   assert.equal(barPrice(bar({ shapeId: 'l-shape', sections: 3 }))?.pence, 42500 + 10000);
   assert.equal(barPrice(bar({ shapeId: 'island', sections: 8 }))?.pence, 92500 + 40000);
   assert.equal(barPrice(bar({ shapeId: 'round', sections: 8, finishId: 'mirror' }))?.pence, 120000);
-  assert.equal(barModules(bar({ shapeId: 'island', sections: 8 })).closed, true);
   assert.equal(barModules(bar({ shapeId: 'round', sections: 8 })).closed, true);
+});
+
+test('the island has a way in: two 4ft sections on the back with a gap between them', () => {
+  const { modules, closed } = barModules(bar({ shapeId: 'island', sections: 8 }));
+  assert.equal(closed, false);
+  const sections = modules.filter((m) => m.kind === 'section');
+  assert.equal(sections.length, 8);
+  assert.equal(modules.filter((m) => m.kind === 'corner').length, 4);
+  // First and last are the 4ft back sections; the six between are full 5ft sections.
+  assert.deepEqual([modules[0], modules[modules.length - 1]], [{ kind: 'section', width: 1.2 }, { kind: 'section', width: 1.2 }]);
+  assert.equal(sections.filter((m) => m.kind === 'section' && m.width === undefined).length, 6);
+});
+
+test('custom branded is its own style: white panels with artwork, on any shape, never mixed', () => {
+  for (const shapeId of ['straight', 'l-shape', 'horseshoe', 'island', 'curved', 'round'] as const) {
+    for (const finishId of ['white', 'mirror', 'shimmer', 'love', 'led'] as const) {
+      const b = normaliseBar({ shapeId, sections: 2, finishId, branded: true });
+      assert.deepEqual([b.finishId, b.branded], ['white', true], `${shapeId} ${finishId}`);
+    }
+  }
+  // Without branding, a curved bar still only comes in LED or mirror.
+  assert.equal(normaliseBar({ shapeId: 'curved', sections: 4, finishId: 'white', branded: false }).finishId, 'led');
+  const q = buildQuote(state({ bar: bar({ shapeId: 'horseshoe', sections: 6, branded: true }) }));
+  assert.match(line(q, 'bar')?.detail ?? '', /Custom branded$/);
+  assert.equal(line(q, 'bar-branded')?.price.kind, 'pending');
 });
 
 test('a bar without an agreed price is "to confirm", never £0', () => {
@@ -259,6 +283,9 @@ test('glassware is 80p a glass; igloo £75; fridges £60 and £140', () => {
   const q = buildQuote(state({ glasses: { 'glass-flute': 100, 'glass-wine': 50 }, igloos: 2, fridgesSingle: 1, fridgesDouble: 1 }));
   assert.equal(priced(q, 'glass-flute'), 8000);
   assert.equal(priced(q, 'glass-wine'), 4000);
+  // Three glasses cost more: premium flute £1, large wine glass 90p, gin bowl £1.
+  const dearer = buildQuote(state({ glasses: { 'glass-flute-premium': 10, 'glass-wine-large': 10, 'glass-gin': 10 } }));
+  assert.deepEqual(['glass-flute-premium', 'glass-wine-large', 'glass-gin'].map((id) => priced(dearer, id)), [1000, 900, 1000]);
   assert.equal(priced(q, 'igloo'), 15000);
   assert.equal(priced(q, 'fridge-single'), 6000);
   assert.equal(priced(q, 'fridge-double'), 14000);
@@ -367,8 +394,10 @@ test('a bar is not moved if that would lose the finish the guest chose', () => {
 });
 
 test('choosing a shape keeps the finish where it can', () => {
-  const s = chooseShape(state({ bar: bar({ finishId: 'mirror', branded: true }) }), 'round');
-  assert.deepEqual(s.bar, { shapeId: 'round', sections: 8, finishId: 'mirror', branded: true });
+  const s = chooseShape(state({ bar: bar({ finishId: 'mirror' }) }), 'round');
+  assert.deepEqual(s.bar, { shapeId: 'round', sections: 8, finishId: 'mirror', branded: false });
+  const branded = chooseShape(state({ bar: bar({ branded: true }) }), 'round');
+  assert.deepEqual(branded.bar, { shapeId: 'round', sections: 8, finishId: 'white', branded: true });
   assert.equal(chooseShape(state({ bar: bar() }), 'round').bar?.finishId, 'led');
 });
 

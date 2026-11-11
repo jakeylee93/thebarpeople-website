@@ -4,7 +4,7 @@
 // line and is left out of the totals, never shown as £0.
 
 import { z } from 'zod';
-import { GLASSES } from '../visual-quote/catalogue.ts';
+import { GLASSES } from './glasses.ts';
 import { formatPence, formatPenceCompact, multiplyPence, rateForMinutes, sumPence, type Pence } from '../visual-quote/money.ts';
 import { formatDuration, formatHoursShort, formatTime } from '../visual-quote/time.ts';
 import {
@@ -136,7 +136,7 @@ export function chooseShape(state: QuoteState, shapeId: BarShapeId, sections?: n
   const bar = normaliseBar({
     shapeId: shape.id,
     sections: sections ?? (current?.shapeId === shape.id ? current.sections : shape.defaultSections),
-    finishId: current?.finishId ?? shape.finishes[0],
+    finishId: current?.finishId && shape.finishes.includes(current.finishId) ? current.finishId : shape.finishes[0],
     branded: current?.branded ?? false,
   });
   const rec = recommendBar(state.guests);
@@ -232,7 +232,7 @@ export function buildQuote(state: QuoteState): Quote {
     const finish = findFinish(bar.finishId);
     lines.push({
       id: 'bar', group: 'bar', title: barName(bar),
-      detail: [barSizeLabel(bar), finish?.name].filter(Boolean).join(' · '),
+      detail: [barSizeLabel(bar), bar.branded ? 'Custom branded' : finish?.name].filter(Boolean).join(' · '),
       price: price ? { kind: 'priced', pence: price.pence, working: price.working } : pending('Price to confirm'),
     });
     if (bar.branded) {
@@ -305,7 +305,7 @@ export function buildQuote(state: QuoteState): Quote {
     if (qty === 0) continue;
     lines.push({
       id: glass.id, group: 'glassware', title: glass.name, detail: plural(qty, 'glass', 'glasses'),
-      price: { kind: 'priced', pence: multiplyPence(PRICES.glass, qty), working: `${qty} × ${formatPence(PRICES.glass)}` },
+      price: { kind: 'priced', pence: multiplyPence(glass.price, qty), working: `${qty} × ${formatPence(glass.price)}` },
     });
   }
 

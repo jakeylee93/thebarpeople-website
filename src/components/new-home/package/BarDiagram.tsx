@@ -81,7 +81,7 @@ export default function BarDiagram({
   const darkTop = false;
   const darkInside = finish === 'led' || curved;
   // A mirror shows its reflection whichever way it faces, so it barely darkens; sequins darken a little.
-  const shadeMax = finish === 'white' || finish === 'love' ? 0.16 : finish === 'led' ? 0.08 : finish === 'mirror' ? 0.05 : 0.22;
+  const shadeMax = finish === 'white' || finish === 'love' ? 0.16 : finish === 'led' ? 0.08 : finish === 'mirror' ? 0.12 : 0.22;
 
   const faceFill = (face: Face) => {
     if (face.kind === 'edge') return INK;
@@ -107,13 +107,12 @@ export default function BarDiagram({
       <defs>
         {(finish === 'mirror' || finish === 'love') && <MirrorDefs id={id} />}
         {finish === 'shimmer' && <ShimmerDefs id={id} />}
-        {/* The end of a mirror bar is mirror too: sky, the tree line, then the ground. */}
+        {/* The end of a mirror bar is mirror too, a little darker as it faces away. */}
         <linearGradient id={id('mirror-end')} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#c9d3dc" />
-          <stop offset="0.4" stopColor="#9fb0a5" />
-          <stop offset="0.46" stopColor="#5f6d61" />
-          <stop offset="0.52" stopColor="#7d8a71" />
-          <stop offset="1" stopColor="#9aa58a" />
+          <stop offset="0" stopColor="#e3e8ec" />
+          <stop offset="0.47" stopColor="#b3bbc2" />
+          <stop offset="0.5" stopColor="#848d95" />
+          <stop offset="1" stopColor="#b9c0c6" />
         </linearGradient>
         {/* Opal light box: brightest through the middle, deeper colour at the edges. */}
         <linearGradient id={id('opal')} x1="0" y1="0" x2="0" y2="1">

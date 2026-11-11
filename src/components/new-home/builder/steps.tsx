@@ -3,16 +3,17 @@
 // The steps of "Build your package", except drinks, the marquee and the final
 // quote (those have their own files). Headings live in the shell.
 
-import { useState, useSyncExternalStore } from 'react';
-import { Check, ChevronDown, Sparkles } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
+import { Check, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import GlassGlyph, { IceGlyph } from '@/components/visual-quote/GlassGlyph';
-import { GLASSES } from '@/lib/visual-quote/catalogue';
+import Image from 'next/image';
+import { IceGlyph } from '@/components/visual-quote/GlassGlyph';
+import { GLASSES } from '@/lib/quote/glasses';
 import { formatPence, formatPenceCompact } from '@/lib/visual-quote/money';
 import { addDaysIso, formatDate, formatDuration, formatTime, timeOptions } from '@/lib/visual-quote/time';
 import {
   BAR_SHAPES, FINISHES, barName, barNameInSentence, barPrice, barSizeLabel, findShape, finishesFor, normaliseBar, recommendStaff, runLength, sectionsPrice,
-  type BarChoice, type BarShape,
+  type BarChoice, type BarShape, type FinishId,
 } from '@/lib/quote/bars';
 import { drinksPerHead } from '@/lib/quote/drinks';
 import { PRICES, TIME_STEP } from '@/lib/quote/prices';
@@ -150,68 +151,71 @@ export function BarStep({ state, update, quote }: StepProps) {
       <Note>
         For {state.guests} guests we’d recommend the <strong className="text-nh-ink">{barName(recommendedBar(state.guests))}</strong>. Pick any shape you like.
       </Note>
-      <fieldset className="mt-6">
-        <legend className="sr-only">Bar shape</legend>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-          {BAR_SHAPES.map((sh) => {
-            const checked = bar.shapeId === sh.id;
-            const preview = normaliseBar({
-              shapeId: sh.id,
-              sections: checked ? bar.sections : sh.id === rec.shapeId ? rec.sections : sh.defaultSections,
-              finishId: bar.finishId, branded: false,
-            });
-            return (
-              <RadioCard key={sh.id} name="bar-shape" value={sh.id} checked={checked}
-                onChange={() => update((st) => chooseShape(st, sh.id, sh.id === rec.shapeId && !checked ? rec.sections : undefined))}
-                className="bg-nh-mist p-3 pb-3.5">
-                <span className="flex h-6 items-center justify-between">
-                  {sh.id === rec.shapeId ? <Badge>Recommended</Badge> : <span />}
-                  {checked && (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-nh-ink text-white"><Check className="h-3.5 w-3.5" aria-hidden /></span>
-                  )}
-                </span>
-                <BarDiagram bar={preview} decorative artworkText={false} className="mt-1" />
-                <span className="mt-1 block text-[15px] font-bold leading-tight">{sh.name}</span>
-                <span className="mt-0.5 block text-[13px] leading-snug text-nh-ash">{shapePriceLabel(sh, state.bar)}</span>
-              </RadioCard>
-            );
-          })}
-        </div>
-      </fieldset>
+      {/* Desktop: shapes and sizes sit side by side, so nothing is below the fold. */}
+      <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start lg:gap-5">
+        <fieldset>
+          <legend className="sr-only">Bar shape</legend>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-2.5">
+            {BAR_SHAPES.map((sh) => {
+              const checked = bar.shapeId === sh.id;
+              const preview = normaliseBar({
+                shapeId: sh.id,
+                sections: checked ? bar.sections : sh.id === rec.shapeId ? rec.sections : sh.defaultSections,
+                finishId: bar.finishId, branded: bar.branded,
+              });
+              return (
+                <RadioCard key={sh.id} name="bar-shape" value={sh.id} checked={checked}
+                  onChange={() => update((st) => chooseShape(st, sh.id, sh.id === rec.shapeId && !checked ? rec.sections : undefined))}
+                  className="bg-nh-mist p-3 pb-3.5 lg:p-2.5 lg:pb-3">
+                  <span className="flex h-6 items-center justify-between lg:absolute lg:inset-x-2 lg:top-2 lg:z-10">
+                    {sh.id === rec.shapeId ? <Badge>Recommended</Badge> : <span />}
+                    {checked && (
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-nh-ink text-white"><Check className="h-3.5 w-3.5" aria-hidden /></span>
+                    )}
+                  </span>
+                  <BarDiagram bar={preview} decorative artworkText={false} className="mt-1 lg:mt-3" />
+                  <span className="mt-1 block text-[15px] font-bold leading-tight lg:text-[14px]">{sh.name}</span>
+                  <span className="mt-0.5 block text-[13px] leading-snug text-nh-ash lg:text-[12.5px]">{shapePriceLabel(sh, state.bar)}</span>
+                </RadioCard>
+              );
+            })}
+          </div>
+        </fieldset>
 
-      <div className="mt-5 rounded-[20px] border-2 border-nh-ink p-4 sm:p-5" aria-live="polite">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p className="font-nh-display text-[22px] font-extrabold leading-tight">{barName(bar)}</p>
-          <p className="font-nh-display text-[22px] font-extrabold tabular-nums">
-            {price ? formatPenceCompact(price.pence) : <span className="text-[16px] font-semibold text-nh-ash">Price to confirm</span>}
-            {price && <span className="text-[13px] font-semibold text-nh-ash"> + VAT</span>}
-          </p>
-        </div>
-        <p className="text-[14px] text-nh-ash">{shape.blurb}</p>
-        {sizes.length > 1 && (
-          <div className="mt-4">
-            <p className="text-[14px] font-semibold">{shape.id === 'straight' ? 'Length' : 'Size'}</p>
-            <Segmented
-              className="mt-2"
-              legend={shape.id === 'straight' ? 'Bar length' : 'Number of 1.5m sections'}
-              name="bar-size"
-              value={bar.sections}
-              onChange={(n) => update((st) => chooseShape(st, shape.id, n))}
-              options={sizes.map((n) => ({
-                value: n,
-                label: shape.id === 'straight' ? runLength(n) : `${n} sections`,
-                marked: shape.id === rec.shapeId && n === rec.sections,
-              }))}
-            />
-            <p className="mt-2 text-[13px] text-nh-ash">
-              {price?.working}.{' '}
-              {shape.id === 'straight' && bar.sections === 1
-                ? `The 3m bar is ${formatPenceCompact(PRICES.barTwoSections)}, and each 1.5m section after that adds ${formatPenceCompact(PRICES.barExtraSection)}.`
-                : `Each extra 1.5m section adds ${formatPenceCompact(PRICES.barExtraSection)}.`}
+        <div className="mt-5 rounded-[20px] border-2 border-nh-ink p-4 sm:p-5 lg:mt-0" aria-live="polite">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <p className="font-nh-display text-[22px] font-extrabold leading-tight">{barName(bar)}</p>
+            <p className="font-nh-display text-[22px] font-extrabold tabular-nums">
+              {price ? formatPenceCompact(price.pence) : <span className="text-[16px] font-semibold text-nh-ash">Price to confirm</span>}
+              {price && <span className="text-[13px] font-semibold text-nh-ash"> + VAT</span>}
             </p>
           </div>
-        )}
-        {sizes.length === 1 && price && <p className="mt-2 text-[13px] text-nh-ash">{price.working}.</p>}
+          <p className="text-[14px] text-nh-ash">{shape.blurb}</p>
+          {sizes.length > 1 && (
+            <div className="mt-4">
+              <p className="text-[14px] font-semibold">{shape.id === 'straight' ? 'Length' : 'Size'}</p>
+              <Segmented
+                className="mt-2"
+                legend={shape.id === 'straight' ? 'Bar length' : 'Number of 1.5m sections'}
+                name="bar-size"
+                value={bar.sections}
+                onChange={(n) => update((st) => chooseShape(st, shape.id, n))}
+                options={sizes.map((n) => ({
+                  value: n,
+                  label: shape.id === 'straight' ? runLength(n) : `${n} sections`,
+                  marked: shape.id === rec.shapeId && n === rec.sections,
+                }))}
+              />
+              <p className="mt-2 text-[13px] text-nh-ash">
+                {price?.working}.{' '}
+                {shape.id === 'straight' && bar.sections === 1
+                  ? `The 3m bar is ${formatPenceCompact(PRICES.barTwoSections)}, and each 1.5m section after that adds ${formatPenceCompact(PRICES.barExtraSection)}.`
+                  : `Each extra 1.5m section adds ${formatPenceCompact(PRICES.barExtraSection)}.`}
+              </p>
+            </div>
+          )}
+          {sizes.length === 1 && price && <p className="mt-2 text-[13px] text-nh-ash">{price.working}.</p>}
+        </div>
       </div>
     </div>
   );
@@ -229,86 +233,84 @@ export const LED_COLOURS = [
   { name: 'Red', hex: '#ff3b3b' },
 ] as const;
 
+/** What the style cards offer: each finish the bar comes in, then custom branded as a style of its own. */
+type StyleId = FinishId | 'branded';
+
 export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
   const bar = state.bar ?? recommendedBar(state.guests);
   const finishes = finishesFor(bar.shapeId, bar.sections);
-  const setBar = (patch: Partial<BarChoice>) => set({ bar: normaliseBar({ ...bar, ...patch }) });
+  const chosen: StyleId = bar.branded ? 'branded' : bar.finishId;
+  const choose = (id: StyleId) =>
+    set({ bar: normaliseBar(id === 'branded' ? { ...bar, finishId: 'white', branded: true } : { ...bar, finishId: id, branded: false }) });
+  const styles: { id: StyleId; name: string; blurb: string; preview: BarChoice }[] = [
+    ...FINISHES.filter((f) => finishes.includes(f.id)).map((f) => ({
+      id: f.id as StyleId, name: f.name, blurb: f.blurb, preview: normaliseBar({ ...bar, finishId: f.id, branded: false }),
+    })),
+    {
+      id: 'branded', name: 'Custom branded', blurb: 'Your logo, names or a pattern on every panel. Free artwork service.',
+      preview: normaliseBar({ ...bar, finishId: 'white', branded: true }),
+    },
+  ];
   return (
     <div>
-      <Note>Choose the finish for your {barNameInSentence(bar)}, and add your own artwork if you’d like it branded.</Note>
+      <Note>Choose the style for your {barNameInSentence(bar)}.</Note>
 
-      <div className="relative mt-5 rounded-[24px] bg-[radial-gradient(ellipse_at_50%_35%,#ffffff,#eceae5)] px-2 pb-2 pt-9 sm:px-8">
-        {bar.branded && (
-          <div className="nh-pop pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2">
-            <div className="nh-glow-ring rounded-full p-[2px] shadow-[0_0_26px_rgba(155,92,255,0.5)]">
-              <p className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-nh-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white">
-                <Sparkles className="h-3.5 w-3.5" aria-hidden /> Free artwork service
-              </p>
+      {/* Desktop: the bar on the left, the styles on the right, all in one view. */}
+      <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start lg:gap-5">
+        <div className="relative rounded-[24px] bg-[radial-gradient(ellipse_at_50%_35%,#ffffff,#eceae5)] px-2 pb-2 pt-9 sm:px-6 lg:sticky lg:top-0">
+          {bar.branded && (
+            <div className="nh-pop pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2">
+              <div className="nh-glow-ring rounded-full p-[2px] shadow-[0_0_26px_rgba(155,92,255,0.5)]">
+                <p className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-nh-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white">
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden /> Free artwork service
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-        <BarDiagram bar={bar} ledColour={ledColour} className="mx-auto max-w-[620px]" />
-      </div>
-
-      <fieldset className="mt-6">
-        <legend className="text-[15px] font-bold">Finish</legend>
-        <div className={cn('mt-3 grid grid-cols-2 gap-3', finishes.length >= 4 ? 'lg:grid-cols-4' : finishes.length === 3 ? 'lg:grid-cols-3' : '')}>
-          {FINISHES.filter((f) => finishes.includes(f.id)).map((f) => (
-            <RadioCard key={f.id} name="finish" value={f.id} checked={bar.finishId === f.id} onChange={() => setBar({ finishId: f.id })} className="overflow-hidden bg-white">
-              {/* Your own bar in each finish, drawn the same way as everywhere else. */}
-              <span className="relative flex aspect-[4/3] items-center bg-[radial-gradient(ellipse_at_50%_35%,#ffffff,#eceae5)] px-1">
-                <BarDiagram bar={normaliseBar({ ...bar, finishId: f.id, branded: false })} ledColour={ledColour} decorative artworkText={false} />
-                {bar.finishId === f.id && (
-                  <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-nh-ink text-white"><Check className="h-3.5 w-3.5" aria-hidden /></span>
-                )}
-              </span>
-              <span className="block px-3 pb-3 pt-2.5">
-                <span className="block text-[15px] font-bold leading-tight">{f.name}</span>
-                <span className="mt-0.5 block text-[13px] leading-snug text-nh-ash">{f.blurb}</span>
-              </span>
-            </RadioCard>
-          ))}
+          )}
+          <BarDiagram bar={bar} ledColour={ledColour} className="mx-auto max-w-[620px]" />
+          {bar.finishId === 'led' && !bar.branded && (
+            <fieldset className="px-2 pb-3">
+              <legend className="text-[13px] font-semibold">Preview a colour</legend>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {LED_COLOURS.map((c) => (
+                  <label key={c.hex} className="group relative flex h-10 w-10 cursor-pointer items-center justify-center" title={c.name}>
+                    <input type="radio" name="led-colour" checked={ledColour === c.hex} onChange={() => setLedColour(c.hex)} className="peer sr-only" aria-label={c.name} />
+                    <span
+                      className={cn(
+                        'block h-8 w-8 rounded-full border border-black/10 shadow-inner transition peer-focus-visible:ring-2 peer-focus-visible:ring-nh-ink peer-focus-visible:ring-offset-2',
+                        ledColour === c.hex ? 'ring-2 ring-nh-ink ring-offset-2' : 'group-hover:scale-105',
+                      )}
+                      style={{ background: c.hex }}
+                    />
+                  </label>
+                ))}
+              </div>
+              <p className="mt-1 text-[12.5px] text-nh-ash">LED bars change colour on the night, so you’re not tied to one.</p>
+            </fieldset>
+          )}
         </div>
-      </fieldset>
 
-      {bar.finishId === 'led' && (
-        <fieldset className="mt-5">
-          <legend className="text-[15px] font-bold">Preview a colour</legend>
-          <div className="mt-3 flex flex-wrap gap-3">
-            {LED_COLOURS.map((c) => (
-              <label key={c.hex} className="group relative flex h-10 w-10 cursor-pointer items-center justify-center" title={c.name}>
-                <input type="radio" name="led-colour" checked={ledColour === c.hex} onChange={() => setLedColour(c.hex)} className="peer sr-only" aria-label={c.name} />
-                <span
-                  className={cn(
-                    'block h-10 w-10 rounded-full border border-black/10 shadow-inner transition peer-focus-visible:ring-2 peer-focus-visible:ring-nh-ink peer-focus-visible:ring-offset-2',
-                    ledColour === c.hex ? 'ring-2 ring-nh-ink ring-offset-2' : 'group-hover:scale-105',
+        <fieldset className="mt-6 lg:mt-0">
+          <legend className="sr-only">Style</legend>
+          <div className="grid grid-cols-2 gap-3 lg:gap-2.5">
+            {styles.map((st) => (
+              <RadioCard key={st.id} name="style" value={st.id} checked={chosen === st.id} onChange={() => choose(st.id)} className="overflow-hidden bg-white">
+                {/* Your own bar in each style, drawn the same way as everywhere else. */}
+                <span className="relative flex items-center bg-[radial-gradient(ellipse_at_50%_35%,#ffffff,#eceae5)] px-1 py-1 lg:px-6 lg:py-0">
+                  <BarDiagram bar={st.preview} ledColour={ledColour} decorative artworkText={false} />
+                  {chosen === st.id && (
+                    <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-nh-ink text-white"><Check className="h-3.5 w-3.5" aria-hidden /></span>
                   )}
-                  style={{ background: c.hex }}
-                />
-              </label>
+                </span>
+                <span className="block px-3 pb-3 pt-2 lg:pb-2.5 lg:pt-1.5">
+                  <span className="block text-[15px] font-bold leading-tight lg:text-[14px]">{st.name}</span>
+                  <span className="mt-0.5 block text-[13px] leading-snug text-nh-ash lg:text-[12.5px]">{st.blurb}</span>
+                </span>
+              </RadioCard>
             ))}
           </div>
-          <p className="mt-2 text-[13px] text-nh-ash">LED bars change colour on the night, so you’re not tied to one.</p>
         </fieldset>
-      )}
-
-      {bar.finishId !== 'love' && <label
-        className={cn(
-          'relative mt-6 flex cursor-pointer items-start gap-4 rounded-[18px] border-2 p-4 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-nh-ink has-[:focus-visible]:ring-offset-2',
-          bar.branded ? 'border-nh-ink' : 'border-nh-line hover:border-nh-ink/40',
-        )}
-      >
-        <input type="checkbox" checked={bar.branded} onChange={(e) => setBar({ branded: e.currentTarget.checked })} className="sr-only" />
-        <span aria-hidden className={cn('mt-0.5 flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition', bar.branded ? 'bg-nh-ink' : 'bg-nh-line')}>
-          <span className={cn('h-5 w-5 rounded-full bg-white shadow transition', bar.branded && 'translate-x-5')} />
-        </span>
-        <span>
-          <span className="block text-[16px] font-bold">Custom branded</span>
-          <span className="mt-0.5 block text-[14px] leading-relaxed text-nh-ash">
-            Your logo, names or a pattern on every panel. Free artwork service: send us your logo and we’ll set it up.
-          </span>
-        </span>
-      </label>}
+      </div>
     </div>
   );
 }
@@ -316,59 +318,56 @@ export function StyleStep({ state, set, ledColour, setLedColour }: StepProps) {
 // ─── 5. Glassware ───────────────────────────────────────────────────────────
 
 export function GlasswareStep({ state, set }: StepProps) {
-  const [more, setMore] = useState(() => GLASSES.some((g) => !g.common && (state.glasses[g.id] ?? 0) > 0));
-  const shown = GLASSES.filter((g) => g.common || more);
   const setQty = (id: string, n: number) => set({ glasses: { ...state.glasses, [id]: n } });
   const total = GLASSES.reduce((sum, g) => sum + (state.glasses[g.id] ?? 0), 0);
+  const cost = GLASSES.reduce((sum, g) => sum + (state.glasses[g.id] ?? 0) * g.price, 0);
   return (
     <div>
       <Note>
-        Every glass is <strong className="text-nh-ink">{formatPence(PRICES.glass)}</strong> to hire. Tap “One per guest” to match your {state.guests} guests.
+        Most glasses are <strong className="text-nh-ink">{formatPence(PRICES.glass)}</strong> to hire. Tap “One per guest” to match your {state.guests} guests.
+        {total > 0 && <span aria-live="polite"> <strong className="text-nh-ink">{total} glasses · {formatPence(cost)}</strong> so far.</span>}
       </Note>
-      <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-        {shown.map((g) => {
+      {/* Every glass, in one grid. */}
+      <ul className="mt-5 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 lg:grid-cols-3">
+        {GLASSES.map((g) => {
           const qty = state.glasses[g.id] ?? 0;
           return (
-            <li key={g.id} className={cn('rounded-[18px] border-2 p-4 transition', qty > 0 ? 'border-nh-ink' : 'border-nh-line')}>
-              <div className="flex items-center gap-3">
-                <GlassGlyph glyph={g.glyph} className="h-12 w-12 shrink-0 text-nh-ink" />
+            <li key={g.id} className={cn('rounded-[16px] border-2 bg-white p-2.5 transition', qty > 0 ? 'border-nh-ink' : 'border-nh-line')}>
+              <div className="flex items-start gap-2.5">
+                <span className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-nh-mist sm:h-[72px] sm:w-[72px]">
+                  <Image src={g.photo} alt="" fill sizes="72px" className="object-cover" />
+                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-bold leading-tight">{g.name}</p>
-                  <p className="text-[13px] leading-snug text-nh-ash">{g.detail}</p>
+                  <p className="text-[14px] font-bold leading-tight">{g.name}</p>
+                  <p className="mt-0.5 text-[12px] leading-snug text-nh-ash">{g.detail}</p>
+                  <p className="mt-0.5 text-[13px] font-bold tabular-nums">{formatPence(g.price)}</p>
                 </div>
-                {qty > 0 && <p className="shrink-0 text-[15px] font-semibold tabular-nums">{formatPence(qty * PRICES.glass)}</p>}
               </div>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                <Counter label={g.name} value={qty} onChange={(n) => setQty(g.id, n)} step={10} min={0} max={5000} />
-                <button type="button" onClick={() => setQty(g.id, state.guests)} className={cn('min-h-10 rounded-full px-3 text-[13px] font-semibold underline underline-offset-4', ring)}>
-                  One per guest
+              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-1">
+                <Counter label={g.name} value={qty} onChange={(n) => setQty(g.id, n)} step={10} min={0} max={5000} size="sm" />
+                <button type="button" onClick={() => setQty(g.id, state.guests)} className={cn('min-h-10 rounded px-1 text-[12px] font-semibold underline underline-offset-4', ring)}>
+                  One per guest<span className="sr-only">: {g.name}</span>
                 </button>
               </div>
             </li>
           );
         })}
       </ul>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        {!more ? (
-          <button type="button" onClick={() => setMore(true)} className={cn('inline-flex min-h-10 items-center gap-1.5 rounded-full border border-nh-line px-4 text-[14px] font-semibold hover:border-nh-ink', ring)}>
-            More glasses <ChevronDown className="h-4 w-4" aria-hidden />
-          </button>
-        ) : <span />}
-        {total > 0 && <p className="text-[14px] text-nh-ash" aria-live="polite">{total} glasses · {formatPence(total * PRICES.glass)}</p>}
-      </div>
     </div>
   );
 }
 
 // ─── 6. Ice and fridges ─────────────────────────────────────────────────────
 
-function CountedRow({ icon, name, detail, each, value, onChange }: {
-  icon: 'igloo-box' | 'bar-fridge'; name: string; detail: string; each: number; value: number; onChange: (n: number) => void;
+function CountedRow({ icon, photo, name, detail, each, value, onChange }: {
+  icon: 'igloo-box' | 'bar-fridge'; photo?: string; name: string; detail: string; each: number; value: number; onChange: (n: number) => void;
 }) {
   return (
     <div className={cn('flex flex-wrap items-center justify-between gap-4 rounded-[18px] border-2 p-4 transition', value > 0 ? 'border-nh-ink' : 'border-nh-line')}>
       <div className="flex min-w-0 items-center gap-3">
-        <IceGlyph kind={icon} className="h-12 w-12 shrink-0 text-nh-ink" />
+        {photo
+          ? <span className="relative block h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-nh-mist"><Image src={photo} alt="" fill sizes="56px" className="object-cover" /></span>
+          : <IceGlyph kind={icon} className="h-12 w-12 shrink-0 text-nh-ink" />}
         <div className="min-w-0">
           <p className="text-[16px] font-bold leading-tight">{name}</p>
           <p className="text-[13px] leading-snug text-nh-ash">{detail}</p>
@@ -389,7 +388,7 @@ export function IceStep({ state, set }: StepProps) {
           value={state.igloos} onChange={(igloos) => set({ igloos })} />
         <CountedRow icon="bar-fridge" name="Single bar fridge" detail="An under-counter fridge for wine, beer and mixers." each={PRICES.fridgeSingle}
           value={state.fridgesSingle} onChange={(fridgesSingle) => set({ fridgesSingle })} />
-        <CountedRow icon="bar-fridge" name="Double back-bar fridge" detail="A double-door fridge for bigger bars." each={PRICES.fridgeDouble}
+        <CountedRow icon="bar-fridge" photo="/images/new-home/hire/fridge-double.jpg" name="Double back-bar fridge" detail="A double-door fridge for bigger bars." each={PRICES.fridgeDouble}
           value={state.fridgesDouble} onChange={(fridgesDouble) => set({ fridgesDouble })} />
       </div>
       <Note className="mt-4 text-[13px]">Fridges need a power socket close to the bar.</Note>

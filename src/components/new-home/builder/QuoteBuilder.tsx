@@ -192,8 +192,8 @@ function Builder({ step, shared, marqueePackage }: { step: StepId; shared: strin
           </nav>
 
           {/* relative: hidden form controls inside are placed within this box, so focusing one never scrolls the page behind. */}
-          <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-36 pt-6 sm:px-6 lg:px-8 lg:pb-10">
-            <h2 ref={headingRef} tabIndex={-1} className="text-[32px] font-extrabold leading-[1.05] tracking-[-0.02em] outline-none lg:text-[42px]">
+          <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-36 pt-6 sm:px-6 lg:px-8 lg:pb-6 lg:pt-[clamp(10px,2.2dvh,24px)]">
+            <h2 ref={headingRef} tabIndex={-1} className="text-[32px] font-extrabold leading-[1.05] tracking-[-0.02em] outline-none lg:text-[clamp(28px,5dvh,42px)]">
               {meta.title}
             </h2>
             {start.badLink && step === 'quote' && (

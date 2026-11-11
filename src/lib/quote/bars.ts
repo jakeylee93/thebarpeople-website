@@ -15,7 +15,8 @@ export type FinishId = 'white' | 'mirror' | 'shimmer' | 'love' | 'led';
 /** How a bar is laid out, walking along its customer side. Every turn wraps
  *  round the bartenders (anticlockwise seen from above). */
 export type BarModule =
-  | { kind: 'section' }
+  /** A straight section: 1.5m (5ft) unless a width is given. */
+  | { kind: 'section'; width?: number }
   | { kind: 'corner' }
   | { kind: 'curve'; degrees: number };
 
@@ -74,7 +75,7 @@ export interface FinishInfo { id: FinishId; name: string; blurb: string }
 
 export const FINISHES: FinishInfo[] = [
   { id: 'white', name: 'Classic white', blurb: 'Gloss white panels with a black edge.' },
-  { id: 'mirror', name: 'Mirror', blurb: 'Mirrored panels that reflect the room.' },
+  { id: 'mirror', name: 'Mirror', blurb: 'Polished silver mirror panels.' },
   { id: 'shimmer', name: 'Shimmer', blurb: 'A wall of sequin discs that catch the light.' },
   { id: 'love', name: 'LOVE', blurb: 'Giant mirror letters across a white 3m bar.' },
   { id: 'led', name: 'LED', blurb: 'Lit panels that glow in any colour.' },
@@ -102,10 +103,13 @@ export function finishesFor(shapeId: BarShapeId, sections: number): FinishId[] {
 export function normaliseBar(choice: BarChoice): BarChoice {
   const shape = findShape(choice.shapeId) ?? BAR_SHAPES[0];
   const sections = Math.min(shape.maxSections, Math.max(shape.minSections, Math.round(choice.sections) || shape.defaultSections));
+  // Custom branded is its own style (Jake, 11 Nov 2026): white panels carrying
+  // the customer's artwork, on any shape. It is never mixed with mirror,
+  // shimmer, LED or the LOVE bar.
+  if (choice.branded) return { shapeId: shape.id, sections, finishId: 'white', branded: true };
   const finishes = finishesFor(shape.id, sections);
   const finishId = finishes.includes(choice.finishId) ? choice.finishId : finishes[0];
-  // The LOVE bar is its own design, so it isn't offered with custom artwork as well.
-  return { shapeId: shape.id, sections, finishId, branded: Boolean(choice.branded) && finishId !== 'love' };
+  return { shapeId: shape.id, sections, finishId, branded: false };
 }
 
 /** Straight sections only: £215, £325, then £100 a section. */
@@ -165,6 +169,9 @@ export function barSizeLabel(choice: BarChoice): string {
   return `${bar.sections} sections + ${corners}`;
 }
 
+/** The two shorter sections on the back of the island: 4ft (1.2m) each. */
+const ISLAND_BACK: BarModule = { kind: 'section', width: 1.2 };
+
 /** The modules that make up a bar, in order along its customer side. */
 export function barModules(choice: BarChoice): { modules: BarModule[]; closed: boolean } {
   const bar = normaliseBar(choice);
@@ -180,7 +187,13 @@ export function barModules(choice: BarChoice): { modules: BarModule[]; closed: b
     case 'horseshoe':
       return { modules: [...run(2), corner, ...run(2), corner, ...run(2)], closed: false };
     case 'island':
-      return { modules: [...run(2), corner, ...run(2), corner, ...run(2), corner, ...run(2), corner], closed: true };
+      // Three sides of two 5ft sections. The back has two 4ft sections with a
+      // gap between them, which is the way in (Jake, 11 Nov 2026). The path
+      // starts and ends at that gap.
+      return {
+        modules: [ISLAND_BACK, corner, ...run(2), corner, ...run(2), corner, ...run(2), corner, ISLAND_BACK],
+        closed: false,
+      };
     case 'curved':
       return { modules: Array.from({ length: bar.sections }, () => ({ kind: 'curve', degrees: 45 }) as BarModule), closed: false };
     case 'round':

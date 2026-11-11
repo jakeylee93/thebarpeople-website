@@ -1,10 +1,10 @@
 // The two finishes that need more than a flat colour to look real.
 //
-// Mirror: a real mirror shows what is around it, and because each panel of a
-// bar faces a slightly different way, the reflection jumps at every joint.
-// That jump, a horizon and the ground reflected below it are what make a
-// mirror read as a mirror. So each panel shows the same surroundings (a
-// garden, from a real photo), shifted by the way that panel faces.
+// Mirror: polished silver. It shows no scene (Jake, 11 Nov 2026: it should
+// look like a shiny mirror, not a reflection of a field). What makes it read
+// as mirror is a bright band of light high on the glass, a darker band where
+// the floor would be, soft diagonal glints, and the light falling in a
+// different place on each panel because each faces a different way.
 //
 // Shimmer: a sequin wall. Round mirror discs about 3cm across hang in rows on
 // a black backing. Each disc catches the light at its own angle, so some are
@@ -12,9 +12,6 @@
 //
 // Everything is in flat panel space, in centimetres. All random choices come
 // from a fixed seed, so the server and the browser draw the same picture.
-
-/** Height of a bar's front panel, cm (1.1m counter less the 4.5cm top). */
-const PANEL_HEIGHT = 105.5;
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -32,61 +29,59 @@ function seeded(seed: number) {
 
 // ─── Mirror ──────────────────────────────────────────────────────────────────
 
-/**
- * What the mirror shows: a garden, made from The Bar People's own lawn photo
- * (sky and willow trees above, lawn below), followed by its mirror image so it
- * repeats without a seam. 1440cm wide; 2cm of it per degree of turn.
- */
-const ENV_IMAGE = '/images/new-home/mirror-surroundings.jpg';
-const ENV_PERIOD = 1440;
-
 export function MirrorDefs({ id }: { id: (name: string) => string }) {
   return (
     <>
-      {/* The same surroundings as a fill, for mirror letters. */}
-      <pattern id={id('m-env')} width={ENV_PERIOD} height={PANEL_HEIGHT} patternUnits="userSpaceOnUse" x={-180}>
-        <image href={ENV_IMAGE} width={ENV_PERIOD} height={PANEL_HEIGHT} preserveAspectRatio="none" />
-      </pattern>
-      {/* A slightly cool, slightly dark glass, brightest across the middle. */}
-      <linearGradient id={id('m-glass')} x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stopColor="#1d2a36" stopOpacity="0.16" />
-        <stop offset="0.5" stopColor="#1d2a36" stopOpacity="0.02" />
-        <stop offset="1" stopColor="#1d2a36" stopOpacity="0.18" />
+      {/* Top to bottom: bright sky-light, a soft horizon, the darker floor, a lift at the foot. */}
+      <linearGradient id={id('m-silver')} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#f7f9fa" />
+        <stop offset="0.3" stopColor="#dfe4e8" />
+        <stop offset="0.47" stopColor="#c2c9cf" />
+        <stop offset="0.5" stopColor="#8f989f" />
+        <stop offset="0.56" stopColor="#a4acb3" />
+        <stop offset="0.9" stopColor="#ccd2d7" />
+        <stop offset="1" stopColor="#aab1b8" />
+      </linearGradient>
+      {/* The same silver as a fill for mirror letters. */}
+      <linearGradient id={id('m-env')} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#f7f9fa" />
+        <stop offset="0.45" stopColor="#c6cdd3" />
+        <stop offset="0.5" stopColor="#8f989f" />
+        <stop offset="0.6" stopColor="#aab2b9" />
+        <stop offset="1" stopColor="#d5dade" />
       </linearGradient>
       <linearGradient id={id('m-streak')} x1="0" y1="0" x2="1" y2="0">
         <stop offset="0" stopColor="#fff" stopOpacity="0" />
-        <stop offset="0.5" stopColor="#fff" stopOpacity="0.55" />
+        <stop offset="0.5" stopColor="#fff" stopOpacity="0.9" />
         <stop offset="1" stopColor="#fff" stopOpacity="0" />
+      </linearGradient>
+      <linearGradient id={id('m-shade')} x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stopColor="#27323c" stopOpacity="0.2" />
+        <stop offset="0.5" stopColor="#27323c" stopOpacity="0" />
+        <stop offset="1" stopColor="#27323c" stopOpacity="0.16" />
       </linearGradient>
     </>
   );
 }
 
-/** One copy of the surroundings. */
-function Surroundings({ x, height }: { x: number; height: number }) {
-  return <image href={ENV_IMAGE} x={x} y={0} width={ENV_PERIOD} height={height} preserveAspectRatio="none" />;
-}
-
 /**
  * A mirror panel's face, in flat panel space. `turn` is the way this part of
- * the panel faces (degrees); a turned mirror swings its reflection twice as far.
+ * the panel faces (degrees): it moves the glints, so no two panels match.
  */
 export function MirrorFace({ id, width, height, turn }: { id: (name: string) => string; width: number; height: number; turn: number }) {
-  const shift = (((turn * 2 * 2) % ENV_PERIOD) + ENV_PERIOD) % ENV_PERIOD;
-  const streakAt = width * (0.2 + ((((turn + 90) * 7) % 60) + 60) % 60 / 100);
+  const at = (((turn + 90) * 7) % 55 + 55) % 55 / 100;
+  const wide = width * (0.18 + at);
+  const thin = width * (0.62 + at * 0.4);
+  const lean = height * 0.42;
   return (
     <g>
-      <rect width={width} height={height} fill="#c9cfd5" />
-      {/* Enough copies to cover any panel after the shift. */}
-      <Surroundings x={-shift} height={height} />
-      <Surroundings x={ENV_PERIOD - shift} height={height} />
-      {/* The dark line where the bar meets the floor, seen in the glass. */}
-      <rect y={height - 3} width={width} height={3} fill="#3f474e" opacity="0.7" />
-      <rect width={width} height={height} fill={`url(#${id('m-glass')})`} />
-      {/* A soft reflection of a light across the glass; where it falls depends on the way the panel faces. */}
-      <polygon points={`${streakAt},0 ${streakAt + 14},0 ${streakAt - 6},${height} ${streakAt - 20},${height}`} fill={`url(#${id('m-streak')})`} opacity="0.32" />
+      <rect width={width} height={height} fill={`url(#${id('m-silver')})`} />
+      <rect width={width} height={height} fill={`url(#${id('m-shade')})`} />
+      {/* Glints: one broad, one narrow, leaning the same way. */}
+      <polygon points={`${wide},0 ${wide + width * 0.2},0 ${wide + width * 0.2 - lean},${height} ${wide - lean},${height}`} fill={`url(#${id('m-streak')})`} opacity="0.55" />
+      <polygon points={`${thin},0 ${thin + width * 0.06},0 ${thin + width * 0.06 - lean},${height} ${thin - lean},${height}`} fill={`url(#${id('m-streak')})`} opacity="0.5" />
       {/* The polished edge of the glass. */}
-      <rect x={0.4} y={0.4} width={width - 0.8} height={height - 0.8} fill="none" stroke="#ffffff" strokeOpacity="0.5" strokeWidth="0.8" />
+      <rect x={0.4} y={0.4} width={width - 0.8} height={height - 0.8} fill="none" stroke="#ffffff" strokeOpacity="0.65" strokeWidth="0.9" />
     </g>
   );
 }
@@ -190,4 +185,3 @@ export function ShimmerFace({ id, width, height, index }: { id: (name: string) =
   );
 }
 
-export { PANEL_HEIGHT };
