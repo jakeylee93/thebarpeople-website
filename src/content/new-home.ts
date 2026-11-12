@@ -375,9 +375,20 @@ export function homeSeed(home: HomeContent = BUNDLED_HOME): SiteContent {
 const str = (v: FieldValue | undefined): string => (typeof v === 'string' ? v : typeof v === 'number' ? String(v) : '');
 const num = (v: FieldValue | undefined): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const rows = (v: FieldValue | undefined): ListRow[] => (Array.isArray(v) ? v : []);
+/**
+ * Where a picture may come from: this site's own files, or AnyVendor's public
+ * media bucket (the one host next.config.ts lets the image optimiser fetch).
+ * A picture from anywhere else is treated as missing, so it can never break the page.
+ */
+export const MEDIA_BUCKET = 'https://rsqgsnfyusqhtgcwbddc.supabase.co/storage/v1/object/public/website-media/';
+export const pictureSrc = (v: unknown): string => {
+  const url = safeUrl(v);
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  return url.startsWith(MEDIA_BUCKET) && !/[?#\\]|\.\./.test(url.slice(MEDIA_BUCKET.length)) ? url : '';
+};
 const pic = (v: FieldValue | undefined): ImageValue => {
   const o = v as ImageValue | undefined;
-  return o && typeof o === 'object' && 'src' in o ? { src: safeUrl(o.src), alt: typeof o.alt === 'string' ? o.alt : '' } : { src: '', alt: '' };
+  return o && typeof o === 'object' && 'src' in o ? { src: pictureSrc(o.src), alt: typeof o.alt === 'string' ? o.alt : '' } : { src: '', alt: '' };
 };
 const lnk = (v: FieldValue | undefined): LinkValue => {
   const o = v as LinkValue | undefined;

@@ -1,6 +1,6 @@
 # The Bar People × AnyVendor — current-site packet
 
-For the AnyVendor owner. From the Bar People site owner, 11 November 2026.
+For the AnyVendor owner. From the Bar People site owner, 11 November 2026, updated 12 November.
 Site repository `jakeylee93/thebarpeople-website`, branch `claude/loving-mendel-to07v2`.
 
 This packet covers the **commissioned homepage (`/new`)** and its draft page (`/preview`), on
@@ -95,31 +95,28 @@ photo cards in Team and Gallery. Plus chapters.
 - Availability, enquiries, quotes, catalogue ids, party numbers: the existing anyOS contracts,
   untouched. This work sends nothing to them.
 
-## 5. One content owner
+## 5. One content owner (agreed 12 November 2026)
 
 | Surface | Owner | Editor |
 |---|---|---|
 | `/new` and `/preview` (the commissioned homepage) | **AnyVendor** | AnyVendor editor, sections in part 3 |
-| The current live pages (`/`, `/services`, `/about`, …) | **anyOS live-edit**, as today | `edit.js`, the 17 `data-anyos` keys |
+| The current live pages (`/`, `/services`, `/about`, …) | **anyOS live-edit**, its 17 keys only | `edit.js`, `data-anyos` hooks |
 
-There is no field both can write:
+No field has two writers, and this is enforced in code:
 
-- `/new` and `/preview` carry no `data-anyos` hooks, and the live pages carry no `data-av-field` hooks.
-- `/preview` does not load the anyOS script at all. Every other page loads it exactly as before.
-- The older manifest sections (`home_hero`, `services_intro`, `cta`, …) still mirror the 17 anyOS
-  strings. They are in the seed so nothing is lost, but **the live pages do not read AnyVendor yet**.
-  Editing them in AnyVendor changes nothing on the site until a separate, agreed switchover.
+- `/new` and `/preview` carry no `data-anyos` hooks and **do not load the anyOS script**. Every current
+  page loads it exactly as before.
+- The current pages carry no `data-av-field` hooks and never load the bridge.
+- The older manifest sections (`home_hero`, `services_intro`, `cta`, …) mirror the 17 anyOS strings so
+  nothing is lost, but **the current pages do not read AnyVendor**. Editing them in AnyVendor changes
+  nothing on the site. Suggest the editor hides or labels them until a separate, agreed switchover.
 
-Overlaps to settle before `/new` goes live (no action taken):
+This is the editor for the commissioned site. It is not a cutover: the customer domain still serves
+the current pages, and replacing `/` with `/new` is a separate decision with its own scope.
 
-1. `/new` still loads the anyOS script (it finds nothing to edit there). Suggest dropping it from `/new`
-   when `/new` becomes the homepage.
-2. Contacts: `/new` uses `nh_footer.contacts` (Jake only). The older `business.contacts` still lists
-   Kim, for the current live pages.
-3. `nh_gallery` and `nh_corporate.logos` do the same job as the older `gallery` and `brands` sections.
-4. When `/new` replaces `/`, the 17 anyOS keys and the older sections retire together.
-
-**Please confirm AnyVendor as the owner of the `/new` content before `ANYVENDOR_EDITOR_ORIGINS` is set.**
+Known duplicates, harmless today, retired at cutover: `business.contacts` (still lists Kim, current
+pages) against `nh_footer.contacts` (Jake only, `/new`); `gallery` and `brands` against `nh_gallery` and
+`nh_corporate.logos`.
 
 ## 6. The editor bridge on this site
 
@@ -144,12 +141,12 @@ Overlaps to settle before `/new` goes live (no action taken):
   `Cache-Control: private, no-store, max-age=0`, `Referrer-Policy: no-referrer`,
   `X-Robots-Tag: noindex, nofollow, noarchive`; also `noindex` and `no-referrer` in the page, and
   `/preview` is disallowed in `robots.txt`. No other page's headers changed.
-- No third-party script and no request to any other host. The token is in the address only: it is
+- No third-party script and no request to any other host (the anyOS script is not loaded on `/new` or `/preview`). The token is in the address only: it is
   never put in a message, a prop or a link. `/new?preview=<token>` redirects to `/preview`.
 
 ## 7. What was checked (cloud, 11 November 2026)
 
-- `pnpm test`: 110 pass. Includes your script run against a stand-in page (origin, source, slug,
+- `pnpm test`: 111 pass. Includes your script run against a stand-in page (origin, source, slug,
   schema and nonce rejection; text never HTML; picture addresses re-checked; cleaned chapter list;
   no token in any message), every page mark checked against the manifest, the strict draft read, the
   origin allow-list and the `/preview` headers.
@@ -164,14 +161,35 @@ Overlaps to settle before `/new` goes live (no action taken):
 **Not yet run:** the real round trip against `platform.anyvendor.co.uk` and `anyvendor.co.uk`. It needs
 the binding and the settings in part 2.
 
-## 8. For the platform owner to do
+## 8. Outstanding limits on the site side (precise)
+
+None of these blocks editing, saving, publishing or the preview. Each is a place where a change shows
+after Save draft and reload instead of while typing, or a rule the editor should know.
+
+| # | Limit | Cause | Effect |
+|---|---|---|---|
+| 1 | Films and clips are not live | Bridge `set` carries text or `{src, alt}` for an `<img>` only; these are `<video>` and their fields are `text` paths | `nh_hero.slides.*.video_file`, `phone_video_file`, `nh_team.cards.*.video_file`, `nh_gallery.cards.*.video_file` show after save |
+| 2 | `link`, `number`, `select`, `boolean` fields are not live | Protocol sends no live value for them | Follow link, emails, phones, socials, logo ratio, film seconds, photo or video kind show after save |
+| 3 | Photo framing is not live | The `focus_*` fields set a CSS position, not text on the page | Shows after save |
+| 4 | Christmas snapshot sets are not marked | The prints shuffle under React state; a live swap would be overwritten | `nh_christmas.prints_left/right` show after save |
+| 5 | The header still (film poster) is not marked | The header is a `<video>` while a film is the slide | `nh_hero.slides.*.picture` is live only for photo slides |
+| 6 | "How it works" pop-up | Its content is built when opened | An unsaved edit made while it is closed shows after save; edits made while open are live |
+| 7 | New list rows are not live | A row added in the editor has no element until the server renders it | Added steps, points, cards and logos show after save; existing rows are live |
+| 8 | A list with a skipped row loses its marks for that page load | The page skips unusable rows (empty step, card with no photo), which would shift row numbers | That list shows after save until the row is fixed |
+| 9 | **Pictures must be site files or in the `website-media` bucket** (`rsqgsnfyusqhtgcwbddc.supabase.co/storage/v1/object/public/website-media/`) | The image optimiser only fetches that bucket | A picture saved from any other host is treated as missing (falls back or is skipped). **Please confirm this is the bucket the editor uploads to**; if not, tell me the host and I will add it |
+| 10 | Published changes can take up to about 2 minutes | 60 s cache here plus your `stale-while-revalidate` | Instant once the revalidate secret and URL are set |
+| 11 | The frame header is fixed at build | `frame-ancestors` is written when the site is built | Setting `ANYVENDOR_EDITOR_ORIGINS` needs a redeploy |
+| 12 | `ready.chapters` lists all seven chapters | Hidden and removed chapters are rendered (hidden) in edit mode so they can return live | Tell me if the editor needs only the listed ones |
+
+Two things I could not verify from the handoff and need from the platform side: that the editor treats
+`page.chapters` on this manifest as the chapter list, and limit 12.
+
+## 9. For the platform owner to do
 
 1. Store the manifest and seed for `the-bar-people` (`bespoke`), with the site address in part 1.
-2. Confirm the content owner (part 5).
-3. Confirm the editor recognises `page.chapters` on this manifest, and that reporting all seven
-   chapters in `ready` (hidden ones included) is acceptable.
-4. Then Jake sets the three settings in part 2 on the Vercel project and redeploys. Remove any testing
-   alias from `ANYVENDOR_EDITOR_ORIGINS` before go-live.
+2. Confirm the three compatibility points: `page.chapters`, all seven chapters in `ready`, the media bucket.
+3. Then the three settings in part 2 are set on the Vercel project and it is redeployed. Remove any
+   testing alias from `ANYVENDOR_EDITOR_ORIGINS` before go-live.
 
 Recorded, not started here: newer Instagram posts and films for the gallery and header, staff photos,
 drink brand logos, real Christmas party photos, marquee prices from Tom.

@@ -12,7 +12,7 @@ import { MEDIA } from './media.ts';
 import { anyVendorConfig, editorOrigins, fetchSiteV1 } from './anyvendor.ts';
 import { getDraftContent, mergeRemote } from './index.ts';
 import { focusOf, openingView, quoteView } from './views.ts';
-import { BUNDLED_HOME, MARKED_LIST_KEYS, MOVABLE_SECTIONS, NEW_HOME_SECTION_KEYS, homeSeed, homeView, shiftedLists } from './new-home.ts';
+import { BUNDLED_HOME, MARKED_LIST_KEYS, MOVABLE_SECTIONS, NEW_HOME_SECTION_KEYS, homeSeed, homeView, pictureSrc, shiftedLists, MEDIA_BUCKET } from './new-home.ts';
 import { createHash } from 'node:crypto';
 import { PRICES } from '../lib/quote/prices.ts';
 import { bars, brandLogos, brands, eventTypes, galleryImages, navLinks, services, testimonials } from '../lib/constants.ts';
@@ -390,7 +390,7 @@ test("editor link: AnyVendor's bridge script is installed unchanged, and only th
   assert.doesNotMatch(preview, /token=\{|token\}/);
   // The anyOS live-edit script is not on the draft page; it is still on every other page.
   const anyos = readFileSync('src/components/AnyOsLiveEdit.tsx', 'utf8');
-  assert.match(anyos, /path === '\/preview'/);
+  assert.match(anyos, /\(new\|preview\)/);
   assert.match(anyos, /platform\.anyos\.co\.uk\/edit\.js/);
   assert.match(readFileSync('src/app/layout.tsx', 'utf8'), /<AnyOsLiveEdit \/>/);
 });
@@ -438,4 +438,23 @@ test('draft page headers: framed by listed editor origins only, never cached, in
   assert.equal(h['Referrer-Policy'], 'no-referrer');
   assert.match(h['X-Robots-Tag'], /noindex/);
   assert.equal(rules[0].headers.some((x) => x.key.toLowerCase() === 'x-frame-options'), false);
+});
+
+test('pictures: only this site\'s files or AnyVendor\'s media bucket; anything else is treated as missing', () => {
+  const ok = `${MEDIA_BUCKET}the-bar-people/hero.jpg`;
+  assert.equal(pictureSrc(ok), ok);
+  assert.equal(pictureSrc('/images/new-home/christmas.jpg'), '/images/new-home/christmas.jpg');
+  for (const bad of ['https://example.com/a.jpg', 'https://rsqgsnfyusqhtgcwbddc.supabase.co/storage/v1/object/public/other/a.jpg', `${MEDIA_BUCKET}../secret.jpg`,
+    `${MEDIA_BUCKET}a.jpg?x=1`, '//evil.example/a.jpg', 'http://x/a.jpg', 'data:image/png;base64,AA', '']) assert.equal(pictureSrc(bad), '', bad);
+  // The optimiser's allow-list (next.config.ts) is the same bucket.
+  const cfg = readFileSync('next.config.ts', 'utf8');
+  const u = new URL(MEDIA_BUCKET);
+  assert.ok(cfg.includes(`hostname: "${u.hostname}"`) && cfg.includes(`pathname: "${u.pathname}**"`));
+  // A draft with a picture hosted elsewhere still renders: that picture falls back or is skipped.
+  const draft = clone(C);
+  draft.nh_christmas.picture = { src: 'https://example.com/a.jpg', alt: 'x' };
+  (draft.nh_gallery.cards as Record<string, FieldValue>[])[0].picture = { src: 'https://example.com/b.jpg', alt: 'x' };
+  const h = homeView(mergeRemote(TBP_MANIFEST, draft, C));
+  assert.deepEqual(h.christmas.image, BUNDLED_HOME.christmas.image);
+  assert.equal(h.gallery.cards.length, BUNDLED_HOME.gallery.cards.length - 1);
 });
