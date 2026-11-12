@@ -431,13 +431,19 @@ test('draft page headers: framed by listed editor origins only, never cached, in
   const config = (await import('../../next.config.ts')).default;
   delete process.env.ANYVENDOR_EDITOR_ORIGINS;
   const rules = await config.headers!();
-  assert.deepEqual(rules.map((r) => r.source), ['/preview'], 'no other page is made frameable');
-  const h = Object.fromEntries(rules[0].headers.map((x) => [x.key, x.value]));
-  assert.equal(h['Content-Security-Policy'], "frame-ancestors 'self' https://platform.anyvendor.co.uk");
-  assert.match(h['Cache-Control'], /no-store/);
-  assert.equal(h['Referrer-Policy'], 'no-referrer');
-  assert.match(h['X-Robots-Tag'], /noindex/);
-  assert.equal(rules[0].headers.some((x) => x.key.toLowerCase() === 'x-frame-options'), false);
+  assert.deepEqual(rules.map((r) => r.source), ['/preview', '/new/preview'], 'no other page is made frameable');
+  for (const rule of rules) {
+    const h = Object.fromEntries(rule.headers.map((x) => [x.key, x.value]));
+    assert.equal(h['Content-Security-Policy'], "frame-ancestors 'self' https://platform.anyvendor.co.uk", rule.source);
+    assert.match(h['Cache-Control'], /no-store/);
+    assert.equal(h['Referrer-Policy'], 'no-referrer');
+    assert.match(h['X-Robots-Tag'], /noindex/);
+    assert.equal(rule.headers.some((x) => x.key.toLowerCase() === 'x-frame-options'), false);
+  }
+  // /new/preview is the same page module as /preview, not a copy and not a redirect.
+  const alias = readFileSync('src/app/new/preview/page.tsx', 'utf8').split('\n').filter((l) => !l.startsWith('//') && l.trim());
+  assert.deepEqual(alias, ["export const dynamic = 'force-dynamic';", "export { default } from '../../preview/page';"]);
+  assert.match(readFileSync('src/app/new/preview/layout.tsx', 'utf8'), /referrer: 'no-referrer'/);
 });
 
 test('pictures: only this site\'s files or AnyVendor\'s media bucket; anything else is treated as missing', () => {

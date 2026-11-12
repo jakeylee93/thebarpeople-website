@@ -9,17 +9,16 @@ const editorOrigins = [...new Set((process.env.ANYVENDOR_EDITOR_ORIGINS ?? "").s
 
 const nextConfig: NextConfig = {
   async headers() {
+    // The draft page, at both of its addresses: its address carries a draft token.
+    const draftHeaders = [
+      { key: "Content-Security-Policy", value: ["frame-ancestors 'self'", ...editorOrigins].join(" ") },
+      { key: "Cache-Control", value: "private, no-store, max-age=0" },
+      { key: "Referrer-Policy", value: "no-referrer" },
+      { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+    ];
     return [
-      {
-        // The draft page: its address carries a draft token.
-        source: "/preview",
-        headers: [
-          { key: "Content-Security-Policy", value: ["frame-ancestors 'self'", ...editorOrigins].join(" ") },
-          { key: "Cache-Control", value: "private, no-store, max-age=0" },
-          { key: "Referrer-Policy", value: "no-referrer" },
-          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
-        ],
-      },
+      { source: "/preview", headers: draftHeaders },
+      { source: "/new/preview", headers: draftHeaders },
     ];
   },
   images: {

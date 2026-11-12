@@ -23,7 +23,9 @@ Both are generated from the code with `pnpm content:export`; a test fails if eit
 - Site address (testing): `https://thebarpeople-website-git-claude-loving-mendel-to07v2-anyos.vercel.app`
   (the branch preview; it answers without a Vercel login).
 - Public page: `{site address}/new`
-- Draft frame: `{site address}/preview?token=<token>&av_edit=1` (your standard form).
+- **Bind this address:** `{site address}/new`. The editor appends `/preview`, so the draft frame is
+  `{site address}/new/preview?token=<token>&av_edit=1`. `/preview?token=…` at the root is the same page
+  and still works.
 - Revalidate (optional): `{site address}/api/revalidate`, `POST`, `Authorization: Bearer <secret>`,
   body `{"slug":"the-bar-people","revision":"…"}`. It answers 404 until the secret is set here.
 
@@ -133,16 +135,16 @@ pages) against `nh_footer.contacts` (Jake only, `/new`); `gallery` and `brands` 
 - Forms: the capture-phase submit cancel is enough. The quote builder makes no network request
   (the PDF is built in the browser), so no enquiry can leave an editing session.
 
-`/preview` itself:
+The draft page (`/new/preview` and `/preview`: one page module at two addresses, identical handling):
 
 - A missing, malformed or wrong token is a **404**. It never falls back to published or bundled
   content. A malformed token is not sent to AnyVendor.
 - Headers: `Content-Security-Policy: frame-ancestors 'self' <editor origins>`,
   `Cache-Control: private, no-store, max-age=0`, `Referrer-Policy: no-referrer`,
   `X-Robots-Tag: noindex, nofollow, noarchive`; also `noindex` and `no-referrer` in the page, and
-  `/preview` is disallowed in `robots.txt`. No other page's headers changed.
+  both addresses are disallowed in `robots.txt`. No other page's headers changed.
 - No third-party script and no request to any other host (the anyOS script is not loaded on `/new` or `/preview`). The token is in the address only: it is
-  never put in a message, a prop or a link. `/new?preview=<token>` redirects to `/preview`.
+  never put in a message, a prop or a link. `/new/preview` is served directly, not by a redirect.
 
 ## 7. What was checked (cloud, 11 November 2026)
 
@@ -181,15 +183,15 @@ after Save draft and reload instead of while typing, or a rule the editor should
 | 11 | The frame header is fixed at build | `frame-ancestors` is written when the site is built | Setting `ANYVENDOR_EDITOR_ORIGINS` needs a redeploy |
 | 12 | `ready.chapters` lists all seven chapters | Hidden and removed chapters are rendered (hidden) in edit mode so they can return live | Tell me if the editor needs only the listed ones |
 
-Two things I could not verify from the handoff and need from the platform side: that the editor treats
-`page.chapters` on this manifest as the chapter list, and limit 12.
+Confirmed by the platform owner against the real parent, 12 November 2026: `page.chapters` matches the
+editor's chapter shape; all seven chapters in `ready` (hidden included) are accepted; the 104 marked
+fields are valid; uploads go to the `website-media` bucket in limit 9. Limits 9 and 12 need no change.
 
-## 9. For the platform owner to do
+## 9. What is left
 
-1. Store the manifest and seed for `the-bar-people` (`bespoke`), with the site address in part 1.
-2. Confirm the three compatibility points: `page.chapters`, all seven chapters in `ready`, the media bucket.
-3. Then the three settings in part 2 are set on the Vercel project and it is redeployed. Remove any
-   testing alias from `ANYVENDOR_EDITOR_ORIGINS` before go-live.
+1. Bind `the-bar-people` (`bespoke`) to `{site address}/new` with the manifest and seed in part 1.
+2. Set the three settings in part 2 on the Vercel project and redeploy (the configured-origin action).
+3. Run the real round trip (your acceptance checklist) against the bound site.
 
 Recorded, not started here: newer Instagram posts and films for the gallery and header, staff photos,
 drink brand logos, real Christmas party photos, marquee prices from Tom.
